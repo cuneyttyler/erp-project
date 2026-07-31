@@ -14,7 +14,9 @@
     "items": "Ürün Kataloğu",
     "warehouses": "Depolar",
     "stockLevels": "Stok Durumu",
-    "purchaseOrders": "Satın Alma Siparişleri"
+    "purchaseOrders": "Satın Alma Siparişleri",
+    "leads": "Potansiyel Müşteriler",
+    "salesOrders": "Satış Siparişleri"
   },
   "aiPanel": {
     "title": "AI Asistanı",

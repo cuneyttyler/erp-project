@@ -58,6 +58,18 @@ class StockLevelTests(TenantTestCase):
         with self.assertRaises(ValueError):
             services.record_receipt(self.item, self.wh_a, Decimal("0.00"), "x")
 
+    def test_record_pick_decreases_stock_on_hand(self):
+        services.record_receipt(self.item, self.wh_a, Decimal("50.00"), "seed")
+        services.record_pick(self.item, self.wh_a, Decimal("20.00"), "so-1")
+        self.assertEqual(services.get_quantity_on_hand(self.item, self.wh_a), Decimal("30.00"))
+
+    def test_get_quantity_on_hand_defaults_to_zero(self):
+        self.assertEqual(services.get_quantity_on_hand(self.item, self.wh_a), Decimal("0"))
+
+    def test_record_pick_rejects_non_positive_quantity(self):
+        with self.assertRaises(ValueError):
+            services.record_pick(self.item, self.wh_a, Decimal("0.00"), "x")
+
 
 class PackageGatingTests(TenantTestCase):
     def setUp(self):

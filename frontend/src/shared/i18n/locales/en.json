@@ -14,7 +14,9 @@
     "items": "Item Catalog",
     "warehouses": "Warehouses",
     "stockLevels": "Stock Levels",
-    "purchaseOrders": "Purchase Orders"
+    "purchaseOrders": "Purchase Orders",
+    "leads": "Leads",
+    "salesOrders": "Sales Orders"
   },
   "aiPanel": {
     "title": "AI Assistant",

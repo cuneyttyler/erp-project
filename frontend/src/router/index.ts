@@ -13,6 +13,8 @@ import TrialBalanceView from '@/core/views/TrialBalanceView.vue'
 import StockLevelsView from '@/modules/inventory/views/StockLevelsView.vue'
 import WarehousesView from '@/modules/inventory/views/WarehousesView.vue'
 import PurchaseOrdersView from '@/modules/purchasing/views/PurchaseOrdersView.vue'
+import LeadsView from '@/modules/sales_crm/views/LeadsView.vue'
+import SalesOrdersView from '@/modules/sales_crm/views/SalesOrdersView.vue'
 import { useAuthStore } from '@/shared/stores/auth'
 import { useTenantStore } from '@/shared/stores/tenant'
 
@@ -54,6 +56,18 @@ export const router = createRouter({
       name: 'purchase-orders',
       component: PurchaseOrdersView,
       meta: { requiresPackage: 'purchasing' },
+    },
+    {
+      path: '/leads',
+      name: 'leads',
+      component: LeadsView,
+      meta: { requiresPackage: 'sales_crm' },
+    },
+    {
+      path: '/sales-orders',
+      name: 'sales-orders',
+      component: SalesOrdersView,
+      meta: { requiresPackage: 'sales_crm' },
     },
   ],
 })

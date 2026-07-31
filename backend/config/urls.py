@@ -13,5 +13,6 @@ urlpatterns = [
     path("api/v1/core/", include("apps.core.urls")),
     path("api/v1/inventory/", include("apps.inventory.urls")),
     path("api/v1/purchasing/", include("apps.purchasing.urls")),
+    path("api/v1/sales-crm/", include("apps.sales_crm.urls")),
     # Further package API routes are mounted here as each app lands (technical.md §6).
 ]
