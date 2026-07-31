@@ -1,0 +1,22 @@
+{
+  "app": {
+    "name": "AI-Native ERP"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "accounts": "Chart of Accounts",
+    "journalEntries": "Journal Entries",
+    "trialBalance": "Trial Balance"
+  },
+  "aiPanel": {
+    "title": "AI Assistant",
+    "placeholder": "Ask a question or request an action...",
+    "send": "Send",
+    "confirmAction": "Confirmation Required",
+    "empty": "Ask about anything across your active modules."
+  },
+  "auth": {
+    "login": "Log In",
+    "logout": "Log Out"
+  }
+}

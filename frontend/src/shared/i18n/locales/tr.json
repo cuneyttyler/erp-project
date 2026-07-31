@@ -1,0 +1,22 @@
+{
+  "app": {
+    "name": "AI-Native ERP"
+  },
+  "nav": {
+    "dashboard": "Panel",
+    "accounts": "Hesap Planı",
+    "journalEntries": "Yevmiye Kayıtları",
+    "trialBalance": "Mizan"
+  },
+  "aiPanel": {
+    "title": "AI Asistanı",
+    "placeholder": "Bir soru sorun veya bir işlem isteyin...",
+    "send": "Gönder",
+    "confirmAction": "Onay Gerekiyor",
+    "empty": "Herhangi bir modül hakkında soru sorabilirsiniz."
+  },
+  "auth": {
+    "login": "Giriş Yap",
+    "logout": "Çıkış Yap"
+  }
+}

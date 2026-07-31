@@ -1,0 +1,38 @@
+# --- Python / Django ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+*.sqlite3
+staticfiles/
+media/
+backend/.env
+
+# --- Node / Vue ---
+node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+*.local
+
+# --- Editors / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.~lock.*#
+
+# --- Docker / infra ---
+infra/**/*.log
+*.pem
+
+# --- Migration agent build artifacts ---
+migration-agent/build/
+migration-agent/dist/
+
+# --- Env files (never commit secrets) ---
+.env
+.env.*
+!.env.example
