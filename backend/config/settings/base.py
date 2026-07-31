@@ -49,6 +49,7 @@ TENANT_APPS = [
     "apps.purchasing",
     "apps.sales_crm",
     "apps.manufacturing",
+    "apps.hr_payroll",
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [

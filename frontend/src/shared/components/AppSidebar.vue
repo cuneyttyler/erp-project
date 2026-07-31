@@ -3,6 +3,7 @@ import {
   ArchiveBoxIcon,
   BanknotesIcon,
   BookOpenIcon,
+  CalendarDaysIcon,
   ChartBarIcon,
   ChevronDoubleLeftIcon,
   ChevronDoubleRightIcon,
@@ -10,12 +11,14 @@ import {
   ClockIcon,
   CogIcon,
   CubeIcon,
+  CurrencyDollarIcon,
   DocumentTextIcon,
   HomeIcon,
   ReceiptRefundIcon,
   ScaleIcon,
   ShoppingCartIcon,
   TruckIcon,
+  UserGroupIcon,
   UserPlusIcon,
   UsersIcon,
 } from '@heroicons/vue/24/outline'
@@ -65,6 +68,9 @@ const navItems: NavItem[] = [
   { to: '/sales-orders', labelKey: 'nav.salesOrders', icon: TruckIcon, package: 'sales_crm' },
   { to: '/boms', labelKey: 'nav.boms', icon: ClipboardDocumentListIcon, package: 'manufacturing' },
   { to: '/work-orders', labelKey: 'nav.workOrders', icon: CogIcon, package: 'manufacturing' },
+  { to: '/employees', labelKey: 'nav.employees', icon: UserGroupIcon, package: 'hr_payroll' },
+  { to: '/leave-requests', labelKey: 'nav.leaveRequests', icon: CalendarDaysIcon, package: 'hr_payroll' },
+  { to: '/payroll-runs', labelKey: 'nav.payrollRuns', icon: CurrencyDollarIcon, package: 'hr_payroll' },
 ]
 
 function visible(item: NavItem) {

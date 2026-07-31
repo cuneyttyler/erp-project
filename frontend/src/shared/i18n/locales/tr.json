@@ -18,7 +18,10 @@
     "leads": "Potansiyel Müşteriler",
     "salesOrders": "Satış Siparişleri",
     "boms": "Ürün Reçeteleri",
-    "workOrders": "İş Emirleri"
+    "workOrders": "İş Emirleri",
+    "employees": "Çalışanlar",
+    "leaveRequests": "İzin Talepleri",
+    "payrollRuns": "Bordro Dönemleri"
   },
   "aiPanel": {
     "title": "AI Asistanı",

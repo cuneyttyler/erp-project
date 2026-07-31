@@ -12,6 +12,9 @@ import PartiesView from '@/core/views/PartiesView.vue'
 import TrialBalanceView from '@/core/views/TrialBalanceView.vue'
 import StockLevelsView from '@/modules/inventory/views/StockLevelsView.vue'
 import WarehousesView from '@/modules/inventory/views/WarehousesView.vue'
+import EmployeesView from '@/modules/hr_payroll/views/EmployeesView.vue'
+import LeaveRequestsView from '@/modules/hr_payroll/views/LeaveRequestsView.vue'
+import PayrollRunsView from '@/modules/hr_payroll/views/PayrollRunsView.vue'
 import BOMsView from '@/modules/manufacturing/views/BOMsView.vue'
 import WorkOrdersView from '@/modules/manufacturing/views/WorkOrdersView.vue'
 import PurchaseOrdersView from '@/modules/purchasing/views/PurchaseOrdersView.vue'
@@ -82,6 +85,24 @@ export const router = createRouter({
       name: 'work-orders',
       component: WorkOrdersView,
       meta: { requiresPackage: 'manufacturing' },
+    },
+    {
+      path: '/employees',
+      name: 'employees',
+      component: EmployeesView,
+      meta: { requiresPackage: 'hr_payroll' },
+    },
+    {
+      path: '/leave-requests',
+      name: 'leave-requests',
+      component: LeaveRequestsView,
+      meta: { requiresPackage: 'hr_payroll' },
+    },
+    {
+      path: '/payroll-runs',
+      name: 'payroll-runs',
+      component: PayrollRunsView,
+      meta: { requiresPackage: 'hr_payroll' },
     },
   ],
 })

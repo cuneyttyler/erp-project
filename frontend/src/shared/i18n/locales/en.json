@@ -18,7 +18,10 @@
     "leads": "Leads",
     "salesOrders": "Sales Orders",
     "boms": "Bills of Materials",
-    "workOrders": "Work Orders"
+    "workOrders": "Work Orders",
+    "employees": "Employees",
+    "leaveRequests": "Leave Requests",
+    "payrollRuns": "Payroll Runs"
   },
   "aiPanel": {
     "title": "AI Assistant",
