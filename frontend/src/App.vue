@@ -21,9 +21,9 @@ async function logout() {
 </script>
 
 <template>
-  <div class="flex h-full flex-col">
+  <div class="flex h-full flex-col bg-white dark:bg-neutral-950">
     <header
-      class="flex items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-neutral-800"
+      class="flex items-center justify-between border-b border-neutral-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900"
     >
       <div class="flex items-center gap-6">
         <span class="font-semibold text-neutral-900 dark:text-neutral-100">{{ t('app.name') }}</span>
@@ -63,7 +63,7 @@ async function logout() {
       </div>
     </header>
 
-    <main class="flex-1 overflow-y-auto">
+    <main class="flex-1 overflow-y-auto bg-neutral-50 dark:bg-neutral-950">
       <RouterView />
     </main>
 

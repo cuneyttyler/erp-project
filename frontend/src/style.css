@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
+/*
+ * Explicitly declaring color-scheme + a background for both modes matters:
+ * without it, any element that doesn't set its own background (most bare
+ * <section>/<main> wrappers) falls back to the browser's default canvas,
+ * which goes black under a dark OS/browser theme even though nothing in
+ * our own CSS asked for that -- exactly the "white header, black page"
+ * mismatch this fixes. Every themed surface should set both variants
+ * explicitly rather than relying on an implicit default.
+ */
+:root {
+  color-scheme: light dark;
+}
+
 html,
 body,
 #app {
@@ -9,4 +22,13 @@ body,
 body {
   margin: 0;
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background-color: #ffffff;
+  color: #0b0b0b;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #0a0a0a;
+    color: #f5f5f5;
+  }
 }
