@@ -16,7 +16,9 @@
     "stockLevels": "Stok Durumu",
     "purchaseOrders": "Satın Alma Siparişleri",
     "leads": "Potansiyel Müşteriler",
-    "salesOrders": "Satış Siparişleri"
+    "salesOrders": "Satış Siparişleri",
+    "boms": "Ürün Reçeteleri",
+    "workOrders": "İş Emirleri"
   },
   "aiPanel": {
     "title": "AI Asistanı",

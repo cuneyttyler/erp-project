@@ -16,7 +16,9 @@
     "stockLevels": "Stock Levels",
     "purchaseOrders": "Purchase Orders",
     "leads": "Leads",
-    "salesOrders": "Sales Orders"
+    "salesOrders": "Sales Orders",
+    "boms": "Bills of Materials",
+    "workOrders": "Work Orders"
   },
   "aiPanel": {
     "title": "AI Assistant",

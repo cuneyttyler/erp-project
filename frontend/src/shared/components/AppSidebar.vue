@@ -6,7 +6,9 @@ import {
   ChartBarIcon,
   ChevronDoubleLeftIcon,
   ChevronDoubleRightIcon,
+  ClipboardDocumentListIcon,
   ClockIcon,
+  CogIcon,
   CubeIcon,
   DocumentTextIcon,
   HomeIcon,
@@ -61,6 +63,8 @@ const navItems: NavItem[] = [
   { to: '/purchase-orders', labelKey: 'nav.purchaseOrders', icon: ShoppingCartIcon, package: 'purchasing' },
   { to: '/leads', labelKey: 'nav.leads', icon: UserPlusIcon, package: 'sales_crm' },
   { to: '/sales-orders', labelKey: 'nav.salesOrders', icon: TruckIcon, package: 'sales_crm' },
+  { to: '/boms', labelKey: 'nav.boms', icon: ClipboardDocumentListIcon, package: 'manufacturing' },
+  { to: '/work-orders', labelKey: 'nav.workOrders', icon: CogIcon, package: 'manufacturing' },
 ]
 
 function visible(item: NavItem) {

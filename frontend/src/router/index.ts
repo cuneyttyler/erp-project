@@ -12,6 +12,8 @@ import PartiesView from '@/core/views/PartiesView.vue'
 import TrialBalanceView from '@/core/views/TrialBalanceView.vue'
 import StockLevelsView from '@/modules/inventory/views/StockLevelsView.vue'
 import WarehousesView from '@/modules/inventory/views/WarehousesView.vue'
+import BOMsView from '@/modules/manufacturing/views/BOMsView.vue'
+import WorkOrdersView from '@/modules/manufacturing/views/WorkOrdersView.vue'
 import PurchaseOrdersView from '@/modules/purchasing/views/PurchaseOrdersView.vue'
 import LeadsView from '@/modules/sales_crm/views/LeadsView.vue'
 import SalesOrdersView from '@/modules/sales_crm/views/SalesOrdersView.vue'
@@ -68,6 +70,18 @@ export const router = createRouter({
       name: 'sales-orders',
       component: SalesOrdersView,
       meta: { requiresPackage: 'sales_crm' },
+    },
+    {
+      path: '/boms',
+      name: 'boms',
+      component: BOMsView,
+      meta: { requiresPackage: 'manufacturing' },
+    },
+    {
+      path: '/work-orders',
+      name: 'work-orders',
+      component: WorkOrdersView,
+      meta: { requiresPackage: 'manufacturing' },
     },
   ],
 })
