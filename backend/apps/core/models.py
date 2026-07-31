@@ -75,6 +75,35 @@ class AuditLogEntry(models.Model):
         return f"{self.actor} {self.action} {self.target_type}:{self.target_id}"
 
 
+class Item(models.Model):
+    """
+    Product/service master data (REQ-INV-001). Lives in Core, not
+    apps.inventory, because technical.md §5 explicitly calls it out as
+    "shared by Inventory, Purchasing, Sales, Manufacturing" -- multiple
+    packages need to reference it via FK, and the cross-app rule
+    (technical.md §4: packages may depend on core, never reach into each
+    other's internals) only works cleanly if the genuinely shared entities
+    actually live in core rather than in whichever package happened to need
+    it first.
+    """
+
+    FIFO = "fifo"
+    WEIGHTED_AVERAGE = "weighted_average"
+    COST_METHOD_CHOICES = [(FIFO, "FIFO"), (WEIGHTED_AVERAGE, "Weighted Average")]
+
+    sku = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=255)
+    unit_of_measure = models.CharField(max_length=20, default="adet")
+    cost_method = models.CharField(max_length=20, choices=COST_METHOD_CHOICES, default=WEIGHTED_AVERAGE)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["sku"]
+
+    def __str__(self) -> str:
+        return f"{self.sku} — {self.name}"
+
+
 class Account(models.Model):
     """
     Chart of Accounts entry (technical.md §5, REQ-CORE-GL-001). Ships with a

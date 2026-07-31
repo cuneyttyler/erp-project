@@ -10,7 +10,11 @@
     "parties": "Cari Hesaplar",
     "invoices": "Satış Faturaları",
     "bills": "Alış Faturaları",
-    "aging": "Yaşlandırma"
+    "aging": "Yaşlandırma",
+    "items": "Ürün Kataloğu",
+    "warehouses": "Depolar",
+    "stockLevels": "Stok Durumu",
+    "purchaseOrders": "Satın Alma Siparişleri"
   },
   "aiPanel": {
     "title": "AI Asistanı",

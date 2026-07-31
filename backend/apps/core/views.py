@@ -11,12 +11,13 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Account, Bill, Invoice, JournalEntry, Party, Payment
+from .models import Account, Bill, Invoice, Item, JournalEntry, Party, Payment
 from .serializers import (
     AccountSerializer,
     AgingRowSerializer,
     BillSerializer,
     InvoiceSerializer,
+    ItemSerializer,
     JournalEntrySerializer,
     LoginSerializer,
     PartySerializer,
@@ -39,6 +40,24 @@ def csrf_view(request):
     return JsonResponse({"csrfToken": get_token(request)})
 
 
+def _serialize_user_with_tenant(request, user):
+    """
+    Shared by LoginView and MeView so both return the same shape --
+    active_packages drives the frontend's route/nav gating (technical.md
+    §10.1), and it needs to be present immediately after login, not only on
+    the next /me/ poll. request.tenant is set by django-tenants'
+    TenantMainMiddleware for every request, so this is always the real
+    purchased-package list, never something the client could spoof.
+    """
+    data = UserSerializer(user).data
+    tenant = getattr(request, "tenant", None)
+    data["tenant"] = {
+        "active_packages": (tenant.active_packages if tenant else []),
+        "subscription_tier": (tenant.subscription_tier if tenant else None),
+    }
+    return data
+
+
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -53,7 +72,7 @@ class LoginView(APIView):
         if user is None:
             return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
         login(request, user)
-        return Response(UserSerializer(user).data)
+        return Response(_serialize_user_with_tenant(request, user))
 
 
 class LogoutView(APIView):
@@ -72,7 +91,18 @@ class MeView(APIView):
     def get(self, request):
         if not request.user.is_authenticated:
             return Response({"detail": "Not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
-        return Response(UserSerializer(request.user).data)
+        return Response(_serialize_user_with_tenant(request, request.user))
+
+
+class ItemViewSet(viewsets.ModelViewSet):
+    """Product/service master data (REQ-INV-001) -- Core, not package-gated,
+    since Purchasing/Inventory/Sales all need to reference the same catalog
+    regardless of which of those packages a tenant has purchased."""
+
+    queryset = Item.objects.all()
+    serializer_class = ItemSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["is_active"]
 
 
 class AccountViewSet(viewsets.ModelViewSet):

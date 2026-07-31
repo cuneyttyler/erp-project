@@ -6,11 +6,13 @@ import AIPanel from '@/ai-panel/AIPanel.vue'
 import { useAIStore } from '@/ai-panel/store'
 import { setLocale } from '@/shared/i18n'
 import { useAuthStore } from '@/shared/stores/auth'
+import { useTenantStore } from '@/shared/stores/tenant'
 
 // The persistent app shell (technical.md §10.1): nav + the always-mounted AI
 // side-panel + the router-view where package modules render.
 const ai = useAIStore()
 const auth = useAuthStore()
+const tenant = useTenantStore()
 const router = useRouter()
 const { t, locale } = useI18n()
 
@@ -30,12 +32,24 @@ async function logout() {
         <nav v-if="auth.isAuthenticated" class="flex flex-wrap gap-4 text-sm text-neutral-600 dark:text-neutral-400">
           <RouterLink to="/" class="hover:text-neutral-900 dark:hover:text-neutral-100">{{ t('nav.dashboard') }}</RouterLink>
           <RouterLink to="/accounts" class="hover:text-neutral-900 dark:hover:text-neutral-100">{{ t('nav.accounts') }}</RouterLink>
+          <RouterLink to="/items" class="hover:text-neutral-900 dark:hover:text-neutral-100">{{ t('nav.items') }}</RouterLink>
           <RouterLink to="/journal-entries" class="hover:text-neutral-900 dark:hover:text-neutral-100">{{ t('nav.journalEntries') }}</RouterLink>
           <RouterLink to="/trial-balance" class="hover:text-neutral-900 dark:hover:text-neutral-100">{{ t('nav.trialBalance') }}</RouterLink>
           <RouterLink to="/parties" class="hover:text-neutral-900 dark:hover:text-neutral-100">{{ t('nav.parties') }}</RouterLink>
           <RouterLink to="/invoices" class="hover:text-neutral-900 dark:hover:text-neutral-100">{{ t('nav.invoices') }}</RouterLink>
           <RouterLink to="/bills" class="hover:text-neutral-900 dark:hover:text-neutral-100">{{ t('nav.bills') }}</RouterLink>
           <RouterLink to="/aging" class="hover:text-neutral-900 dark:hover:text-neutral-100">{{ t('nav.aging') }}</RouterLink>
+          <template v-if="tenant.hasPackage('inventory')">
+            <RouterLink to="/warehouses" class="hover:text-neutral-900 dark:hover:text-neutral-100">{{ t('nav.warehouses') }}</RouterLink>
+            <RouterLink to="/stock-levels" class="hover:text-neutral-900 dark:hover:text-neutral-100">{{ t('nav.stockLevels') }}</RouterLink>
+          </template>
+          <RouterLink
+            v-if="tenant.hasPackage('purchasing')"
+            to="/purchase-orders"
+            class="hover:text-neutral-900 dark:hover:text-neutral-100"
+          >
+            {{ t('nav.purchaseOrders') }}
+          </RouterLink>
         </nav>
       </div>
 

@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 from . import views
 
 router = DefaultRouter()
+router.register("items", views.ItemViewSet, basename="item")
 router.register("accounts", views.AccountViewSet, basename="account")
 router.register("journal-entries", views.JournalEntryViewSet, basename="journal-entry")
 router.register("parties", views.PartyViewSet, basename="party")

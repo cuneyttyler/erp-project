@@ -8,6 +8,7 @@ from .models import (
     BillLine,
     Invoice,
     InvoiceLine,
+    Item,
     JournalEntry,
     JournalLine,
     Party,
@@ -41,6 +42,12 @@ class AuditLogEntryAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(Item)
+class ItemAdmin(admin.ModelAdmin):
+    list_display = ("sku", "name", "unit_of_measure", "cost_method", "is_active")
+    search_fields = ("sku", "name")
 
 
 @admin.register(Account)

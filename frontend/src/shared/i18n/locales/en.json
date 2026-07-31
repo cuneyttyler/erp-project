@@ -10,7 +10,11 @@
     "parties": "Customers/Vendors",
     "invoices": "Invoices",
     "bills": "Bills",
-    "aging": "Aging"
+    "aging": "Aging",
+    "items": "Item Catalog",
+    "warehouses": "Warehouses",
+    "stockLevels": "Stock Levels",
+    "purchaseOrders": "Purchase Orders"
   },
   "aiPanel": {
     "title": "AI Assistant",

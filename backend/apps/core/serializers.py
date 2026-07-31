@@ -6,6 +6,7 @@ from .models import (
     BillLine,
     Invoice,
     InvoiceLine,
+    Item,
     JournalEntry,
     JournalLine,
     Party,
@@ -47,6 +48,15 @@ class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
         fields = ["id", "code", "name", "account_type", "parent", "is_active"]
+
+
+class ItemSerializer(serializers.ModelSerializer):
+    """REQ-INV-001 -- lives here because Item itself is Core master data
+    (models.py docstring); apps.purchasing/apps.inventory both reference it."""
+
+    class Meta:
+        model = Item
+        fields = ["id", "sku", "name", "unit_of_measure", "cost_method", "is_active"]
 
 
 class TrialBalanceRowSerializer(serializers.Serializer):

@@ -2,11 +2,17 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
 import { apiClient } from '@/shared/api/client'
+import { useTenantStore, type PackageKey } from '@/shared/stores/tenant'
 
 export interface Role {
   id: number
   name: string
   granted_actions: Record<string, string[]>
+}
+
+export interface TenantInfo {
+  active_packages: PackageKey[]
+  subscription_tier: 'starter' | 'growth' | 'professional' | 'enterprise' | null
 }
 
 export interface CurrentUser {
@@ -17,6 +23,7 @@ export interface CurrentUser {
   preferred_locale: 'tr' | 'en'
   mfa_enabled: boolean
   roles: Role[]
+  tenant: TenantInfo
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -28,6 +35,17 @@ export const useAuthStore = defineStore('auth', () => {
   // package-gating).
   const isInitialized = ref(false)
 
+  function applyUser(data: CurrentUser | null) {
+    user.value = data
+    const tenantStore = useTenantStore()
+    if (data?.tenant) {
+      tenantStore.setActivePackages(data.tenant.active_packages)
+      if (data.tenant.subscription_tier) tenantStore.subscriptionTier = data.tenant.subscription_tier
+    } else {
+      tenantStore.setActivePackages([])
+    }
+  }
+
   // Auth lives in apps/core, mounted at /api/v1/core/ (config/urls.py) --
   // the "core/" prefix here mirrors how a future purchasing store would call
   // "purchasing/..." against its own app's mount point (technical.md §6).
@@ -38,20 +56,20 @@ export const useAuthStore = defineStore('auth', () => {
   async function login(username: string, password: string) {
     await fetchCsrfCookie()
     const { data } = await apiClient.post<CurrentUser>('core/auth/login/', { username, password })
-    user.value = data
+    applyUser(data)
   }
 
   async function logout() {
     await apiClient.post('core/auth/logout/')
-    user.value = null
+    applyUser(null)
   }
 
   async function fetchMe() {
     try {
       const { data } = await apiClient.get<CurrentUser>('core/auth/me/')
-      user.value = data
+      applyUser(data)
     } catch {
-      user.value = null
+      applyUser(null)
     } finally {
       isInitialized.value = true
     }

@@ -45,6 +45,8 @@ TENANT_APPS = [
     "drf_spectacular",
     "django_filters",
     "apps.core",
+    "apps.inventory",
+    "apps.purchasing",
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [
