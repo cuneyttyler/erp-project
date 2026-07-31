@@ -1,7 +1,20 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
-from .models import Account, AuditLogEntry, JournalEntry, JournalLine, Role, User
+from .models import (
+    Account,
+    AuditLogEntry,
+    Bill,
+    BillLine,
+    Invoice,
+    InvoiceLine,
+    JournalEntry,
+    JournalLine,
+    Party,
+    Payment,
+    Role,
+    User,
+)
 
 
 @admin.register(User)
@@ -54,3 +67,40 @@ class JournalEntryAdmin(admin.ModelAdmin):
         if obj is not None and obj.status == JournalEntry.POSTED:
             return False
         return super().has_change_permission(request, obj)
+
+
+@admin.register(Party)
+class PartyAdmin(admin.ModelAdmin):
+    list_display = ("name", "party_type", "tax_id", "email", "is_active")
+    list_filter = ("party_type", "is_active")
+    search_fields = ("name", "tax_id", "email")
+
+
+class InvoiceLineInline(admin.TabularInline):
+    model = InvoiceLine
+    extra = 1
+
+
+@admin.register(Invoice)
+class InvoiceAdmin(admin.ModelAdmin):
+    list_display = ("id", "party", "issue_date", "due_date", "status")
+    list_filter = ("status",)
+    inlines = [InvoiceLineInline]
+
+
+class BillLineInline(admin.TabularInline):
+    model = BillLine
+    extra = 1
+
+
+@admin.register(Bill)
+class BillAdmin(admin.ModelAdmin):
+    list_display = ("id", "party", "issue_date", "due_date", "status")
+    list_filter = ("status",)
+    inlines = [BillLineInline]
+
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ("id", "date", "amount", "invoice", "bill", "method")
+    list_filter = ("method",)

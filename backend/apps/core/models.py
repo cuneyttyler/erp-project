@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
@@ -178,3 +180,199 @@ class JournalLine(models.Model):
 
     def __str__(self) -> str:
         return f"{self.account.code} D{self.debit}/C{self.credit}"
+
+
+class Party(models.Model):
+    """
+    Unified Customer/Vendor record (technical.md §5 `Party`). Unified base to
+    avoid duplicating near-identical entities between AR and AP -- the same
+    company is often both a customer and a vendor to a Turkish SME.
+    """
+
+    CUSTOMER = "customer"
+    VENDOR = "vendor"
+    BOTH = "both"
+    PARTY_TYPE_CHOICES = [(CUSTOMER, "Customer"), (VENDOR, "Vendor"), (BOTH, "Both")]
+
+    name = models.CharField(max_length=255)
+    party_type = models.CharField(max_length=10, choices=PARTY_TYPE_CHOICES, default=CUSTOMER)
+    # VKN (10 digits) or TCKN (11 digits) -- checksum validation (REQ-DATA-003)
+    # belongs to the migration/onboarding import path, not free-form entry here.
+    tax_id = models.CharField(max_length=11, blank=True)
+    email = models.EmailField(blank=True)
+    phone = models.CharField(max_length=30, blank=True)
+    payment_terms_days = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class FinancialDocument(models.Model):
+    """
+    Shared shape and status lifecycle for AR Invoices and AP Bills -- both are
+    "a party owes/is owed money, itemized in lines, tracked through a status
+    lifecycle." Abstract, not a concrete model: Invoice (REQ-CORE-AR-001/002)
+    and Bill (REQ-CORE-AP-001) stay separate tables so "everything my
+    customers owe me" and "everything I owe vendors" are independently
+    queryable, without duplicating the shape or the status machine twice.
+
+    `total`/`amount_paid`/`balance_due` are computed in Python over prefetched
+    related rows, not via SQL Sum() annotations joining `lines` and `payments`
+    simultaneously -- that join would fan out and silently double-count both
+    sums. This is the same class of correctness bug as the trial-balance float
+    issue (technical.md §8.1), just via join fan-out instead of type coercion;
+    worth the extra Python loop to not risk it on a financial total.
+    """
+
+    DRAFT = "draft"
+    SENT = "sent"
+    PARTIALLY_PAID = "partially_paid"
+    PAID = "paid"
+    CANCELLED = "cancelled"
+    STATUS_CHOICES = [
+        (DRAFT, "Draft"),
+        (SENT, "Sent"),
+        (PARTIALLY_PAID, "Partially Paid"),
+        (PAID, "Paid"),
+        (CANCELLED, "Cancelled"),
+    ]
+
+    party = models.ForeignKey(Party, on_delete=models.PROTECT, related_name="%(class)ss")
+    issue_date = models.DateField()
+    due_date = models.DateField()
+    currency = models.CharField(max_length=3, default="TRY")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=DRAFT)
+    memo = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        abstract = True
+        ordering = ["-issue_date", "-id"]
+
+    @property
+    def total(self):
+        return sum((line.amount for line in self.lines.all()), Decimal("0"))
+
+    @property
+    def amount_paid(self):
+        return sum((p.amount for p in self.payments.all()), Decimal("0"))
+
+    @property
+    def balance_due(self):
+        return self.total - self.amount_paid
+
+    @property
+    def is_overdue(self):
+        return self.status in (self.SENT, self.PARTIALLY_PAID) and self.due_date < timezone.localdate()
+
+    def mark_sent(self):
+        if self.status != self.DRAFT:
+            raise ValidationError("Only a draft document can be marked as sent.")
+        if not self.lines.exists():
+            raise ValidationError("Cannot send a document with no lines.")
+        self.status = self.SENT
+        self.save(update_fields=["status"])
+
+    def recompute_status(self):
+        """
+        Called after any payment is recorded against this document
+        (REQ-CORE-AR-002 partial payments). A draft or cancelled document is
+        never auto-transitioned -- only `mark_sent()` (human/API-initiated)
+        moves a draft forward, and cancellation is a deliberate terminal state.
+        """
+        if self.status in (self.DRAFT, self.CANCELLED):
+            return
+        balance = self.balance_due
+        if balance <= 0:
+            new_status = self.PAID
+        elif self.amount_paid > 0:
+            new_status = self.PARTIALLY_PAID
+        else:
+            new_status = self.SENT
+        if new_status != self.status:
+            self.status = new_status
+            self.save(update_fields=["status"])
+
+
+class Invoice(FinancialDocument):
+    """Customer invoice (AR) -- REQ-CORE-AR-001/002/003."""
+
+    def __str__(self) -> str:
+        return f"INV-{self.id} {self.party.name}"
+
+
+class InvoiceLine(models.Model):
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="lines")
+    description = models.CharField(max_length=255)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1)
+    unit_price = models.DecimalField(max_digits=14, decimal_places=2)
+
+    @property
+    def amount(self):
+        return self.quantity * self.unit_price
+
+    def __str__(self) -> str:
+        return f"{self.description} x{self.quantity}"
+
+
+class Bill(FinancialDocument):
+    """Vendor bill (AP) -- REQ-CORE-AP-001/002."""
+
+    def __str__(self) -> str:
+        return f"BILL-{self.id} {self.party.name}"
+
+
+class BillLine(models.Model):
+    bill = models.ForeignKey(Bill, on_delete=models.CASCADE, related_name="lines")
+    description = models.CharField(max_length=255)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1)
+    unit_price = models.DecimalField(max_digits=14, decimal_places=2)
+
+    @property
+    def amount(self):
+        return self.quantity * self.unit_price
+
+    def __str__(self) -> str:
+        return f"{self.description} x{self.quantity}"
+
+
+class Payment(models.Model):
+    """
+    A payment applied against either an Invoice (money received, AR) or a
+    Bill (money paid, AP) -- REQ-CORE-AR-002/REQ-CORE-AP-002. Modeled as two
+    nullable FKs (exactly one must be set, enforced in clean()) rather than a
+    generic relation: there are only ever two possible targets, and a generic
+    FK would only make querying harder for no real flexibility gained.
+    """
+
+    invoice = models.ForeignKey(
+        Invoice, null=True, blank=True, on_delete=models.CASCADE, related_name="payments"
+    )
+    bill = models.ForeignKey(
+        Bill, null=True, blank=True, on_delete=models.CASCADE, related_name="payments"
+    )
+    amount = models.DecimalField(max_digits=14, decimal_places=2)
+    date = models.DateField()
+    method = models.CharField(max_length=50, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date", "-id"]
+
+    def clean(self):
+        if bool(self.invoice_id) == bool(self.bill_id):
+            raise ValidationError("A payment must apply to exactly one of invoice or bill.")
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+        target = self.invoice or self.bill
+        target.recompute_status()
+
+    def __str__(self) -> str:
+        target = self.invoice or self.bill
+        return f"Payment {self.amount} -> {target}"

@@ -27,11 +27,15 @@ async function logout() {
     >
       <div class="flex items-center gap-6">
         <span class="font-semibold text-neutral-900 dark:text-neutral-100">{{ t('app.name') }}</span>
-        <nav v-if="auth.isAuthenticated" class="flex gap-4 text-sm text-neutral-600 dark:text-neutral-400">
+        <nav v-if="auth.isAuthenticated" class="flex flex-wrap gap-4 text-sm text-neutral-600 dark:text-neutral-400">
           <RouterLink to="/" class="hover:text-neutral-900 dark:hover:text-neutral-100">{{ t('nav.dashboard') }}</RouterLink>
           <RouterLink to="/accounts" class="hover:text-neutral-900 dark:hover:text-neutral-100">{{ t('nav.accounts') }}</RouterLink>
           <RouterLink to="/journal-entries" class="hover:text-neutral-900 dark:hover:text-neutral-100">{{ t('nav.journalEntries') }}</RouterLink>
           <RouterLink to="/trial-balance" class="hover:text-neutral-900 dark:hover:text-neutral-100">{{ t('nav.trialBalance') }}</RouterLink>
+          <RouterLink to="/parties" class="hover:text-neutral-900 dark:hover:text-neutral-100">{{ t('nav.parties') }}</RouterLink>
+          <RouterLink to="/invoices" class="hover:text-neutral-900 dark:hover:text-neutral-100">{{ t('nav.invoices') }}</RouterLink>
+          <RouterLink to="/bills" class="hover:text-neutral-900 dark:hover:text-neutral-100">{{ t('nav.bills') }}</RouterLink>
+          <RouterLink to="/aging" class="hover:text-neutral-900 dark:hover:text-neutral-100">{{ t('nav.aging') }}</RouterLink>
         </nav>
       </div>
 

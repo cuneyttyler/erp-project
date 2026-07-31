@@ -1,9 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+import AgingView from '@/core/views/AgingView.vue'
+import BillsView from '@/core/views/BillsView.vue'
 import ChartOfAccountsView from '@/core/views/ChartOfAccountsView.vue'
 import DashboardView from '@/core/views/DashboardView.vue'
+import InvoicesView from '@/core/views/InvoicesView.vue'
 import JournalEntriesView from '@/core/views/JournalEntriesView.vue'
 import LoginView from '@/core/views/LoginView.vue'
+import PartiesView from '@/core/views/PartiesView.vue'
 import TrialBalanceView from '@/core/views/TrialBalanceView.vue'
 import { useAuthStore } from '@/shared/stores/auth'
 
@@ -27,6 +31,10 @@ export const router = createRouter({
     { path: '/accounts', name: 'accounts', component: ChartOfAccountsView },
     { path: '/journal-entries', name: 'journal-entries', component: JournalEntriesView },
     { path: '/trial-balance', name: 'trial-balance', component: TrialBalanceView },
+    { path: '/parties', name: 'parties', component: PartiesView },
+    { path: '/invoices', name: 'invoices', component: InvoicesView },
+    { path: '/bills', name: 'bills', component: BillsView },
+    { path: '/aging', name: 'aging', component: AgingView },
   ],
 })
 

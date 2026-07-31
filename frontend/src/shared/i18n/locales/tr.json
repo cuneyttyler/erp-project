@@ -6,7 +6,11 @@
     "dashboard": "Panel",
     "accounts": "Hesap Planı",
     "journalEntries": "Yevmiye Kayıtları",
-    "trialBalance": "Mizan"
+    "trialBalance": "Mizan",
+    "parties": "Cari Hesaplar",
+    "invoices": "Satış Faturaları",
+    "bills": "Alış Faturaları",
+    "aging": "Yaşlandırma"
   },
   "aiPanel": {
     "title": "AI Asistanı",

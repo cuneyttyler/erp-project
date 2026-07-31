@@ -6,7 +6,11 @@
     "dashboard": "Dashboard",
     "accounts": "Chart of Accounts",
     "journalEntries": "Journal Entries",
-    "trialBalance": "Trial Balance"
+    "trialBalance": "Trial Balance",
+    "parties": "Customers/Vendors",
+    "invoices": "Invoices",
+    "bills": "Bills",
+    "aging": "Aging"
   },
   "aiPanel": {
     "title": "AI Assistant",
