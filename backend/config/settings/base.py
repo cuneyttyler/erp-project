@@ -50,6 +50,7 @@ TENANT_APPS = [
     "apps.sales_crm",
     "apps.manufacturing",
     "apps.hr_payroll",
+    "apps.ai_core",
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [
@@ -180,6 +181,16 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = env.list(
     "CSRF_TRUSTED_ORIGINS", default=["http://localhost:5173"]
 )
+
+# --------------------------------------------------------------------------
+# AI Chat Layer — LLM gateway (technical.md §8.8)
+# --------------------------------------------------------------------------
+# Blank by default: apps.ai_core.llm_gateway.is_configured() checks this and
+# the ChatView degrades gracefully (REQ-CORE-AI-009) rather than erroring
+# when it's unset -- see docs/notes.md for what needs to be supplied to
+# activate the assistant.
+AI_LLM_API_KEY = env("ANTHROPIC_API_KEY", default="")
+AI_LLM_MODEL = env("AI_LLM_MODEL", default="claude-sonnet-5")
 
 # --------------------------------------------------------------------------
 # Celery — async jobs (technical.md §2)

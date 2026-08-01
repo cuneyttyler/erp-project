@@ -28,7 +28,8 @@
     "placeholder": "Ask a question or request an action...",
     "send": "Send",
     "confirmAction": "Confirmation Required",
-    "empty": "Ask about anything across your active modules."
+    "empty": "Ask about anything across your active modules.",
+    "thinking": "Thinking..."
   },
   "auth": {
     "login": "Log In",

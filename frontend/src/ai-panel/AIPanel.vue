@@ -70,18 +70,23 @@ function submit() {
             <p>{{ message.pendingAction.description }}</p>
           </div>
         </div>
+        <div v-if="ai.isStreaming" class="mr-8 rounded-lg bg-neutral-100 px-3 py-2 text-sm text-neutral-500 dark:bg-neutral-800">
+          {{ t('aiPanel.thinking') }}
+        </div>
       </div>
 
       <form class="flex gap-2 border-t border-neutral-200 p-3 dark:border-neutral-800" @submit.prevent="submit">
         <input
           v-model="draft"
           type="text"
-          class="flex-1 rounded border border-neutral-300 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+          :disabled="ai.isStreaming"
+          class="flex-1 rounded border border-neutral-300 px-3 py-2 text-sm disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-800"
           :placeholder="t('aiPanel.placeholder')"
         />
         <button
           type="submit"
-          class="rounded bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          :disabled="ai.isStreaming"
+          class="rounded bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
         >
           {{ t('aiPanel.send') }}
         </button>

@@ -5,3 +5,6 @@ class SalesCrmConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "apps.sales_crm"
     label = "sales_crm"
+
+    def ready(self):
+        from . import ai_tools  # noqa: F401

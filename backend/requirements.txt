@@ -25,5 +25,8 @@ django-fsm>=2.8
 # Env/config loading
 django-environ>=0.11
 
+# LLM provider client (technical.md §8.8 ai_core/llm_gateway.py)
+anthropic>=0.34
+
 # CORS for local Vite dev server talking to Django
 django-cors-headers>=4.4

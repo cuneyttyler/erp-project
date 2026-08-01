@@ -28,7 +28,8 @@
     "placeholder": "Bir soru sorun veya bir işlem isteyin...",
     "send": "Gönder",
     "confirmAction": "Onay Gerekiyor",
-    "empty": "Herhangi bir modül hakkında soru sorabilirsiniz."
+    "empty": "Herhangi bir modül hakkında soru sorabilirsiniz.",
+    "thinking": "Düşünüyor..."
   },
   "auth": {
     "login": "Giriş Yap",
