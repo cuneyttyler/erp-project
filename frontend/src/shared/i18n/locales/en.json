@@ -21,7 +21,14 @@
     "workOrders": "Work Orders",
     "employees": "Employees",
     "leaveRequests": "Leave Requests",
-    "payrollRuns": "Payroll Runs"
+    "payrollRuns": "Payroll Runs",
+    "groups": {
+      "finance": "Finance",
+      "inventory": "Inventory & Purchasing",
+      "sales": "Sales & CRM",
+      "manufacturing": "Manufacturing",
+      "hr": "HR & Payroll"
+    }
   },
   "aiPanel": {
     "title": "AI Assistant",

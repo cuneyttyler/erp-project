@@ -140,6 +140,16 @@ This is a Core capability, embedded in every tier — see `product.md` §4 for t
 - **REQ-CORE-DOC-001**: The system must allow attaching files (invoices, contracts, receipts, images) to any relevant record, with a preview capability for common formats (PDF, images).
 - **REQ-CORE-DOC-002**: Uploaded documents must be scannable by the AI assistant for OCR-based data extraction (e.g., pulling vendor/amount/date from a scanned receipt) where the relevant package supports it.
 
+### 4.11 Configurable Data Views
+
+Added from direct user feedback (`docs/feedback.md` "Feedback 1") — every data-table-heavy screen across every package should behave consistently, so this lives in Core rather than being reimplemented per package.
+
+- **REQ-CORE-UX-001**: Every screen presenting tabular data must let the user reorder columns (drag), show/hide individual columns, and resize column widths.
+- **REQ-CORE-UX-002**: Every such screen must support per-column sorting (ascending/descending) and per-column filtering.
+- **REQ-CORE-UX-003**: A user must be able to save a screen's current column configuration (order, visibility, widths, sort, filters) as a named "view," mark it personal (visible only to them) or shared (visible to every user on the tenant), and switch between saved views for that screen. Editing a shared view is restricted to its creator (no view-level ACL beyond that in this pass).
+- **REQ-CORE-UX-004**: Editable fields on a data-table screen must support inline, spreadsheet-style editing (click/double-click a cell to edit in place) rather than requiring navigation to a separate edit form, where the underlying field is safely editable inline (not every field on every screen needs this — e.g. computed/read-only columns don't).
+- **REQ-CORE-UX-005**: The primary navigation must group related screens under collapsible section headers rather than a single flat list, so the number of visible items scales with how many packages a tenant has active without becoming unreadable.
+
 ---
 
 ## 5. Functional Requirements — Packages

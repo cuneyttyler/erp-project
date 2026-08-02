@@ -2,10 +2,15 @@
 import { onMounted, reactive } from 'vue'
 
 import { useCatalogStore } from '@/core/stores/catalog'
+import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
 
 // REQ-INV-001: shared product/service catalog (Core, not package-specific --
 // referenced by Purchasing/Inventory/eventually Sales regardless of which
 // packages a tenant has purchased).
+// REQ-CORE-UX-001..004: reference DataTable integration (docs/feedback.md
+// "Feedback 1") -- column reorder/hide/resize, sort/filter, inline editing,
+// and personal/shared saved views, all provided by DataTable.vue itself;
+// this view only declares the columns and handles persistence on edit.
 const catalog = useCatalogStore()
 onMounted(() => catalog.fetchItems())
 
@@ -16,6 +21,27 @@ async function submit() {
   await catalog.createItem({ ...form })
   form.sku = ''
   form.name = ''
+}
+
+const columns: ColumnDef[] = [
+  { key: 'sku', label: 'SKU', editable: true },
+  { key: 'name', label: 'Ad', editable: true },
+  { key: 'unit_of_measure', label: 'Birim', editable: true },
+  {
+    key: 'cost_method',
+    label: 'Maliyet Yöntemi',
+    editable: true,
+    type: 'select',
+    options: [
+      { value: 'fifo', label: 'FIFO' },
+      { value: 'weighted_average', label: 'Ağırlıklı Ortalama' },
+    ],
+  },
+  { key: 'is_active', label: 'Aktif', editable: true, type: 'boolean' },
+]
+
+async function onCellEdit({ row, column, value }: { row: any; column: string; value: any }) {
+  await catalog.updateItem(row.id, { [column]: value })
 }
 </script>
 
@@ -39,21 +65,8 @@ async function submit() {
       <button type="submit" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">Ekle</button>
     </form>
 
-    <table class="mt-6 w-full max-w-2xl text-left text-sm">
-      <thead>
-        <tr class="border-b border-neutral-200 text-neutral-500 dark:border-neutral-800">
-          <th class="py-2 pr-4">SKU</th>
-          <th class="py-2 pr-4">Ad</th>
-          <th class="py-2 pr-4">Birim</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in catalog.items" :key="item.id" class="border-b border-neutral-100 dark:border-neutral-900">
-          <td class="py-1.5 pr-4 font-mono">{{ item.sku }}</td>
-          <td class="py-1.5 pr-4">{{ item.name }}</td>
-          <td class="py-1.5 pr-4 text-neutral-500">{{ item.unit_of_measure }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="mt-6">
+      <DataTable screen-key="items" :columns="columns" :rows="catalog.items" @cell-edit="onCellEdit" />
+    </div>
   </section>
 </template>

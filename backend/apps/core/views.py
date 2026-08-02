@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.core.exceptions import ValidationError
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.middleware.csrf import get_token
 from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -11,7 +11,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Account, Bill, Invoice, Item, JournalEntry, Party, Payment
+from .models import Account, Bill, Invoice, Item, JournalEntry, Party, Payment, SavedView
 from .serializers import (
     AccountSerializer,
     AgingRowSerializer,
@@ -22,6 +22,7 @@ from .serializers import (
     LoginSerializer,
     PartySerializer,
     PaymentSerializer,
+    SavedViewSerializer,
     TrialBalanceRowSerializer,
     UserSerializer,
 )
@@ -215,6 +216,41 @@ class PaymentViewSet(viewsets.ModelViewSet):
     serializer_class = PaymentSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["invoice", "bill"]
+
+
+class IsSavedViewOwnerForWrite(permissions.BasePermission):
+    """REQ-CORE-UX-003: anyone who can see a view (own or shared) can read
+    it; only its creator can update/delete it, shared or not -- there's no
+    broader view-level ACL in this pass (see SavedView's docstring)."""
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return obj.owner_id == request.user.id
+
+
+class SavedViewViewSet(viewsets.ModelViewSet):
+    """REQ-CORE-UX-003: personal + shared saved column configurations for
+    DataTable.vue screens. `?screen_key=items` scopes the list to one
+    screen -- the frontend always passes it; without it a user would see
+    every saved view across every screen mixed together, which isn't a
+    useful listing for the "pick a variant" dropdown it feeds."""
+
+    permission_classes = [permissions.IsAuthenticated, IsSavedViewOwnerForWrite]
+    serializer_class = SavedViewSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["screen_key"]
+
+    def get_queryset(self):
+        # Never client-filterable beyond screen_key -- ownership scoping
+        # happens here, not via a query param, so a user can't request
+        # someone else's personal views by guessing an owner id.
+        return SavedView.objects.filter(
+            Q(owner=self.request.user) | Q(is_shared=True)
+        ).select_related("owner")
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
 
 def _build_aging_rows(queryset):

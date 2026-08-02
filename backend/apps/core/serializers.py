@@ -12,6 +12,7 @@ from .models import (
     Party,
     Payment,
     Role,
+    SavedView,
     User,
 )
 
@@ -276,6 +277,30 @@ class PaymentSerializer(serializers.ModelSerializer):
                 "A payment must apply to exactly one of invoice or bill."
             )
         return data
+
+
+class SavedViewSerializer(serializers.ModelSerializer):
+    """REQ-CORE-UX-003. `owner` is read-only here -- always forced to
+    `request.user` by the view on create, never client-supplied, so a user
+    can't save a view under someone else's name."""
+
+    owner_username = serializers.CharField(source="owner.username", read_only=True)
+
+    class Meta:
+        model = SavedView
+        fields = [
+            "id",
+            "screen_key",
+            "name",
+            "owner",
+            "owner_username",
+            "is_shared",
+            "is_default",
+            "config",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["owner", "created_at", "updated_at"]
 
 
 class AgingRowSerializer(serializers.Serializer):

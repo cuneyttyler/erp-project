@@ -11,6 +11,7 @@ router.register("parties", views.PartyViewSet, basename="party")
 router.register("invoices", views.InvoiceViewSet, basename="invoice")
 router.register("bills", views.BillViewSet, basename="bill")
 router.register("payments", views.PaymentViewSet, basename="payment")
+router.register("saved-views", views.SavedViewViewSet, basename="saved-view")
 
 urlpatterns = [
     path("auth/csrf/", views.csrf_view, name="csrf"),

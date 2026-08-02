@@ -405,3 +405,51 @@ class Payment(models.Model):
     def __str__(self) -> str:
         target = self.invoice or self.bill
         return f"Payment {self.amount} -> {target}"
+
+
+class SavedView(models.Model):
+    """
+    A saved column configuration ("variant") for one data-table screen
+    (REQ-CORE-UX-003, from direct user feedback -- docs/feedback.md
+    "Feedback 1": one user wants columns a/b/c wide, another wants a/b/d/f
+    narrow, both should be able to save and switch back to their own
+    layout without reconfiguring it every visit).
+
+    `screen_key` identifies which screen this belongs to (e.g. "items",
+    "invoices") -- a free-text key rather than an enum/FK, since new
+    screens adopting DataTable.vue shouldn't require a migration to
+    register. `config` holds the whole view state (column order/
+    visibility/widths, sort, filters) as one JSON blob rather than
+    normalized columns -- the frontend owns that shape entirely; the
+    backend only stores and scopes it, it never reads inside it.
+
+    Personal vs. shared (`is_shared`): a personal view is only visible to
+    its owner; a shared view is visible to every user on the tenant.
+    Editing/deleting is restricted to the creator either way (see
+    SavedViewViewSet) -- there's no view-level ACL beyond that in this
+    pass, same "known gap, flagged not hidden" discipline as every other
+    field-level-permission shortcut already noted elsewhere in this
+    codebase (e.g. EmployeeViewSet's docstring).
+    """
+
+    screen_key = models.CharField(max_length=100)
+    name = models.CharField(max_length=100)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="saved_views"
+    )
+    is_shared = models.BooleanField(default=False)
+    is_default = models.BooleanField(default=False)
+    config = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["screen_key", "name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["screen_key", "owner", "name"], name="unique_saved_view_name_per_owner_screen"
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.screen_key}:{self.name} ({'shared' if self.is_shared else self.owner})"

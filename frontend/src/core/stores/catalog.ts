@@ -30,5 +30,12 @@ export const useCatalogStore = defineStore('catalog', () => {
     return data
   }
 
-  return { items, fetchItems, createItem }
+  async function updateItem(id: number, payload: Partial<Item>) {
+    const { data } = await apiClient.patch<Item>(`core/items/${id}/`, payload)
+    const idx = items.value.findIndex((i) => i.id === id)
+    if (idx !== -1) items.value[idx] = data
+    return data
+  }
+
+  return { items, fetchItems, createItem, updateItem }
 })

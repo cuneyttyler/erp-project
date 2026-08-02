@@ -2,6 +2,8 @@
 
 **Status:** living document — tracks decisions that are blocking further Phase 1 progress and need input from Cüneyt specifically (commercial/legal/business calls, not engineering ones). See `development-plan.md` §4 for how these fit into Phase 1 exit criteria.
 
+**Last reviewed: 2026-08-02 — both decisions below are still open, no answer given yet.** Development continues into unblocked Phase 2 scope in the meantime (see `feedback.md`-driven UI work).
+
 ---
 
 ## 1. GİB connectivity: build vs. partner (blocks Turkey compliance)
@@ -48,9 +50,7 @@ Flagged in `technical.md` §10/§11/§15 — confirm whether Turkish statutory b
 
 **What's built:** the read-only Q&A path (`REQ-CORE-AI-001/002/003/004/005/006/008/009`) — `apps/ai_core` (semantic-layer registry + tool-calling loop over Claude + audit logging) plus a `metrics.py`-equivalent (`ai_tools.py`) in every package (Core, Inventory, Purchasing, Sales & CRM, Manufacturing, HR & Payroll) registering read-only questions the assistant can answer with a real, cited figure — cash position, AR/AP aging, stock on hand, open POs/SOs/leads, pending work orders, latest payroll cost. The frontend AI side-panel (already scaffolded from Phase 0) is now wired to it end-to-end.
 
-**What's needed from you:** an Anthropic API key, set as `ANTHROPIC_API_KEY` in `backend/.env`. Without it, the assistant runs in a deliberate "not configured" state — it says so plainly rather than crashing or fabricating an answer (`REQ-CORE-AI-009`) — so this isn't blocking anything else, just inactive until the key is supplied. `AI_LLM_MODEL` (defaults to `claude-sonnet-5`) is also configurable in `.env` if you want to point it at a different model/tier later.
-
-**One caveat worth knowing:** there's no Anthropic API key available in this dev environment, so the tool-calling loop (`apps/ai_core/chat.py` + `llm_gateway.py`) is verified by tests with the LLM call mocked out (control flow, permission gating, audit logging, graceful degradation) but has not yet been smoke-tested against the real Anthropic API end-to-end. The multi-turn tool-result wire format follows the SDK's documented shape, but the first real conversation once a key is added is worth watching for any request-shape mismatch before trusting it broadly.
+**Status: live.** `ANTHROPIC_API_KEY` is set in `backend/.env` (2026-08-02) and the full pipeline has been smoke-tested end-to-end against the real Anthropic API, not just the mocked test suite: asked "Nakit durumum nedir?" in Turkish, the assistant correctly called the `cash_position` tool, got the real figure (10.000,00 TL), and narrated a correct, cited, fluent Turkish answer. `AI_LLM_MODEL` (defaults to `claude-sonnet-5`) is configurable in `.env` if a different model/tier is wanted later.
 
 **What's deliberately deferred, not forgotten** (each is a real chunk of `technical.md` §8 on its own):
 - **The write/action path** (`REQ-CORE-AI-007/010`, §8.4): the AI can't create a PO, post a journal entry, etc. yet. The `PendingApproval` state-machine model and per-tenant approval-threshold config described in the architecture doc don't exist yet — this pass is Q&A only. The frontend's `pendingAction` UI treatment is still there (built in Phase 0) so this is a backend addition later, not a UI rewrite.
@@ -59,6 +59,14 @@ Flagged in `technical.md` §10/§11/§15 — confirm whether Turkish statutory b
 - **Golden-query regression eval** (§8.9) — no automated accuracy-regression suite yet; today's test coverage is unit/integration correctness of each metric and the tool-calling loop's control flow, not answer-quality evaluation against real English/Turkish phrasing variety.
 - **Conversation persistence** — each chat turn is stateless server-side beyond the audit log; the frontend resends prior turns as context. A durable conversation history model is a small addition later if it's wanted (e.g. for a "recent conversations" list), not a redesign.
 
-## What's proceeding despite these blockers
+## 5. Configurable Data Views (from docs/feedback.md "Feedback 1") — infrastructure built, rollout in progress
 
-Per your instruction, Phase 1 continues into **Phase 2 scope** (`development-plan.md` §5) where it doesn't depend on either decision above — Sales & CRM, Manufacturing, and HR & Payroll have shipped (mirroring the Purchasing pattern already in Phase 1: order → fulfillment/receipt → stock movement → auto-generated AR/AP document), and now the AI Chat Layer v1 described above. Remaining Phase 2 items — multi-entity consolidation and the metered AI agentic layer — are next; SGK e-Bildirge and the Mikro connector remain blocked on decisions #1/#2 above the same way e-Fatura and the Logo connector were in Phase 1.
+**What's built:** `REQ-CORE-UX-001..005` — a reusable `DataTable.vue` component (column drag-reorder, show/hide, resize, per-column sort/filter, inline click-to-edit) plus a backend `SavedView` model/API (`Core: /api/v1/core/saved-views/`) for personal-vs-shared named "variants" per screen, exactly matching the feedback's "I want a/b/c wide, someone else wants a/b/d/f narrow" example. The left sidebar is now grouped into collapsible sections (Finans / Envanter & Satın Alma / Satış & CRM / Üretim / İK & Bordro) instead of one flat list.
+
+**Reference rollout:** `ItemsView.vue` (plain inline-editable columns) and `InvoicesView.vue` (custom per-column slots for status badges + payment/send action buttons, proving DataTable handles both the simple and the custom-cell case) are migrated onto it now. Verified live via Playwright: sort, filter, column hide, inline edit (persists to the backend), save-a-view, and the saved view surviving a full page reload all work.
+
+**What's left:** the other ~15 list screens (Chart of Accounts, Journal Entries, Trial Balance, Parties, Bills, Aging, Warehouses, Stock Levels, Purchase Orders, Leads, Sales Orders, BOMs, Work Orders, Employees, Leave Requests, Payroll Runs) still use their original hand-rolled `<table>` markup — migrating each to `DataTable.vue` is now mechanical (declare `ColumnDef[]`, pass `:rows`, add slots only where a cell needs custom rendering) rather than new design work, but it's real per-screen effort not done yet. Column resize is mouse-drag only (no keyboard/touch equivalent yet). No column-type-aware filtering (e.g. date-range or numeric-range filters) — every filter is a case-insensitive text-contains match on the rendered cell text today.
+
+## What's proceeding despite the two open decisions above
+
+Per your instruction, Phase 1 continues into **Phase 2 scope** (`development-plan.md` §5) where it doesn't depend on either decision above — Sales & CRM, Manufacturing, and HR & Payroll have shipped (mirroring the Purchasing pattern already in Phase 1: order → fulfillment/receipt → stock movement → auto-generated AR/AP document), the AI Chat Layer v1, and now the Configurable Data Views work above. Remaining Phase 2 items — multi-entity consolidation and the metered AI agentic layer — are next; SGK e-Bildirge and the Mikro connector remain blocked on decisions #1/#2 above the same way e-Fatura and the Logo connector were in Phase 1.

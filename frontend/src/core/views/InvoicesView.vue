@@ -2,8 +2,14 @@
 import { onMounted, reactive, ref } from 'vue'
 
 import { useARAPStore, type DocumentLineInput } from '@/core/stores/arap'
+import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
 
 // REQ-CORE-AR-001/002: create, send, and record payments against customer invoices.
+// REQ-CORE-UX-001..004: DataTable reference integration -- status/actions
+// use per-column slots (custom badges/buttons) since a plain text or
+// inline-edit cell can't express "Gönder" / payment-recording controls;
+// every other column still gets the generic sort/filter/reorder/hide/
+// saved-views behavior for free.
 const arap = useARAPStore()
 
 onMounted(() => {
@@ -60,6 +66,15 @@ const statusLabels: Record<string, string> = {
   paid: 'Ödendi',
   cancelled: 'İptal',
 }
+
+const columns: ColumnDef[] = [
+  { key: 'party_name', label: 'Müşteri' },
+  { key: 'due_date', label: 'Vade' },
+  { key: 'total', label: 'Toplam' },
+  { key: 'balance_due', label: 'Bakiye' },
+  { key: 'status', label: 'Durum' },
+  { key: 'actions', label: '', sortable: false, filterable: false },
+]
 </script>
 
 <template>
@@ -91,35 +106,24 @@ const statusLabels: Record<string, string> = {
       </button>
     </form>
 
-    <table class="mt-6 w-full max-w-4xl text-left text-sm">
-      <thead>
-        <tr class="border-b border-neutral-200 text-neutral-500 dark:border-neutral-800">
-          <th class="py-2 pr-4">Müşteri</th>
-          <th class="py-2 pr-4">Vade</th>
-          <th class="py-2 pr-4 text-right">Toplam</th>
-          <th class="py-2 pr-4 text-right">Bakiye</th>
-          <th class="py-2 pr-4">Durum</th>
-          <th class="py-2 pr-4"></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="doc in arap.invoices" :key="doc.id" class="border-b border-neutral-100 dark:border-neutral-900">
-          <td class="py-1.5 pr-4">{{ doc.party_name }}</td>
-          <td class="py-1.5 pr-4" :class="{ 'text-red-600': doc.is_overdue }">{{ doc.due_date }}</td>
-          <td class="py-1.5 pr-4 text-right">{{ doc.total }}</td>
-          <td class="py-1.5 pr-4 text-right">{{ doc.balance_due }}</td>
-          <td class="py-1.5 pr-4">{{ statusLabels[doc.status] }}</td>
-          <td class="py-1.5 pr-4">
-            <button v-if="doc.status === 'draft'" class="text-sm text-blue-600 hover:underline" @click="arap.sendInvoice(doc.id)">
-              Gönder
-            </button>
-            <div v-else-if="doc.status !== 'paid' && doc.status !== 'cancelled'" class="flex items-center gap-1">
-              <input v-model="draftFor(doc.id).amount" type="number" step="0.01" class="w-20 rounded border border-neutral-300 px-1 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800" />
-              <button class="text-xs text-blue-600 hover:underline" @click="pay(doc.id)">Tahsilat Kaydet</button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="mt-6">
+      <DataTable screen-key="invoices" :columns="columns" :rows="arap.invoices">
+        <template #due_date="{ row }">
+          <span :class="{ 'text-red-600': row.is_overdue }">{{ row.due_date }}</span>
+        </template>
+        <template #status="{ row }">
+          {{ statusLabels[row.status] }}
+        </template>
+        <template #actions="{ row }">
+          <button v-if="row.status === 'draft'" class="text-sm text-blue-600 hover:underline" @click="arap.sendInvoice(row.id)">
+            Gönder
+          </button>
+          <div v-else-if="row.status !== 'paid' && row.status !== 'cancelled'" class="flex items-center gap-1">
+            <input v-model="draftFor(row.id).amount" type="number" step="0.01" class="w-20 rounded border border-neutral-300 px-1 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800" />
+            <button class="text-xs text-blue-600 hover:underline" @click="pay(row.id)">Tahsilat Kaydet</button>
+          </div>
+        </template>
+      </DataTable>
+    </div>
   </section>
 </template>
