@@ -23,6 +23,8 @@ import {
   UserGroupIcon,
   UserPlusIcon,
   UsersIcon,
+  Cog6ToothIcon,
+  ComputerDesktopIcon,
 } from '@heroicons/vue/24/outline'
 import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -111,6 +113,15 @@ const navGroups: NavGroup[] = [
       { to: '/employees', labelKey: 'nav.employees', icon: UserGroupIcon, package: 'hr_payroll' },
       { to: '/leave-requests', labelKey: 'nav.leaveRequests', icon: CalendarDaysIcon, package: 'hr_payroll' },
       { to: '/payroll-runs', labelKey: 'nav.payrollRuns', icon: CurrencyDollarIcon, package: 'hr_payroll' },
+    ],
+  },
+  {
+    id: 'pos',
+    labelKey: 'nav.groups.pos',
+    items: [
+      { to: '/pos', labelKey: 'nav.posCheckout', icon: ComputerDesktopIcon, package: 'pos' },
+      { to: '/pos/shifts', labelKey: 'nav.posShifts', icon: ClockIcon, package: 'pos' },
+      { to: '/pos/setup', labelKey: 'nav.posSetup', icon: Cog6ToothIcon, package: 'pos' },
     ],
   },
 ]

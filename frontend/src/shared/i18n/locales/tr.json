@@ -23,12 +23,16 @@
     "employees": "Çalışanlar",
     "leaveRequests": "İzin Talepleri",
     "payrollRuns": "Bordro Dönemleri",
+    "posCheckout": "Kasa",
+    "posShifts": "Vardiyalar",
+    "posSetup": "Mağaza/Kasa Ayarları",
     "groups": {
       "finance": "Finans",
       "inventory": "Envanter & Satın Alma",
       "sales": "Satış & CRM",
       "manufacturing": "Üretim",
-      "hr": "İK & Bordro"
+      "hr": "İK & Bordro",
+      "pos": "Perakende (POS)"
     }
   },
   "aiPanel": {

@@ -18,6 +18,9 @@ import LeaveRequestsView from '@/modules/hr_payroll/views/LeaveRequestsView.vue'
 import PayrollRunsView from '@/modules/hr_payroll/views/PayrollRunsView.vue'
 import BOMsView from '@/modules/manufacturing/views/BOMsView.vue'
 import WorkOrdersView from '@/modules/manufacturing/views/WorkOrdersView.vue'
+import POSCheckoutView from '@/modules/pos/views/POSCheckoutView.vue'
+import POSSetupView from '@/modules/pos/views/POSSetupView.vue'
+import POSShiftsView from '@/modules/pos/views/POSShiftsView.vue'
 import PurchaseOrdersView from '@/modules/purchasing/views/PurchaseOrdersView.vue'
 import LeadsView from '@/modules/sales_crm/views/LeadsView.vue'
 import SalesOrdersView from '@/modules/sales_crm/views/SalesOrdersView.vue'
@@ -105,6 +108,24 @@ export const router = createRouter({
       name: 'payroll-runs',
       component: PayrollRunsView,
       meta: { requiresPackage: 'hr_payroll' },
+    },
+    {
+      path: '/pos',
+      name: 'pos-checkout',
+      component: POSCheckoutView,
+      meta: { requiresPackage: 'pos' },
+    },
+    {
+      path: '/pos/shifts',
+      name: 'pos-shifts',
+      component: POSShiftsView,
+      meta: { requiresPackage: 'pos' },
+    },
+    {
+      path: '/pos/setup',
+      name: 'pos-setup',
+      component: POSSetupView,
+      meta: { requiresPackage: 'pos' },
     },
   ],
 })
