@@ -10,8 +10,8 @@ from decimal import Decimal
 from django.utils import timezone
 from django_tenants.test.cases import TenantTestCase
 
-from apps.core.ai_tools import cash_position, overdue_ap_balance, overdue_ar_balance
-from apps.core.models import Account, Bill, BillLine, Invoice, InvoiceLine, JournalEntry, JournalLine, Party
+from apps.core.ai_tools import _journal_entry_preview, cash_position, create_journal_entry, overdue_ap_balance, overdue_ar_balance
+from apps.core.models import Account, Bill, BillLine, Entity, Invoice, InvoiceLine, JournalEntry, JournalLine, Party, User
 
 
 class CashPositionTests(TenantTestCase):
@@ -84,3 +84,83 @@ class OverdueBalanceTests(TenantTestCase):
         outcome = overdue_ar_balance()
         self.assertEqual(outcome["result"]["total_overdue"], "0.00")
         self.assertEqual(outcome["result"]["count"], 0)
+
+
+class CreateJournalEntryActionTests(TenantTestCase):
+    """create_journal_entry (technical.md §8.4) is a thin wrapper around
+    JournalEntrySerializer -- these tests exist to confirm that wiring
+    actually holds (draft-only, balance validation, entity-scoping), not to
+    re-test the serializer's own validation logic from scratch."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="asker", password="x")
+        self.entity = Entity.objects.create(name="Acme A.Ş.", code="ACME")
+        self.other_entity = Entity.objects.create(name="Other Co.", code="OTHER")
+        self.cash = Account.objects.create(code="100", name="Kasa", account_type=Account.ASSET, entity=self.entity)
+        self.capital = Account.objects.create(code="500", name="Sermaye", account_type=Account.EQUITY, entity=self.entity)
+        self.other_account = Account.objects.create(
+            code="100", name="Kasa", account_type=Account.ASSET, entity=self.other_entity
+        )
+
+    def test_creates_a_draft_entry_that_balances(self):
+        outcome = create_journal_entry(
+            self.user,
+            entity=self.entity.id,
+            date="2026-08-01",
+            memo="Sermaye girişi",
+            lines=[
+                {"account_id": self.cash.id, "debit": "1000.00", "credit": "0"},
+                {"account_id": self.capital.id, "debit": "0", "credit": "1000.00"},
+            ],
+        )
+        entry = JournalEntry.objects.get(id=outcome["result"]["id"])
+        self.assertEqual(entry.status, JournalEntry.DRAFT)
+        self.assertEqual(entry.lines.count(), 2)
+        self.assertEqual(outcome["result"]["status"], JournalEntry.DRAFT)
+
+    def test_unbalanced_lines_raise_instead_of_creating_anything(self):
+        with self.assertRaises(ValueError):
+            create_journal_entry(
+                self.user,
+                entity=self.entity.id,
+                date="2026-08-01",
+                lines=[
+                    {"account_id": self.cash.id, "debit": "1000.00", "credit": "0"},
+                    {"account_id": self.capital.id, "debit": "0", "credit": "500.00"},
+                ],
+            )
+        self.assertEqual(JournalEntry.objects.count(), 0)
+
+    def test_account_from_a_different_entity_raises(self):
+        with self.assertRaises(ValueError):
+            create_journal_entry(
+                self.user,
+                entity=self.entity.id,
+                date="2026-08-01",
+                lines=[
+                    {"account_id": self.other_account.id, "debit": "1000.00", "credit": "0"},
+                    {"account_id": self.capital.id, "debit": "0", "credit": "1000.00"},
+                ],
+            )
+        self.assertEqual(JournalEntry.objects.count(), 0)
+
+
+class JournalEntryPreviewTests(TenantTestCase):
+    def setUp(self):
+        self.entity = Entity.objects.create(name="Acme A.Ş.", code="ACME")
+        self.cash = Account.objects.create(code="100", name="Kasa", account_type=Account.ASSET, entity=self.entity)
+
+    def test_preview_includes_account_code_and_name(self):
+        preview = _journal_entry_preview(
+            entity=self.entity.id,
+            date="2026-08-01",
+            memo="test",
+            lines=[{"account_id": self.cash.id, "debit": "100.00", "credit": "0"}],
+        )
+        self.assertIn("100 — Kasa", preview)
+
+    def test_preview_falls_back_gracefully_for_unknown_account(self):
+        preview = _journal_entry_preview(
+            entity=self.entity.id, date="2026-08-01", lines=[{"account_id": 999999, "debit": "100.00", "credit": "0"}]
+        )
+        self.assertIn("hesap #999999", preview)

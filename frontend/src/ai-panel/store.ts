@@ -16,13 +16,18 @@ export interface ChatMessage {
   citations?: Citation[]
   // Set when the assistant is proposing a mutating action (REQ-AI-XCUT-003) --
   // the UI must render this distinctly from an already-completed action, and
-  // the message stays 'pending' until the user confirms or rejects it. No
-  // tool call sets this yet (the write/action path isn't built -- see
-  // docs/notes.md); the field and its rendering in AIPanel.vue are kept so
-  // that path is a backend addition later, not a UI rewrite.
+  // the message stays 'pending' until the user confirms or rejects it via
+  // POST ai/pending-approvals/{id}/approve|reject/ (backend's
+  // PendingApproval state machine, apps/ai_core/models.py).
   pendingAction?: {
+    id: number
     description: string
-    status: 'pending' | 'approved' | 'rejected'
+    // Mirrors PendingApproval.STATUS_CHOICES (apps/ai_core/models.py)
+    // exactly -- 'executed'/'failed' are both terminal outcomes of
+    // approving, kept distinct so the UI can say if the action itself blew
+    // up even though the approval step succeeded.
+    status: 'pending' | 'executed' | 'failed' | 'rejected'
+    resolving?: boolean
   }
 }
 
@@ -48,16 +53,21 @@ export const useAIStore = defineStore('ai', () => {
       const history = messages.value
         .slice(0, -1)
         .map((m) => ({ role: m.role, content: m.text }))
-      const { data } = await apiClient.post<{ reply: string; citations: Citation[]; configured: boolean }>(
-        'ai/chat/',
-        { message: text, locale: i18n.global.locale.value, history },
-      )
+      const { data } = await apiClient.post<{
+        reply: string
+        citations: Citation[]
+        configured: boolean
+        pending_action: { id: number; description: string } | null
+      }>('ai/chat/', { message: text, locale: i18n.global.locale.value, history })
       configured.value = data.configured
       messages.value.push({
         id: crypto.randomUUID(),
         role: 'assistant',
         text: data.reply,
         citations: data.citations,
+        pendingAction: data.pending_action
+          ? { id: data.pending_action.id, description: data.pending_action.description, status: 'pending' }
+          : undefined,
       })
     } catch {
       messages.value.push({
@@ -73,5 +83,39 @@ export const useAIStore = defineStore('ai', () => {
     }
   }
 
-  return { isOpen, messages, isStreaming, configured, toggle, sendMessage }
+  async function resolvePendingAction(approvalId: number, decision: 'approve' | 'reject') {
+    const message = messages.value.find((m) => m.pendingAction?.id === approvalId)
+    if (!message?.pendingAction || message.pendingAction.resolving) return
+    message.pendingAction.resolving = true
+    try {
+      const { data } = await apiClient.post<{ status: 'executed' | 'failed' | 'rejected' }>(
+        `ai/pending-approvals/${approvalId}/${decision}/`,
+      )
+      message.pendingAction.status = data.status
+    } catch {
+      // Leave it 'pending' -- the approve/reject buttons stay visible so the
+      // user can retry, rather than silently losing the proposal.
+    } finally {
+      message.pendingAction.resolving = false
+    }
+  }
+
+  function approvePendingAction(approvalId: number) {
+    return resolvePendingAction(approvalId, 'approve')
+  }
+
+  function rejectPendingAction(approvalId: number) {
+    return resolvePendingAction(approvalId, 'reject')
+  }
+
+  return {
+    isOpen,
+    messages,
+    isStreaming,
+    configured,
+    toggle,
+    sendMessage,
+    approvePendingAction,
+    rejectPendingAction,
+  }
 })

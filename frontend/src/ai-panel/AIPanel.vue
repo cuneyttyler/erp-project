@@ -68,6 +68,31 @@ function submit() {
           >
             <p class="font-semibold">{{ t('aiPanel.confirmAction') }}</p>
             <p>{{ message.pendingAction.description }}</p>
+            <div v-if="message.pendingAction.status === 'pending'" class="mt-2 flex gap-2">
+              <button
+                type="button"
+                :disabled="message.pendingAction.resolving"
+                class="rounded bg-amber-600 px-2 py-1 font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+                @click="ai.approvePendingAction(message.pendingAction.id)"
+              >
+                {{ t('aiPanel.approve') }}
+              </button>
+              <button
+                type="button"
+                :disabled="message.pendingAction.resolving"
+                class="rounded border border-amber-400 px-2 py-1 font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-50 dark:text-amber-200 dark:hover:bg-amber-900"
+                @click="ai.rejectPendingAction(message.pendingAction.id)"
+              >
+                {{ t('aiPanel.reject') }}
+              </button>
+            </div>
+            <p v-else-if="message.pendingAction.status === 'executed'" class="mt-2 font-medium">
+              ✓ {{ t('aiPanel.actionApproved') }}
+            </p>
+            <p v-else-if="message.pendingAction.status === 'failed'" class="mt-2 font-medium">
+              ✕ {{ t('aiPanel.actionFailed') }}
+            </p>
+            <p v-else class="mt-2 font-medium">✕ {{ t('aiPanel.actionRejected') }}</p>
           </div>
         </div>
         <div v-if="ai.isStreaming" class="mr-8 rounded-lg bg-neutral-100 px-3 py-2 text-sm text-neutral-500 dark:bg-neutral-800">

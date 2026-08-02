@@ -36,6 +36,11 @@
     "placeholder": "Bir soru sorun veya bir işlem isteyin...",
     "send": "Gönder",
     "confirmAction": "Onay Gerekiyor",
+    "approve": "Onayla",
+    "reject": "Reddet",
+    "actionApproved": "Onaylandı ve tamamlandı.",
+    "actionRejected": "Reddedildi.",
+    "actionFailed": "Onaylandı, ancak işlem başarısız oldu.",
     "empty": "Herhangi bir modül hakkında soru sorabilirsiniz.",
     "thinking": "Düşünüyor..."
   },

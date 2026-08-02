@@ -1,14 +1,17 @@
 """
-Core's read-only AI metrics (technical.md §8.2/§8.4 pattern applied to the
-read path). Registered into apps.ai_core.semantic's shared registry from
-CoreConfig.ready() -- see apps/core/apps.py.
+Core's read-only AI metrics and write actions (technical.md §8.2/§8.4).
+Registered into apps.ai_core's shared registries from CoreConfig.ready()
+-- see apps/core/apps.py.
 """
 
 from decimal import Decimal
+from types import SimpleNamespace
 
 from django.db.models import Sum
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError as DRFValidationError
 
+from apps.ai_core.actions import register_action
 from apps.ai_core.semantic import format_money, register_metric
 
 from .models import Account, Bill, Invoice, JournalEntry
@@ -80,4 +83,87 @@ def overdue_ap_balance(**_kwargs) -> dict:
             "top_vendors": [{"party": r["party_name"], "balance_due": format_money(r["balance_due"]), "days_overdue": r["days_overdue"]} for r in top],
         },
         "citations": [{"label": "Yaşlandırma / AP Aging", "route": "/aging"}],
+    }
+
+
+def _journal_entry_preview(entity=None, date=None, memo="", lines=None, **_kwargs) -> str:
+    """Read-only -- looks up account codes for a friendlier preview, but
+    never writes anything. Falls back to raw ids if a lookup fails, since
+    the preview must never itself error out and block showing the approval
+    prompt."""
+    line_descriptions = []
+    for line in lines or []:
+        try:
+            account = Account.objects.get(id=line.get("account_id"))
+            label = f"{account.code} — {account.name}"
+        except Account.DoesNotExist:
+            label = f"hesap #{line.get('account_id')}"
+        debit, credit = line.get("debit", "0"), line.get("credit", "0")
+        line_descriptions.append(f"{label}: borç {debit} / alacak {credit}")
+    lines_text = "; ".join(line_descriptions) if line_descriptions else "(satır yok)"
+    return f"{date} tarihli, '{memo or 'açıklama yok'}' açıklamalı bir TASLAK yevmiye kaydı oluşturulacak: {lines_text}"
+
+
+@register_action(
+    name="create_journal_entry",
+    description=(
+        "Create a DRAFT journal entry (not posted -- the user must still review and post it from the "
+        "Journal Entries screen). Every line's account must belong to the given entity's own Chart of "
+        "Accounts, and total debits must equal total credits."
+    ),
+    input_schema={
+        "type": "object",
+        "properties": {
+            "entity": {"type": "integer", "description": "The entity id this journal entry's ledger belongs to."},
+            "date": {"type": "string", "description": "YYYY-MM-DD"},
+            "memo": {"type": "string"},
+            "lines": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "account_id": {"type": "integer"},
+                        "debit": {"type": "string"},
+                        "credit": {"type": "string"},
+                        "description": {"type": "string"},
+                    },
+                    "required": ["account_id", "debit", "credit"],
+                },
+            },
+        },
+        "required": ["entity", "date", "lines"],
+    },
+    preview=_journal_entry_preview,
+)
+def create_journal_entry(user, entity=None, date=None, memo="", lines=None) -> dict:
+    # Reuses JournalEntrySerializer itself for validation/creation --
+    # technical.md §8.4: "a thin wrapper around the same service-layer call
+    # the API view uses, not a separate code path with its own (possibly
+    # weaker) authorization logic." SimpleNamespace stands in for a real
+    # DRF Request here since the serializer only ever reads `.user` off it.
+    from .serializers import JournalEntrySerializer
+
+    payload = {
+        "entity": entity,
+        "date": date,
+        "memo": memo or "",
+        "lines": [
+            {
+                "account": line.get("account_id"),
+                "debit": line.get("debit", "0"),
+                "credit": line.get("credit", "0"),
+                "description": line.get("description", ""),
+            }
+            for line in (lines or [])
+        ],
+    }
+    serializer = JournalEntrySerializer(data=payload, context={"request": SimpleNamespace(user=user)})
+    try:
+        serializer.is_valid(raise_exception=True)
+    except DRFValidationError as exc:
+        raise ValueError(str(exc.detail)) from exc
+    entry = serializer.save()
+    return {
+        "result": {"id": entry.id, "status": entry.status, "entity": entity},
+        "summary": f"Draft journal entry #{entry.id} created for {entry.date} -- not yet posted.",
     }

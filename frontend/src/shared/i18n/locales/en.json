@@ -36,6 +36,11 @@
     "placeholder": "Ask a question or request an action...",
     "send": "Send",
     "confirmAction": "Confirmation Required",
+    "approve": "Approve",
+    "reject": "Reject",
+    "actionApproved": "Approved and completed.",
+    "actionRejected": "Rejected.",
+    "actionFailed": "Approved, but the action failed.",
     "empty": "Ask about anything across your active modules.",
     "thinking": "Thinking..."
   },
