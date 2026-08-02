@@ -1,16 +1,22 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 
 import { useARAPStore, type DocumentLineInput } from '@/core/stores/arap'
 import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
+import { useEntityStore } from '@/shared/stores/entity'
 
-// REQ-CORE-AP-001/002: create, send, and record payments against vendor bills.
+// REQ-CORE-AP-001/002/REQ-CORE-ENT-001: create, send, and record payments
+// against vendor bills, scoped to the current entity.
 const arap = useARAPStore()
+const entity = useEntityStore()
 
-onMounted(() => {
+function refresh() {
   arap.fetchParties()
   arap.fetchBills()
-})
+}
+
+onMounted(refresh)
+watch(() => entity.currentEntityId, refresh)
 
 const form = reactive({
   party: null as number | null,

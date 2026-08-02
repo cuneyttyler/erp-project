@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 
 import { useLedgerStore } from '@/core/stores/ledger'
 import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
+import { useEntityStore } from '@/shared/stores/entity'
 
-// REQ-CORE-GL-001: browse the tenant's Chart of Accounts.
+// REQ-CORE-GL-001/REQ-CORE-ENT-001: browse the current entity's Chart of
+// Accounts, re-fetching whenever the header's entity switcher changes.
 const ledger = useLedgerStore()
+const entity = useEntityStore()
 onMounted(() => ledger.fetchAccounts())
+watch(() => entity.currentEntityId, () => ledger.fetchAccounts())
 
 const columns: ColumnDef[] = [
   { key: 'code', label: 'Kod' },

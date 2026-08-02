@@ -4,6 +4,7 @@ from .models import (
     Account,
     Bill,
     BillLine,
+    Entity,
     Invoice,
     InvoiceLine,
     Item,
@@ -15,6 +16,13 @@ from .models import (
     SavedView,
     User,
 )
+
+
+class EntitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Entity
+        fields = ["id", "name", "code", "currency", "is_active", "created_at"]
+        read_only_fields = ["created_at"]
 
 
 class RoleSerializer(serializers.ModelSerializer):
@@ -46,9 +54,20 @@ class LoginSerializer(serializers.Serializer):
 
 
 class AccountSerializer(serializers.ModelSerializer):
+    # Declared explicitly rather than via Meta.extra_kwargs: entity is
+    # null=True at the DB level for migration-backfill reasons only (see
+    # models.py), and DRF's ModelSerializer auto-generation adds an implicit
+    # `default=None` for any null=True FK before extra_kwargs are layered on
+    # top -- overriding `required=True` via extra_kwargs while that
+    # leftover `default=None` is still present trips DRF's own
+    # "may not set both `required` and `default`" assertion (a real 500,
+    # not a hypothetical). Declaring the field directly sidesteps that
+    # auto-generation path entirely.
+    entity = serializers.PrimaryKeyRelatedField(queryset=Entity.objects.all())
+
     class Meta:
         model = Account
-        fields = ["id", "code", "name", "account_type", "parent", "is_active"]
+        fields = ["id", "entity", "code", "name", "account_type", "parent", "is_active", "is_intercompany"]
 
 
 class ItemSerializer(serializers.ModelSerializer):
@@ -100,11 +119,15 @@ class JournalLineSerializer(serializers.ModelSerializer):
 class JournalEntrySerializer(serializers.ModelSerializer):
     lines = JournalLineSerializer(many=True)
     created_by_username = serializers.CharField(source="created_by.username", read_only=True)
+    # See AccountSerializer.entity's comment -- declared explicitly, not via
+    # extra_kwargs, to avoid DRF's own required/default assertion.
+    entity = serializers.PrimaryKeyRelatedField(queryset=Entity.objects.all())
 
     class Meta:
         model = JournalEntry
         fields = [
             "id",
+            "entity",
             "date",
             "memo",
             "status",
@@ -128,6 +151,20 @@ class JournalEntrySerializer(serializers.ModelSerializer):
             )
         return lines
 
+    def validate(self, attrs):
+        # REQ-CORE-ENT-001: a journal entry belongs to exactly one entity's
+        # ledger -- every line's account must actually be on that entity's
+        # own Chart of Accounts, not borrowed from a different entity's COA.
+        entity = attrs.get("entity") or getattr(self.instance, "entity", None)
+        lines = attrs.get("lines")
+        if entity is not None and lines:
+            mismatched = [line["account"].code for line in lines if line["account"].entity_id != entity.id]
+            if mismatched:
+                raise serializers.ValidationError(
+                    f"Account(s) {', '.join(mismatched)} don't belong to this entity's Chart of Accounts."
+                )
+        return attrs
+
     def create(self, validated_data):
         lines_data = validated_data.pop("lines")
         request = self.context.get("request")
@@ -140,10 +177,15 @@ class JournalEntrySerializer(serializers.ModelSerializer):
 
 
 class PartySerializer(serializers.ModelSerializer):
+    # See AccountSerializer.entity's comment -- declared explicitly, not via
+    # extra_kwargs, to avoid DRF's own required/default assertion.
+    entity = serializers.PrimaryKeyRelatedField(queryset=Entity.objects.all())
+
     class Meta:
         model = Party
         fields = [
             "id",
+            "entity",
             "name",
             "party_type",
             "tax_id",

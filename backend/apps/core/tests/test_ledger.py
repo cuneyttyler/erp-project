@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 from django_tenants.test.cases import TenantTestCase
 from rest_framework.test import APIClient
 
-from apps.core.models import Account, JournalEntry, JournalLine, User
+from apps.core.models import Account, Entity, JournalEntry, JournalLine, User
 
 
 class JournalEntryBalanceTests(TenantTestCase):
@@ -86,9 +86,12 @@ class TrialBalanceAPITests(TenantTestCase):
 
     def setUp(self):
         self.user = User.objects.create_user(username="tester", password="x")
-        self.cash = Account.objects.create(code="100", name="Kasa", account_type=Account.ASSET)
-        self.sales = Account.objects.create(code="600", name="Yurtiçi Satışlar", account_type=Account.REVENUE)
-        entry = JournalEntry.objects.create(date="2026-01-01", memo="test")
+        self.entity = Entity.objects.create(code="MAIN", name="Ana Şirket")
+        self.cash = Account.objects.create(entity=self.entity, code="100", name="Kasa", account_type=Account.ASSET)
+        self.sales = Account.objects.create(
+            entity=self.entity, code="600", name="Yurtiçi Satışlar", account_type=Account.REVENUE
+        )
+        entry = JournalEntry.objects.create(entity=self.entity, date="2026-01-01", memo="test")
         JournalLine.objects.create(journal_entry=entry, account=self.cash, debit=Decimal("100.00"), credit=0)
         JournalLine.objects.create(journal_entry=entry, account=self.sales, debit=0, credit=Decimal("100.00"))
         entry.post()
@@ -101,7 +104,9 @@ class TrialBalanceAPITests(TenantTestCase):
         # using 'tenant.test.com' for its throwaway test tenant -- without
         # this HTTP_HOST the request 404s before ever reaching our view.
         response = self.client.get(
-            "/api/v1/core/reports/trial-balance/", HTTP_HOST="tenant.test.com"
+            "/api/v1/core/reports/trial-balance/",
+            {"entity": self.entity.id},
+            HTTP_HOST="tenant.test.com",
         )
         self.assertEqual(response.status_code, 200)
         # The raw response body must contain a quoted string ("100.00"),

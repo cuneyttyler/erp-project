@@ -1,17 +1,23 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
 import { useARAPStore } from '@/core/stores/arap'
 import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
+import { useEntityStore } from '@/shared/stores/entity'
 
-// REQ-CORE-AR-003/REQ-CORE-AP-002: AR/AP aging, bucketed by days overdue.
+// REQ-CORE-AR-003/REQ-CORE-AP-002/REQ-CORE-ENT-001: AR/AP aging, bucketed
+// by days overdue, scoped to the current entity.
 const arap = useARAPStore()
+const entityStore = useEntityStore()
 const tab = ref<'ar' | 'ap'>('ar')
 
-onMounted(() => {
+function refresh() {
   arap.fetchARAging()
   arap.fetchAPAging()
-})
+}
+
+onMounted(refresh)
+watch(() => entityStore.currentEntityId, refresh)
 
 const rows = computed(() => (tab.value === 'ar' ? arap.arAging : arap.apAging))
 const bucketLabel: Record<string, string> = {

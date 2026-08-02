@@ -4,6 +4,7 @@ import AgingView from '@/core/views/AgingView.vue'
 import BillsView from '@/core/views/BillsView.vue'
 import ChartOfAccountsView from '@/core/views/ChartOfAccountsView.vue'
 import DashboardView from '@/core/views/DashboardView.vue'
+import EntitiesView from '@/core/views/EntitiesView.vue'
 import InvoicesView from '@/core/views/InvoicesView.vue'
 import ItemsView from '@/core/views/ItemsView.vue'
 import JournalEntriesView from '@/core/views/JournalEntriesView.vue'
@@ -36,6 +37,7 @@ export const router = createRouter({
   routes: [
     { path: '/login', name: 'login', component: LoginView, meta: { public: true } },
     { path: '/', name: 'dashboard', component: DashboardView },
+    { path: '/entities', name: 'entities', component: EntitiesView },
     { path: '/accounts', name: 'accounts', component: ChartOfAccountsView },
     { path: '/items', name: 'items', component: ItemsView },
     { path: '/journal-entries', name: 'journal-entries', component: JournalEntriesView },

@@ -1,18 +1,24 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 
 import { useLedgerStore, type JournalLineInput } from '@/core/stores/ledger'
 import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
+import { useEntityStore } from '@/shared/stores/entity'
 
-// REQ-CORE-GL-002: create + post journal entries. Posting is a deliberate
-// separate step from creation (ledger.postEntry), matching the backend's
-// draft -> posted workflow -- nothing here lets you edit a posted entry.
+// REQ-CORE-GL-002/REQ-CORE-ENT-001: create + post journal entries, scoped
+// to the current entity's own ledger. Posting is a deliberate separate
+// step from creation (ledger.postEntry), matching the backend's draft ->
+// posted workflow -- nothing here lets you edit a posted entry.
 const ledger = useLedgerStore()
+const entity = useEntityStore()
 
-onMounted(() => {
+function refresh() {
   ledger.fetchAccounts()
   ledger.fetchEntries()
-})
+}
+
+onMounted(refresh)
+watch(() => entity.currentEntityId, refresh)
 
 const form = reactive({
   date: new Date().toISOString().slice(0, 10),

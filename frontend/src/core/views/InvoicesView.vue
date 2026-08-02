@@ -1,21 +1,27 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 
 import { useARAPStore, type DocumentLineInput } from '@/core/stores/arap'
 import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
+import { useEntityStore } from '@/shared/stores/entity'
 
-// REQ-CORE-AR-001/002: create, send, and record payments against customer invoices.
+// REQ-CORE-AR-001/002/REQ-CORE-ENT-001: create, send, and record payments
+// against customer invoices, scoped to the current entity.
 // REQ-CORE-UX-001..004: DataTable reference integration -- status/actions
 // use per-column slots (custom badges/buttons) since a plain text or
 // inline-edit cell can't express "Gönder" / payment-recording controls;
 // every other column still gets the generic sort/filter/reorder/hide/
 // saved-views behavior for free.
 const arap = useARAPStore()
+const entity = useEntityStore()
 
-onMounted(() => {
+function refresh() {
   arap.fetchParties()
   arap.fetchInvoices()
-})
+}
+
+onMounted(refresh)
+watch(() => entity.currentEntityId, refresh)
 
 const form = reactive({
   party: null as number | null,

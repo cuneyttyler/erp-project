@@ -4,6 +4,7 @@
   },
   "nav": {
     "dashboard": "Panel",
+    "entities": "Şirketler",
     "accounts": "Hesap Planı",
     "journalEntries": "Yevmiye Kayıtları",
     "trialBalance": "Mizan",

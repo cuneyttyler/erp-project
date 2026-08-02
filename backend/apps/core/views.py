@@ -11,11 +11,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Account, Bill, Invoice, Item, JournalEntry, Party, Payment, SavedView
+from .models import Account, Bill, Entity, Invoice, Item, JournalEntry, Party, Payment, SavedView
 from .serializers import (
     AccountSerializer,
     AgingRowSerializer,
     BillSerializer,
+    EntitySerializer,
     InvoiceSerializer,
     ItemSerializer,
     JournalEntrySerializer,
@@ -26,6 +27,15 @@ from .serializers import (
     TrialBalanceRowSerializer,
     UserSerializer,
 )
+
+
+class EntityViewSet(viewsets.ModelViewSet):
+    """Legal entities/companies under this tenant (REQ-CORE-ENT-001)."""
+
+    queryset = Entity.objects.all()
+    serializer_class = EntitySerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["is_active"]
 
 
 @require_GET
@@ -112,7 +122,7 @@ class AccountViewSet(viewsets.ModelViewSet):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["account_type", "is_active"]
+    filterset_fields = ["entity", "account_type", "is_active"]
 
 
 class JournalEntryViewSet(viewsets.ModelViewSet):
@@ -126,7 +136,7 @@ class JournalEntryViewSet(viewsets.ModelViewSet):
     queryset = JournalEntry.objects.prefetch_related("lines__account").all()
     serializer_class = JournalEntrySerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["status", "date"]
+    filterset_fields = ["entity", "status", "date"]
 
     @action(detail=True, methods=["post"])
     def post_entry(self, request, pk=None):
@@ -147,12 +157,37 @@ class TrialBalanceView(APIView):
     is exactly the kind of figure that belongs behind the semantic layer
     (technical.md §8.2) once ai_core exists; today it's the one and only
     source of truth this number comes from.
+
+    REQ-CORE-ENT-001/002: `?entity=<id>` scopes to one entity's own ledger
+    (required for a single-entity view, since Account.code is only unique
+    per-entity now, not tenant-wide). `?consolidated=true` instead sums
+    every active entity's posted balances together, grouped by account code
+    -- which assumes every entity was seeded from the same Tekdüzen Hesap
+    Planı template (true for every entity created through this app's normal
+    onboarding flow, since there's only one COA seed command). Accounts
+    flagged `is_intercompany` are dropped entirely from the consolidated
+    total rather than matched and netted transaction-by-transaction -- a
+    real simplification of proper consolidation elimination accounting,
+    same as the account-level docstring already flags.
     """
 
     def get(self, request):
+        base = Account.objects.filter(journal_lines__journal_entry__status=JournalEntry.POSTED)
+
+        consolidated = request.query_params.get("consolidated") == "true"
+        if consolidated:
+            base = base.exclude(is_intercompany=True)
+        else:
+            entity_id = request.query_params.get("entity")
+            if not entity_id:
+                return Response(
+                    {"detail": "Pass ?entity=<id> for a single entity's trial balance, or ?consolidated=true."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            base = base.filter(entity_id=entity_id)
+
         rows = (
-            Account.objects.filter(journal_lines__journal_entry__status=JournalEntry.POSTED)
-            .values("code", "name", "account_type")
+            base.values("code", "name", "account_type")
             .annotate(total_debit=Sum("journal_lines__debit"), total_credit=Sum("journal_lines__credit"))
             .order_by("code")
         )
@@ -165,7 +200,7 @@ class PartyViewSet(viewsets.ModelViewSet):
     queryset = Party.objects.all()
     serializer_class = PartySerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["party_type", "is_active"]
+    filterset_fields = ["entity", "party_type", "is_active"]
 
 
 class SendableDocumentMixin:
@@ -188,21 +223,38 @@ class SendableDocumentMixin:
 
 
 class InvoiceViewSet(SendableDocumentMixin, viewsets.ModelViewSet):
-    """Customer invoices (REQ-CORE-AR-001/002)."""
+    """Customer invoices (REQ-CORE-AR-001/002). An invoice has no `entity`
+    field of its own -- it's derived from `party.entity` (REQ-CORE-ENT-001),
+    since a Party already belongs to exactly one entity's books."""
 
     queryset = Invoice.objects.select_related("party").prefetch_related("lines", "payments").all()
     serializer_class = InvoiceSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["status", "party"]
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        entity_id = self.request.query_params.get("entity")
+        if entity_id:
+            qs = qs.filter(party__entity_id=entity_id)
+        return qs
+
 
 class BillViewSet(SendableDocumentMixin, viewsets.ModelViewSet):
-    """Vendor bills (REQ-CORE-AP-001/002)."""
+    """Vendor bills (REQ-CORE-AP-001/002). Same derived-entity note as
+    InvoiceViewSet applies here."""
 
     queryset = Bill.objects.select_related("party").prefetch_related("lines", "payments").all()
     serializer_class = BillSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["status", "party"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        entity_id = self.request.query_params.get("entity")
+        if entity_id:
+            qs = qs.filter(party__entity_id=entity_id)
+        return qs
 
 
 class PaymentViewSet(viewsets.ModelViewSet):
@@ -291,20 +343,30 @@ def _build_aging_rows(queryset):
 
 
 class ARAgingView(APIView):
-    """REQ-CORE-AR-003: AR aging report, bucketed by days overdue."""
+    """REQ-CORE-AR-003: AR aging report, bucketed by days overdue.
+    Optional `?entity=<id>` scopes to one entity (via party.entity);
+    omitted means every entity's overdue invoices together."""
 
     def get(self, request):
         queryset = Invoice.objects.filter(
             status__in=[Invoice.SENT, Invoice.PARTIALLY_PAID]
         ).select_related("party").prefetch_related("lines", "payments")
+        entity_id = request.query_params.get("entity")
+        if entity_id:
+            queryset = queryset.filter(party__entity_id=entity_id)
         return Response(AgingRowSerializer(_build_aging_rows(queryset), many=True).data)
 
 
 class APAgingView(APIView):
-    """REQ-CORE-AP-002: AP aging report, bucketed by days overdue."""
+    """REQ-CORE-AP-002: AP aging report, bucketed by days overdue.
+    Optional `?entity=<id>` scopes to one entity (via party.entity);
+    omitted means every entity's overdue bills together."""
 
     def get(self, request):
         queryset = Bill.objects.filter(
             status__in=[Bill.SENT, Bill.PARTIALLY_PAID]
         ).select_related("party").prefetch_related("lines", "payments")
+        entity_id = request.query_params.get("entity")
+        if entity_id:
+            queryset = queryset.filter(party__entity_id=entity_id)
         return Response(AgingRowSerializer(_build_aging_rows(queryset), many=True).data)

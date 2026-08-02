@@ -2,14 +2,17 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 import { apiClient } from '@/shared/api/client'
+import { useEntityStore } from '@/shared/stores/entity'
 
 export interface Account {
   id: number
+  entity: number
   code: string
   name: string
   account_type: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense'
   parent: number | null
   is_active: boolean
+  is_intercompany: boolean
 }
 
 export interface JournalLineInput {
@@ -27,6 +30,7 @@ export interface JournalLine extends JournalLineInput {
 
 export interface JournalEntry {
   id: number
+  entity: number
   date: string
   memo: string
   status: 'draft' | 'posted'
@@ -47,6 +51,12 @@ export interface TrialBalanceRow {
 // Core GL/COA state (REQ-CORE-GL-*). This is Core, not a Package, so it lives
 // under src/core/ rather than src/modules/<package>/ (technical.md §10.1
 // reserves modules/ for the independently-priced packages).
+//
+// REQ-CORE-ENT-001: every fetch/create here is scoped to
+// useEntityStore().currentEntityId -- the globally-selected "current
+// entity" (App.vue's header switcher), not a per-screen selector. Trial
+// balance is the one exception: it also supports an explicit consolidated
+// mode independent of the current-entity selection (see fetchTrialBalance).
 export const useLedgerStore = defineStore('ledger', () => {
   const accounts = ref<Account[]>([])
   const entries = ref<JournalEntry[]>([])
@@ -54,8 +64,16 @@ export const useLedgerStore = defineStore('ledger', () => {
 
   // GL/COA endpoints live in apps/core, mounted at /api/v1/core/ (config/urls.py).
   async function fetchAccounts() {
-    const { data } = await apiClient.get('core/accounts/', { params: { page_size: 200 } })
+    const entity = useEntityStore().currentEntityId
+    const { data } = await apiClient.get('core/accounts/', { params: { page_size: 200, entity } })
     accounts.value = data.results ?? data
+  }
+
+  async function createAccount(payload: { code: string; name: string; account_type: Account['account_type'] }) {
+    const entity = useEntityStore().currentEntityId
+    const { data } = await apiClient.post<Account>('core/accounts/', { ...payload, entity })
+    accounts.value.push(data)
+    return data
   }
 
   async function updateAccount(id: number, payload: Partial<Account>) {
@@ -66,12 +84,14 @@ export const useLedgerStore = defineStore('ledger', () => {
   }
 
   async function fetchEntries() {
-    const { data } = await apiClient.get('core/journal-entries/', { params: { page_size: 50 } })
+    const entity = useEntityStore().currentEntityId
+    const { data } = await apiClient.get('core/journal-entries/', { params: { page_size: 50, entity } })
     entries.value = data.results ?? data
   }
 
   async function createEntry(date: string, memo: string, lines: JournalLineInput[]) {
-    const { data } = await apiClient.post<JournalEntry>('core/journal-entries/', { date, memo, lines })
+    const entity = useEntityStore().currentEntityId
+    const { data } = await apiClient.post<JournalEntry>('core/journal-entries/', { entity, date, memo, lines })
     entries.value.unshift(data)
     return data
   }
@@ -83,8 +103,12 @@ export const useLedgerStore = defineStore('ledger', () => {
     return data
   }
 
-  async function fetchTrialBalance() {
-    const { data } = await apiClient.get<TrialBalanceRow[]>('core/reports/trial-balance/')
+  // `mode`: a specific entity id for a single-entity trial balance, or the
+  // literal 'consolidated' for the cross-entity summed view (backend §
+  // REQ-CORE-ENT-002 -- intercompany-flagged accounts excluded server-side).
+  async function fetchTrialBalance(mode: number | 'consolidated') {
+    const params = mode === 'consolidated' ? { consolidated: 'true' } : { entity: mode }
+    const { data } = await apiClient.get<TrialBalanceRow[]>('core/reports/trial-balance/', { params })
     trialBalance.value = data
   }
 
@@ -93,6 +117,7 @@ export const useLedgerStore = defineStore('ledger', () => {
     entries,
     trialBalance,
     fetchAccounts,
+    createAccount,
     updateAccount,
     fetchEntries,
     createEntry,

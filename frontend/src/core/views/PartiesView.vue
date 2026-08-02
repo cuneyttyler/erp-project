@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { onMounted, reactive } from 'vue'
+import { onMounted, reactive, watch } from 'vue'
 
 import { useARAPStore } from '@/core/stores/arap'
 import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
+import { useEntityStore } from '@/shared/stores/entity'
 
-// REQ-CORE-AR-*/AP-*: unified customer/vendor master data.
+// REQ-CORE-AR-*/AP-*/REQ-CORE-ENT-001: unified customer/vendor master data,
+// scoped to the current entity.
 const arap = useARAPStore()
+const entity = useEntityStore()
 onMounted(() => arap.fetchParties())
+watch(() => entity.currentEntityId, () => arap.fetchParties())
 
 const form = reactive({
   name: '',

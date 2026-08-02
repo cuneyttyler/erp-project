@@ -7,6 +7,35 @@ from django.db import models
 from django.utils import timezone
 
 
+class Entity(models.Model):
+    """
+    A legal entity/company operating under one tenant subscription
+    (REQ-CORE-ENT-001). Deliberately scoped narrow for this pass: only GL/
+    AR/AP (Account, JournalEntry, Party -- and Invoice/Bill transitively via
+    Party) are entity-scoped, since that's what "own COA, ledgers, and
+    statutory filings" actually requires. Items, Warehouses, and every
+    operational package (Purchasing/Inventory/Sales/Manufacturing/HR) stay
+    tenant-wide, not per-entity -- those are genuinely shared master data/
+    physical operations across a corporate group, not something that needs
+    splitting per legal entity today. Revisit if a real multi-entity design
+    partner needs operational segregation too, rather than guessing at that
+    scope now.
+    """
+
+    name = models.CharField(max_length=255)
+    code = models.CharField(max_length=20, unique=True)
+    currency = models.CharField(max_length=3, default="TRY")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name_plural = "entities"
+
+    def __str__(self) -> str:
+        return f"{self.code} — {self.name}"
+
+
 class User(AbstractUser):
     """
     Tenant-scoped user account (technical.md §5 `User`). Lives inside each
@@ -126,16 +155,35 @@ class Account(models.Model):
         (EXPENSE, "Expense"),
     ]
 
-    code = models.CharField(max_length=20, unique=True)
+    # null=True at the DB level only to keep the migration adding this field
+    # to an already-populated table simple (no interactive default-value
+    # prompt / multi-step backfill migration) -- see migration 0006's data
+    # migration, which backfills every pre-existing row into one default
+    # Entity immediately. The API/serializer still treats it as required
+    # (blank=False, the DRF-relevant flag) -- a NULL entity should never
+    # exist going forward, only transiently during that one migration.
+    entity = models.ForeignKey(Entity, null=True, blank=False, on_delete=models.PROTECT, related_name="accounts")
+    code = models.CharField(max_length=20)
     name = models.CharField(max_length=255)
     account_type = models.CharField(max_length=20, choices=ACCOUNT_TYPE_CHOICES)
     parent = models.ForeignKey(
         "self", null=True, blank=True, on_delete=models.PROTECT, related_name="children"
     )
     is_active = models.BooleanField(default=True)
+    # REQ-CORE-ENT-002: accounts used purely to record intercompany balances
+    # (e.g. "Grup İçi Alacaklar/Borçlar") are excluded entirely from the
+    # consolidated trial balance rather than matched/netted transaction by
+    # transaction -- a real simplification of proper consolidation
+    # elimination accounting, flagged here the same way every other
+    # deliberately-simplified financial calculation in this codebase is
+    # (see e.g. hr_payroll/rates.py's docstring).
+    is_intercompany = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["code"]
+        constraints = [
+            models.UniqueConstraint(fields=["entity", "code"], name="unique_account_code_per_entity")
+        ]
 
     def __str__(self) -> str:
         return f"{self.code} — {self.name}"
@@ -158,6 +206,9 @@ class JournalEntry(models.Model):
     POSTED = "posted"
     STATUS_CHOICES = [(DRAFT, "Draft"), (POSTED, "Posted")]
 
+    # See Account.entity's docstring for why this is null=True at the DB
+    # level but required via the API.
+    entity = models.ForeignKey(Entity, null=True, blank=False, on_delete=models.PROTECT, related_name="journal_entries")
     date = models.DateField()
     memo = models.CharField(max_length=255, blank=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=DRAFT)
@@ -223,6 +274,14 @@ class Party(models.Model):
     BOTH = "both"
     PARTY_TYPE_CHOICES = [(CUSTOMER, "Customer"), (VENDOR, "Vendor"), (BOTH, "Both")]
 
+    # REQ-CORE-ENT-001: a customer/vendor record belongs to one entity's own
+    # books -- the same real-world company doing business with two entities
+    # under this tenant is modeled as two separate Party rows (one per
+    # entity), same as it would be in two genuinely separate accounting
+    # systems. No cross-entity "shared master data" merge in this pass.
+    # See Account.entity's docstring for why this is null=True at the DB
+    # level but required via the API.
+    entity = models.ForeignKey(Entity, null=True, blank=False, on_delete=models.PROTECT, related_name="parties")
     name = models.CharField(max_length=255)
     party_type = models.CharField(max_length=10, choices=PARTY_TYPE_CHOICES, default=CUSTOMER)
     # VKN (10 digits) or TCKN (11 digits) -- checksum validation (REQ-DATA-003)

@@ -2,9 +2,11 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 import { apiClient } from '@/shared/api/client'
+import { useEntityStore } from '@/shared/stores/entity'
 
 export interface Party {
   id: number
+  entity: number
   name: string
   party_type: 'customer' | 'vendor' | 'both'
   tax_id: string
@@ -55,6 +57,12 @@ export interface AgingRow {
 
 // AR/AP state (REQ-CORE-AR-*/AP-*). Core, not a package -- lives under
 // src/core/ alongside the GL/COA store (technical.md §10.1).
+//
+// REQ-CORE-ENT-001: scoped to useEntityStore().currentEntityId, same as
+// ledger.ts -- Invoice/Bill have no entity field of their own (derived from
+// party.entity, per apps/core/views.py), so their fetches filter by
+// `?entity=` (which the backend translates to `party__entity`) even though
+// the field on the record itself is `party`, not `entity`.
 export const useARAPStore = defineStore('arap', () => {
   const parties = ref<Party[]>([])
   const invoices = ref<FinancialDocument[]>([])
@@ -63,12 +71,14 @@ export const useARAPStore = defineStore('arap', () => {
   const apAging = ref<AgingRow[]>([])
 
   async function fetchParties() {
-    const { data } = await apiClient.get('core/parties/', { params: { page_size: 200 } })
+    const entity = useEntityStore().currentEntityId
+    const { data } = await apiClient.get('core/parties/', { params: { page_size: 200, entity } })
     parties.value = data.results ?? data
   }
 
   async function createParty(payload: Partial<Party>) {
-    const { data } = await apiClient.post<Party>('core/parties/', payload)
+    const entity = useEntityStore().currentEntityId
+    const { data } = await apiClient.post<Party>('core/parties/', { ...payload, entity })
     parties.value.unshift(data)
     return data
   }
@@ -81,7 +91,8 @@ export const useARAPStore = defineStore('arap', () => {
   }
 
   async function fetchInvoices() {
-    const { data } = await apiClient.get('core/invoices/', { params: { page_size: 50 } })
+    const entity = useEntityStore().currentEntityId
+    const { data } = await apiClient.get('core/invoices/', { params: { page_size: 50, entity } })
     invoices.value = data.results ?? data
   }
 
@@ -119,7 +130,8 @@ export const useARAPStore = defineStore('arap', () => {
   }
 
   async function fetchBills() {
-    const { data } = await apiClient.get('core/bills/', { params: { page_size: 50 } })
+    const entity = useEntityStore().currentEntityId
+    const { data } = await apiClient.get('core/bills/', { params: { page_size: 50, entity } })
     bills.value = data.results ?? data
   }
 
@@ -157,12 +169,14 @@ export const useARAPStore = defineStore('arap', () => {
   }
 
   async function fetchARAging() {
-    const { data } = await apiClient.get<AgingRow[]>('core/reports/ar-aging/')
+    const entity = useEntityStore().currentEntityId
+    const { data } = await apiClient.get<AgingRow[]>('core/reports/ar-aging/', { params: { entity } })
     arAging.value = data
   }
 
   async function fetchAPAging() {
-    const { data } = await apiClient.get<AgingRow[]>('core/reports/ap-aging/')
+    const entity = useEntityStore().currentEntityId
+    const { data } = await apiClient.get<AgingRow[]>('core/reports/ap-aging/', { params: { entity } })
     apAging.value = data
   }
 

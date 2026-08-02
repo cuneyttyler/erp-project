@@ -3,6 +3,7 @@ import {
   ArchiveBoxIcon,
   BanknotesIcon,
   BookOpenIcon,
+  BuildingOffice2Icon,
   CalendarDaysIcon,
   ChartBarIcon,
   ChevronDoubleLeftIcon,
@@ -67,6 +68,7 @@ const navGroups: NavGroup[] = [
     id: 'finance',
     labelKey: 'nav.groups.finance',
     items: [
+      { to: '/entities', labelKey: 'nav.entities', icon: BuildingOffice2Icon },
       { to: '/accounts', labelKey: 'nav.accounts', icon: BookOpenIcon },
       { to: '/journal-entries', labelKey: 'nav.journalEntries', icon: DocumentTextIcon },
       { to: '/trial-balance', labelKey: 'nav.trialBalance', icon: ScaleIcon },
