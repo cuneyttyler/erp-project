@@ -3,6 +3,7 @@ import { onMounted, reactive, ref } from 'vue'
 
 import { useInventoryStore } from '@/modules/inventory/stores/inventory'
 import { useManufacturingStore } from '@/modules/manufacturing/stores/manufacturing'
+import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
 
 // REQ-MFG-002: create, release, and complete work orders.
 const manufacturing = useManufacturingStore()
@@ -63,6 +64,15 @@ const statusLabels: Record<string, string> = {
   completed: 'Tamamlandı',
   cancelled: 'İptal',
 }
+
+const columns: ColumnDef[] = [
+  { key: 'bom_item_sku', label: 'Ürün' },
+  { key: 'warehouse_code', label: 'Depo' },
+  { key: 'quantity_planned', label: 'Planlanan', type: 'number' },
+  { key: 'quantity_completed', label: 'Tamamlanan', type: 'number' },
+  { key: 'status', label: 'Durum' },
+  { key: 'actions', label: '', sortable: false, filterable: false },
+]
 </script>
 
 <template>
@@ -85,25 +95,19 @@ const statusLabels: Record<string, string> = {
 
     <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
 
-    <div class="mt-6 max-w-3xl space-y-3">
-      <div v-for="wo in manufacturing.workOrders" :key="wo.id" class="rounded border border-neutral-200 p-3 text-sm dark:border-neutral-800">
-        <div class="flex items-center justify-between">
-          <div>
-            <span class="font-medium text-neutral-900 dark:text-neutral-100">WO-{{ wo.id }} — {{ wo.bom_item_sku }}</span>
-            <span class="ml-2 text-neutral-500">{{ wo.warehouse_code }} · Planlanan {{ wo.quantity_planned }} · Tamamlanan {{ wo.quantity_completed }}</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span>{{ statusLabels[wo.status] }}</span>
-            <button v-if="wo.status === 'draft'" class="rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700" @click="release(wo.id)">
-              Serbest Bırak
-            </button>
-            <template v-if="wo.status === 'released' || wo.status === 'in_progress'">
-              <input v-model="completeDrafts[wo.id]" type="number" step="0.01" class="w-20 rounded border border-neutral-300 px-1 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800" />
-              <button class="text-xs text-blue-600 hover:underline" @click="complete(wo.id)">Tamamla</button>
-            </template>
-          </div>
-        </div>
-      </div>
+    <div class="mt-6">
+      <DataTable screen-key="work-orders" :columns="columns" :rows="manufacturing.workOrders">
+        <template #status="{ row }">{{ statusLabels[row.status] }}</template>
+        <template #actions="{ row }">
+          <button v-if="row.status === 'draft'" class="rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700" @click="release(row.id)">
+            Serbest Bırak
+          </button>
+          <template v-if="row.status === 'released' || row.status === 'in_progress'">
+            <input v-model="completeDrafts[row.id]" type="number" step="0.01" class="w-20 rounded border border-neutral-300 px-1 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800" />
+            <button class="text-xs text-blue-600 hover:underline" @click="complete(row.id)">Tamamla</button>
+          </template>
+        </template>
+      </DataTable>
     </div>
   </section>
 </template>

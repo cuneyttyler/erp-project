@@ -73,6 +73,13 @@ export const useARAPStore = defineStore('arap', () => {
     return data
   }
 
+  async function updateParty(id: number, payload: Partial<Party>) {
+    const { data } = await apiClient.patch<Party>(`core/parties/${id}/`, payload)
+    const idx = parties.value.findIndex((p) => p.id === id)
+    if (idx !== -1) parties.value[idx] = data
+    return data
+  }
+
   async function fetchInvoices() {
     const { data } = await apiClient.get('core/invoices/', { params: { page_size: 50 } })
     invoices.value = data.results ?? data
@@ -167,6 +174,7 @@ export const useARAPStore = defineStore('arap', () => {
     apAging,
     fetchParties,
     createParty,
+    updateParty,
     fetchInvoices,
     createInvoice,
     sendInvoice,

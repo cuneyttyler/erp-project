@@ -2,6 +2,7 @@
 import { onMounted, reactive, ref } from 'vue'
 
 import { useHrPayrollStore } from '@/modules/hr_payroll/stores/hrPayroll'
+import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
 
 // REQ-HR-001: employee roster.
 const hrPayroll = useHrPayrollStore()
@@ -37,6 +38,19 @@ async function submit() {
     error.value = e?.response?.data?.detail ?? 'Çalışan oluşturulamadı.'
   }
 }
+
+const columns: ColumnDef[] = [
+  { key: 'first_name', label: 'Ad', editable: true },
+  { key: 'last_name', label: 'Soyad', editable: true },
+  { key: 'position', label: 'Pozisyon', editable: true },
+  { key: 'department', label: 'Departman', editable: true },
+  { key: 'monthly_gross_salary', label: 'Brüt Maaş', type: 'number', editable: true },
+  { key: 'is_active', label: 'Aktif', type: 'boolean', editable: true },
+]
+
+async function onCellEdit({ row, column, value }: { row: any; column: string; value: any }) {
+  await hrPayroll.updateEmployee(row.id, { [column]: value })
+}
 </script>
 
 <template>
@@ -55,14 +69,8 @@ async function submit() {
 
     <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
 
-    <div class="mt-6 max-w-3xl space-y-2">
-      <div v-for="e in hrPayroll.employees" :key="e.id" class="flex items-center justify-between rounded border border-neutral-200 p-3 text-sm dark:border-neutral-800">
-        <div>
-          <span class="font-medium text-neutral-900 dark:text-neutral-100">{{ e.first_name }} {{ e.last_name }}</span>
-          <span class="ml-2 text-neutral-500">{{ e.position }} · {{ e.department }}</span>
-        </div>
-        <span class="text-neutral-500">{{ e.monthly_gross_salary }} TRY/ay</span>
-      </div>
+    <div class="mt-6">
+      <DataTable screen-key="employees" :columns="columns" :rows="hrPayroll.employees" @cell-edit="onCellEdit" />
     </div>
   </section>
 </template>

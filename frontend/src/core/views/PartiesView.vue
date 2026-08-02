@@ -2,6 +2,7 @@
 import { onMounted, reactive } from 'vue'
 
 import { useARAPStore } from '@/core/stores/arap'
+import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
 
 // REQ-CORE-AR-*/AP-*: unified customer/vendor master data.
 const arap = useARAPStore()
@@ -22,6 +23,27 @@ async function submit() {
   form.tax_id = ''
   form.email = ''
   form.phone = ''
+}
+
+const columns: ColumnDef[] = [
+  { key: 'name', label: 'Ad', editable: true },
+  {
+    key: 'party_type',
+    label: 'Tür',
+    editable: true,
+    type: 'select',
+    options: [
+      { value: 'customer', label: 'Müşteri' },
+      { value: 'vendor', label: 'Tedarikçi' },
+      { value: 'both', label: 'Her ikisi' },
+    ],
+  },
+  { key: 'tax_id', label: 'VKN/TCKN', editable: true },
+  { key: 'email', label: 'E-posta', editable: true },
+]
+
+async function onCellEdit({ row, column, value }: { row: any; column: string; value: any }) {
+  await arap.updateParty(row.id, { [column]: value })
 }
 </script>
 
@@ -58,23 +80,8 @@ async function submit() {
       </button>
     </form>
 
-    <table class="mt-6 w-full max-w-3xl text-left text-sm">
-      <thead>
-        <tr class="border-b border-neutral-200 text-neutral-500 dark:border-neutral-800">
-          <th class="py-2 pr-4">Ad</th>
-          <th class="py-2 pr-4">Tür</th>
-          <th class="py-2 pr-4">VKN/TCKN</th>
-          <th class="py-2 pr-4">E-posta</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="p in arap.parties" :key="p.id" class="border-b border-neutral-100 dark:border-neutral-900">
-          <td class="py-1.5 pr-4">{{ p.name }}</td>
-          <td class="py-1.5 pr-4 text-neutral-500">{{ p.party_type }}</td>
-          <td class="py-1.5 pr-4 font-mono">{{ p.tax_id }}</td>
-          <td class="py-1.5 pr-4">{{ p.email }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="mt-6">
+      <DataTable screen-key="parties" :columns="columns" :rows="arap.parties" @cell-edit="onCellEdit" />
+    </div>
   </section>
 </template>

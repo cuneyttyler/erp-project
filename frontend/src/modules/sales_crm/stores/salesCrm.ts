@@ -83,6 +83,12 @@ export const useSalesCrmStore = defineStore('salesCrm', () => {
     replaceLead(data)
   }
 
+  async function updateLead(id: number, payload: Partial<Lead>) {
+    const { data } = await apiClient.patch<Lead>(`sales-crm/leads/${id}/`, payload)
+    replaceLead(data)
+    return data
+  }
+
   async function fetchOrders() {
     const { data } = await apiClient.get('sales-crm/sales-orders/', { params: { page_size: 50 } })
     orders.value = data.results ?? data
@@ -124,6 +130,7 @@ export const useSalesCrmStore = defineStore('salesCrm', () => {
     qualifyLead,
     winLead,
     loseLead,
+    updateLead,
     fetchOrders,
     createOrder,
     confirmOrder,

@@ -26,14 +26,19 @@ const props = defineProps<{
   screenKey: string
   columns: ColumnDef[]
   rows: Record<string, any>[]
-  rowKey?: string
+  // A field name (most screens) or a composite-key function for rows with
+  // no single unique field (e.g. a stock-level row keyed by item+warehouse).
+  rowKey?: string | ((row: Record<string, any>) => string)
 }>()
 
 const emit = defineEmits<{
   (e: 'cell-edit', payload: { row: Record<string, any>; column: string; value: any }): void
 }>()
 
-const rowKeyField = props.rowKey ?? 'id'
+function rowIdentity(row: Record<string, any>): string {
+  if (typeof props.rowKey === 'function') return props.rowKey(row)
+  return row[props.rowKey ?? 'id']
+}
 
 // --- Column order / visibility / width -----------------------------------
 const columnOrder = ref<string[]>(props.columns.map((c) => c.key))
@@ -146,7 +151,7 @@ const editingDraft = ref<any>('')
 
 function startEdit(row: Record<string, any>, col: ColumnDef) {
   if (!col.editable) return
-  editingCell.value = { rowKey: row[rowKeyField], column: col.key }
+  editingCell.value = { rowKey: rowIdentity(row), column: col.key }
   editingDraft.value = row[col.key]
 }
 function commitEdit(row: Record<string, any>, col: ColumnDef) {
@@ -401,7 +406,7 @@ onMounted(async () => {
         <tbody>
           <tr
             v-for="row in displayedRows"
-            :key="row[rowKeyField]"
+            :key="rowIdentity(row)"
             class="border-b border-neutral-100 last:border-0 dark:border-neutral-900"
           >
             <td
@@ -417,7 +422,7 @@ onMounted(async () => {
                    Slotted columns opt out of built-in inline editing (the
                    screen owns that cell's interaction entirely). -->
               <slot v-if="$slots[col.key]" :name="col.key" :row="row" :value="row[col.key]" />
-              <template v-else-if="editingCell !== null && editingCell.rowKey === row[rowKeyField] && editingCell.column === col.key">
+              <template v-else-if="editingCell !== null && editingCell.rowKey === rowIdentity(row) && editingCell.column === col.key">
                 <select
                   v-if="col.type === 'select' || col.type === 'boolean'"
                   v-model="editingDraft"

@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 
 import { useLedgerStore, type JournalLineInput } from '@/core/stores/ledger'
+import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
 
 // REQ-CORE-GL-002: create + post journal entries. Posting is a deliberate
 // separate step from creation (ledger.postEntry), matching the backend's
@@ -65,6 +66,13 @@ async function submit() {
 async function post(id: number) {
   await ledger.postEntry(id)
 }
+
+const columns: ColumnDef[] = [
+  { key: 'date', label: 'Tarih' },
+  { key: 'memo', label: 'Açıklama' },
+  { key: 'status', label: 'Durum' },
+  { key: 'actions', label: '', sortable: false, filterable: false },
+]
 </script>
 
 <template>
@@ -107,35 +115,19 @@ async function post(id: number) {
       </button>
     </form>
 
-    <table class="mt-6 w-full max-w-3xl text-left text-sm">
-      <thead>
-        <tr class="border-b border-neutral-200 text-neutral-500 dark:border-neutral-800">
-          <th class="py-2 pr-4">Tarih</th>
-          <th class="py-2 pr-4">Açıklama</th>
-          <th class="py-2 pr-4">Durum</th>
-          <th class="py-2 pr-4"></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="entry in ledger.entries" :key="entry.id" class="border-b border-neutral-100 dark:border-neutral-900">
-          <td class="py-1.5 pr-4">{{ entry.date }}</td>
-          <td class="py-1.5 pr-4">{{ entry.memo }}</td>
-          <td class="py-1.5 pr-4">
-            <span :class="entry.status === 'posted' ? 'text-emerald-600' : 'text-amber-600'">
-              {{ entry.status === 'posted' ? 'Kayıtlı' : 'Taslak' }}
-            </span>
-          </td>
-          <td class="py-1.5 pr-4">
-            <button
-              v-if="entry.status === 'draft'"
-              class="text-sm text-blue-600 hover:underline"
-              @click="post(entry.id)"
-            >
-              Kaydet (Post)
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="mt-6">
+      <DataTable screen-key="journal-entries" :columns="columns" :rows="ledger.entries">
+        <template #status="{ row }">
+          <span :class="row.status === 'posted' ? 'text-emerald-600' : 'text-amber-600'">
+            {{ row.status === 'posted' ? 'Kayıtlı' : 'Taslak' }}
+          </span>
+        </template>
+        <template #actions="{ row }">
+          <button v-if="row.status === 'draft'" class="text-sm text-blue-600 hover:underline" @click="post(row.id)">
+            Kaydet (Post)
+          </button>
+        </template>
+      </DataTable>
+    </div>
   </section>
 </template>

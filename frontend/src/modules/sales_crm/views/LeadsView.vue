@@ -3,6 +3,7 @@ import { onMounted, reactive } from 'vue'
 
 import { useARAPStore } from '@/core/stores/arap'
 import { useSalesCrmStore } from '@/modules/sales_crm/stores/salesCrm'
+import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
 
 // REQ-CRM-001: lead pipeline (new -> qualified -> won/lost).
 const salesCrm = useSalesCrmStore()
@@ -29,6 +30,17 @@ const statusLabels: Record<string, string> = {
   won: 'Kazanıldı',
   lost: 'Kaybedildi',
 }
+
+const columns: ColumnDef[] = [
+  { key: 'name', label: 'Ad / Firma', editable: true },
+  { key: 'source', label: 'Kaynak', editable: true },
+  { key: 'status', label: 'Durum' },
+  { key: 'actions', label: '', sortable: false, filterable: false },
+]
+
+async function onCellEdit({ row, column, value }: { row: any; column: string; value: any }) {
+  await salesCrm.updateLead(row.id, { [column]: value })
+}
 </script>
 
 <template>
@@ -47,31 +59,29 @@ const statusLabels: Record<string, string> = {
       <button type="submit" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">Ekle</button>
     </form>
 
-    <div class="mt-6 max-w-3xl space-y-2">
-      <div v-for="lead in salesCrm.leads" :key="lead.id" class="flex items-center justify-between rounded border border-neutral-200 p-3 text-sm dark:border-neutral-800">
-        <div>
-          <span class="font-medium text-neutral-900 dark:text-neutral-100">{{ lead.name }}</span>
-          <span class="ml-2 text-neutral-500">{{ lead.source }}</span>
-          <span class="ml-2 text-neutral-500">— {{ statusLabels[lead.status] }}</span>
-        </div>
-        <div v-if="lead.status === 'new'" class="flex items-center gap-2">
-          <button class="text-xs text-blue-600 hover:underline" @click="salesCrm.qualifyLead(lead.id)">Nitele</button>
-          <button class="text-xs text-red-600 hover:underline" @click="salesCrm.loseLead(lead.id)">Kaybedildi</button>
-        </div>
-        <div v-else-if="lead.status === 'qualified'" class="flex items-center gap-2">
-          <select v-model.number="winTargets[lead.id]" class="rounded border border-neutral-300 px-1 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800">
-            <option :value="null" disabled>Cari seçin</option>
-            <option v-for="p in arap.parties" :key="p.id" :value="p.id">{{ p.name }}</option>
-          </select>
-          <button
-            class="text-xs text-emerald-600 hover:underline"
-            @click="winTargets[lead.id] && salesCrm.winLead(lead.id, winTargets[lead.id]!)"
-          >
-            Kazanıldı
-          </button>
-          <button class="text-xs text-red-600 hover:underline" @click="salesCrm.loseLead(lead.id)">Kaybedildi</button>
-        </div>
-      </div>
+    <div class="mt-6">
+      <DataTable screen-key="leads" :columns="columns" :rows="salesCrm.leads" @cell-edit="onCellEdit">
+        <template #status="{ row }">{{ statusLabels[row.status] }}</template>
+        <template #actions="{ row }">
+          <div v-if="row.status === 'new'" class="flex items-center gap-2">
+            <button class="text-xs text-blue-600 hover:underline" @click="salesCrm.qualifyLead(row.id)">Nitele</button>
+            <button class="text-xs text-red-600 hover:underline" @click="salesCrm.loseLead(row.id)">Kaybedildi</button>
+          </div>
+          <div v-else-if="row.status === 'qualified'" class="flex items-center gap-2">
+            <select v-model.number="winTargets[row.id]" class="rounded border border-neutral-300 px-1 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800">
+              <option :value="null" disabled>Cari seçin</option>
+              <option v-for="p in arap.parties" :key="p.id" :value="p.id">{{ p.name }}</option>
+            </select>
+            <button
+              class="text-xs text-emerald-600 hover:underline"
+              @click="winTargets[row.id] && salesCrm.winLead(row.id, winTargets[row.id]!)"
+            >
+              Kazanıldı
+            </button>
+            <button class="text-xs text-red-600 hover:underline" @click="salesCrm.loseLead(row.id)">Kaybedildi</button>
+          </div>
+        </template>
+      </DataTable>
     </div>
   </section>
 </template>

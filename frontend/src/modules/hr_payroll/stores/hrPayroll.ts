@@ -82,6 +82,13 @@ export const useHrPayrollStore = defineStore('hrPayroll', () => {
     return data
   }
 
+  async function updateEmployee(id: number, payload: Partial<Employee>) {
+    const { data } = await apiClient.patch<Employee>(`hr-payroll/employees/${id}/`, payload)
+    const idx = employees.value.findIndex((e) => e.id === id)
+    if (idx !== -1) employees.value[idx] = data
+    return data
+  }
+
   async function fetchLeaveRequests() {
     const { data } = await apiClient.get('hr-payroll/leave-requests/', { params: { page_size: 100 } })
     leaveRequests.value = data.results ?? data
@@ -150,6 +157,7 @@ export const useHrPayrollStore = defineStore('hrPayroll', () => {
     payrollRuns,
     fetchEmployees,
     createEmployee,
+    updateEmployee,
     fetchLeaveRequests,
     createLeaveRequest,
     approveLeaveRequest,

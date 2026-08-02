@@ -37,10 +37,17 @@ export const useInventoryStore = defineStore('inventory', () => {
     return data
   }
 
+  async function updateWarehouse(id: number, payload: Partial<Warehouse>) {
+    const { data } = await apiClient.patch<Warehouse>(`inventory/warehouses/${id}/`, payload)
+    const idx = warehouses.value.findIndex((w) => w.id === id)
+    if (idx !== -1) warehouses.value[idx] = data
+    return data
+  }
+
   async function fetchStockLevels() {
     const { data } = await apiClient.get<StockLevelRow[]>('inventory/reports/stock-levels/')
     stockLevels.value = data
   }
 
-  return { warehouses, stockLevels, fetchWarehouses, createWarehouse, fetchStockLevels }
+  return { warehouses, stockLevels, fetchWarehouses, createWarehouse, updateWarehouse, fetchStockLevels }
 })

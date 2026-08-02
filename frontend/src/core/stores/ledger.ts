@@ -58,6 +58,13 @@ export const useLedgerStore = defineStore('ledger', () => {
     accounts.value = data.results ?? data
   }
 
+  async function updateAccount(id: number, payload: Partial<Account>) {
+    const { data } = await apiClient.patch<Account>(`core/accounts/${id}/`, payload)
+    const idx = accounts.value.findIndex((a) => a.id === id)
+    if (idx !== -1) accounts.value[idx] = data
+    return data
+  }
+
   async function fetchEntries() {
     const { data } = await apiClient.get('core/journal-entries/', { params: { page_size: 50 } })
     entries.value = data.results ?? data
@@ -86,6 +93,7 @@ export const useLedgerStore = defineStore('ledger', () => {
     entries,
     trialBalance,
     fetchAccounts,
+    updateAccount,
     fetchEntries,
     createEntry,
     postEntry,

@@ -2,6 +2,7 @@
 import { onMounted, reactive } from 'vue'
 
 import { useInventoryStore } from '@/modules/inventory/stores/inventory'
+import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
 
 // REQ-INV-002: warehouse master data.
 const inventory = useInventoryStore()
@@ -14,6 +15,15 @@ async function submit() {
   await inventory.createWarehouse(form.code, form.name)
   form.code = ''
   form.name = ''
+}
+
+const columns: ColumnDef[] = [
+  { key: 'code', label: 'Kod' },
+  { key: 'name', label: 'Ad', editable: true },
+]
+
+async function onCellEdit({ row, column, value }: { row: any; column: string; value: any }) {
+  await inventory.updateWarehouse(row.id, { [column]: value })
 }
 </script>
 
@@ -33,19 +43,8 @@ async function submit() {
       <button type="submit" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">Ekle</button>
     </form>
 
-    <table class="mt-6 w-full max-w-xl text-left text-sm">
-      <thead>
-        <tr class="border-b border-neutral-200 text-neutral-500 dark:border-neutral-800">
-          <th class="py-2 pr-4">Kod</th>
-          <th class="py-2 pr-4">Ad</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="wh in inventory.warehouses" :key="wh.id" class="border-b border-neutral-100 dark:border-neutral-900">
-          <td class="py-1.5 pr-4 font-mono">{{ wh.code }}</td>
-          <td class="py-1.5 pr-4">{{ wh.name }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="mt-6">
+      <DataTable screen-key="warehouses" :columns="columns" :rows="inventory.warehouses" @cell-edit="onCellEdit" />
+    </div>
   </section>
 </template>

@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 
 import { useARAPStore } from '@/core/stores/arap'
+import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
 
 // REQ-CORE-AR-003/REQ-CORE-AP-002: AR/AP aging, bucketed by days overdue.
 const arap = useARAPStore()
@@ -20,6 +21,14 @@ const bucketLabel: Record<string, string> = {
   '61-90': '61-90 gün',
   '90+': '90+ gün',
 }
+
+const columns: ColumnDef[] = [
+  { key: 'party_name', label: 'Cari' },
+  { key: 'due_date', label: 'Vade' },
+  { key: 'balance_due', label: 'Bakiye' },
+  { key: 'days_overdue', label: 'Gecikme', type: 'number' },
+  { key: 'bucket', label: 'Kova', formatter: (row) => bucketLabel[row.bucket] ?? row.bucket },
+]
 </script>
 
 <template>
@@ -43,28 +52,8 @@ const bucketLabel: Record<string, string> = {
       </button>
     </div>
 
-    <table class="mt-4 w-full max-w-3xl text-left text-sm">
-      <thead>
-        <tr class="border-b border-neutral-200 text-neutral-500 dark:border-neutral-800">
-          <th class="py-2 pr-4">Cari</th>
-          <th class="py-2 pr-4">Vade</th>
-          <th class="py-2 pr-4 text-right">Bakiye</th>
-          <th class="py-2 pr-4">Gecikme</th>
-          <th class="py-2 pr-4">Kova</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="row in rows" :key="row.document_id" class="border-b border-neutral-100 dark:border-neutral-900">
-          <td class="py-1.5 pr-4">{{ row.party_name }}</td>
-          <td class="py-1.5 pr-4">{{ row.due_date }}</td>
-          <td class="py-1.5 pr-4 text-right">{{ row.balance_due }}</td>
-          <td class="py-1.5 pr-4">{{ row.days_overdue }} gün</td>
-          <td class="py-1.5 pr-4">{{ bucketLabel[row.bucket] }}</td>
-        </tr>
-        <tr v-if="rows.length === 0">
-          <td colspan="5" class="py-4 text-center text-neutral-400">Açık kayıt yok.</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="mt-4">
+      <DataTable :key="tab" :screen-key="`aging-${tab}`" :columns="columns" :rows="rows" row-key="document_id" />
+    </div>
   </section>
 </template>

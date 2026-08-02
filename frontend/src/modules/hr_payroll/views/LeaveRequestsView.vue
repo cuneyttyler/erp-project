@@ -2,6 +2,7 @@
 import { onMounted, reactive, ref } from 'vue'
 
 import { useHrPayrollStore, type LeaveType } from '@/modules/hr_payroll/stores/hrPayroll'
+import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
 
 // REQ-HR-002: leave request/approval workflow.
 const hrPayroll = useHrPayrollStore()
@@ -59,6 +60,16 @@ const leaveTypeLabels: Record<string, string> = {
   annual: 'Yıllık İzin',
   sick: 'Rapor',
 }
+
+const columns: ColumnDef[] = [
+  { key: 'employee_name', label: 'Çalışan' },
+  { key: 'leave_type', label: 'Tür', formatter: (row) => leaveTypeLabels[row.leave_type] ?? row.leave_type },
+  { key: 'start_date', label: 'Başlangıç' },
+  { key: 'end_date', label: 'Bitiş' },
+  { key: 'days', label: 'Gün', type: 'number' },
+  { key: 'status', label: 'Durum' },
+  { key: 'actions', label: '', sortable: false, filterable: false },
+]
 </script>
 
 <template>
@@ -82,20 +93,16 @@ const leaveTypeLabels: Record<string, string> = {
 
     <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
 
-    <div class="mt-6 max-w-3xl space-y-2">
-      <div v-for="l in hrPayroll.leaveRequests" :key="l.id" class="flex items-center justify-between rounded border border-neutral-200 p-3 text-sm dark:border-neutral-800">
-        <div>
-          <span class="font-medium text-neutral-900 dark:text-neutral-100">{{ l.employee_name }}</span>
-          <span class="ml-2 text-neutral-500">{{ leaveTypeLabels[l.leave_type] }} · {{ l.start_date }} — {{ l.end_date }} ({{ l.days }} gün)</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span>{{ statusLabels[l.status] }}</span>
-          <template v-if="l.status === 'pending'">
-            <button class="rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700" @click="approve(l.id)">Onayla</button>
-            <button class="rounded bg-neutral-200 px-2 py-1 text-xs font-medium text-neutral-800 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-100" @click="reject(l.id)">Reddet</button>
+    <div class="mt-6">
+      <DataTable screen-key="leave-requests" :columns="columns" :rows="hrPayroll.leaveRequests">
+        <template #status="{ row }">{{ statusLabels[row.status] }}</template>
+        <template #actions="{ row }">
+          <template v-if="row.status === 'pending'">
+            <button class="rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700" @click="approve(row.id)">Onayla</button>
+            <button class="rounded bg-neutral-200 px-2 py-1 text-xs font-medium text-neutral-800 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-100" @click="reject(row.id)">Reddet</button>
           </template>
-        </div>
-      </div>
+        </template>
+      </DataTable>
     </div>
   </section>
 </template>
