@@ -179,7 +179,20 @@ CORS_ALLOW_CREDENTIALS = True
 # otherwise reject as cross-origin. Trusting it here is what makes the
 # dev-proxy setup work at all.
 CSRF_TRUSTED_ORIGINS = env.list(
-    "CSRF_TRUSTED_ORIGINS", default=["http://localhost:5173"]
+    "CSRF_TRUSTED_ORIGINS",
+    default=[
+        "http://localhost:5173",
+        # Cloudflare quick tunnels (Makefile's `tunnel` target) get a fresh
+        # random subdomain every restart -- Django's Origin-header CSRF
+        # check would otherwise reject every unsafe-method request (login,
+        # etc.) made through the tunnel. Wildcard subdomains are natively
+        # supported by this setting since Django 4.0; this doesn't widen
+        # CORS (django-cors-headers' CORS_ALLOWED_ORIGINS is separate and
+        # unaffected) -- requests via the tunnel are same-origin from the
+        # browser's perspective anyway, since Vite's dev proxy forwards
+        # /api/* server-side rather than the browser calling Django directly.
+        "https://*.trycloudflare.com",
+    ],
 )
 
 # --------------------------------------------------------------------------

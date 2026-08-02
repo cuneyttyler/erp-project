@@ -1,0 +1,7 @@
+{
+  "name": "erp-platform-dev-tools",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Repo-root dev tooling only (cloudflared quick-tunnel keep-alive wrapper, see Makefile) -- the actual app lives in backend/ and frontend/. cloudflared itself is a separate system install, not an npm dependency.",
+  "type": "module"
+}
