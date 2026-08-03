@@ -18,6 +18,8 @@ import LeaveRequestsView from '@/modules/hr_payroll/views/LeaveRequestsView.vue'
 import PayrollRunsView from '@/modules/hr_payroll/views/PayrollRunsView.vue'
 import BOMsView from '@/modules/manufacturing/views/BOMsView.vue'
 import WorkOrdersView from '@/modules/manufacturing/views/WorkOrdersView.vue'
+import MarketplaceAccountsView from '@/modules/ecommerce/views/MarketplaceAccountsView.vue'
+import MarketplaceOrdersView from '@/modules/ecommerce/views/MarketplaceOrdersView.vue'
 import POSCheckoutView from '@/modules/pos/views/POSCheckoutView.vue'
 import POSSetupView from '@/modules/pos/views/POSSetupView.vue'
 import POSShiftsView from '@/modules/pos/views/POSShiftsView.vue'
@@ -126,6 +128,18 @@ export const router = createRouter({
       name: 'pos-setup',
       component: POSSetupView,
       meta: { requiresPackage: 'pos' },
+    },
+    {
+      path: '/ecommerce/accounts',
+      name: 'ecommerce-accounts',
+      component: MarketplaceAccountsView,
+      meta: { requiresPackage: 'ecommerce' },
+    },
+    {
+      path: '/ecommerce/orders',
+      name: 'ecommerce-orders',
+      component: MarketplaceOrdersView,
+      meta: { requiresPackage: 'ecommerce' },
     },
   ],
 })

@@ -25,6 +25,7 @@ import {
   UsersIcon,
   Cog6ToothIcon,
   ComputerDesktopIcon,
+  GlobeAltIcon,
 } from '@heroicons/vue/24/outline'
 import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -122,6 +123,14 @@ const navGroups: NavGroup[] = [
       { to: '/pos', labelKey: 'nav.posCheckout', icon: ComputerDesktopIcon, package: 'pos' },
       { to: '/pos/shifts', labelKey: 'nav.posShifts', icon: ClockIcon, package: 'pos' },
       { to: '/pos/setup', labelKey: 'nav.posSetup', icon: Cog6ToothIcon, package: 'pos' },
+    ],
+  },
+  {
+    id: 'ecommerce',
+    labelKey: 'nav.groups.ecommerce',
+    items: [
+      { to: '/ecommerce/accounts', labelKey: 'nav.ecommerceAccounts', icon: GlobeAltIcon, package: 'ecommerce' },
+      { to: '/ecommerce/orders', labelKey: 'nav.ecommerceOrders', icon: ClipboardDocumentListIcon, package: 'ecommerce' },
     ],
   },
 ]

@@ -26,13 +26,16 @@
     "posCheckout": "Kasa",
     "posShifts": "Vardiyalar",
     "posSetup": "Mağaza/Kasa Ayarları",
+    "ecommerceAccounts": "Pazaryeri Bağlantıları",
+    "ecommerceOrders": "Pazaryeri Siparişleri",
     "groups": {
       "finance": "Finans",
       "inventory": "Envanter & Satın Alma",
       "sales": "Satış & CRM",
       "manufacturing": "Üretim",
       "hr": "İK & Bordro",
-      "pos": "Perakende (POS)"
+      "pos": "Perakende (POS)",
+      "ecommerce": "E-Ticaret"
     }
   },
   "aiPanel": {

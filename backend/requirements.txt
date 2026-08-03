@@ -30,3 +30,7 @@ anthropic>=0.34
 
 # CORS for local Vite dev server talking to Django
 django-cors-headers>=4.4
+
+# HTTP client for external integrations (technical.md §9 integrations/ --
+# e-commerce marketplace clients, apps/ecommerce/adapters.py)
+requests>=2.32

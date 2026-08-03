@@ -17,6 +17,7 @@ urlpatterns = [
     path("api/v1/manufacturing/", include("apps.manufacturing.urls")),
     path("api/v1/hr-payroll/", include("apps.hr_payroll.urls")),
     path("api/v1/pos/", include("apps.pos.urls")),
+    path("api/v1/ecommerce/", include("apps.ecommerce.urls")),
     path("api/v1/ai/", include("apps.ai_core.urls")),
     # Further package API routes are mounted here as each app lands (technical.md §6).
 ]

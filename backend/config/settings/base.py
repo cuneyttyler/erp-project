@@ -51,6 +51,7 @@ TENANT_APPS = [
     "apps.manufacturing",
     "apps.hr_payroll",
     "apps.pos",
+    "apps.ecommerce",
     "apps.ai_core",
 ]
 

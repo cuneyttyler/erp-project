@@ -26,13 +26,16 @@
     "posCheckout": "Checkout",
     "posShifts": "Shifts",
     "posSetup": "Store/Till Setup",
+    "ecommerceAccounts": "Marketplace Connections",
+    "ecommerceOrders": "Marketplace Orders",
     "groups": {
       "finance": "Finance",
       "inventory": "Inventory & Purchasing",
       "sales": "Sales & CRM",
       "manufacturing": "Manufacturing",
       "hr": "HR & Payroll",
-      "pos": "Retail (POS)"
+      "pos": "Retail (POS)",
+      "ecommerce": "E-Commerce"
     }
   },
   "aiPanel": {
