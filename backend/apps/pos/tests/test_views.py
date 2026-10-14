@@ -15,7 +15,7 @@ from apps.pos.models import POSPayment, POSSale, POSShift, Store, Till
 
 class POSViewTestBase(TenantTestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="cashier", password="x")
+        self.user = User.objects.create_superuser(username="cashier", password="x")
         self.client = APIClient()
 
         self.entity = Entity.objects.create(name="Acme Perakende", code="ACME")

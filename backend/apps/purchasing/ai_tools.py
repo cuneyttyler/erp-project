@@ -8,6 +8,7 @@ from .models import PurchaseOrder
 
 @register_metric(
     name="open_purchase_orders",
+    requires="purchase_order.view",
     description="Purchase orders that are sent but not yet fully received (sent or partially_received status), with vendor and total.",
     input_schema={"type": "object", "properties": {}},
     package="purchasing",

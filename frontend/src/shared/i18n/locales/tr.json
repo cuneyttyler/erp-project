@@ -1,9 +1,10 @@
 {
   "app": {
-    "name": "AI-Native ERP"
+    "name": "ERPIntel"
   },
   "nav": {
     "dashboard": "Panel",
+    "plugins": "Eklentiler",
     "entities": "Şirketler",
     "accounts": "Hesap Planı",
     "journalEntries": "Yevmiye Kayıtları",
@@ -28,6 +29,8 @@
     "posSetup": "Mağaza/Kasa Ayarları",
     "ecommerceAccounts": "Pazaryeri Bağlantıları",
     "ecommerceOrders": "Pazaryeri Siparişleri",
+    "biReports": "Raporlar",
+    "biDashboards": "Panolar",
     "groups": {
       "finance": "Finans",
       "inventory": "Envanter & Satın Alma",
@@ -35,24 +38,1088 @@
       "manufacturing": "Üretim",
       "hr": "İK & Bordro",
       "pos": "Perakende (POS)",
-      "ecommerce": "E-Ticaret"
+      "ecommerce": "E-Ticaret",
+      "bi": "İş Zekası (BI)"
+    },
+    "assistant": "AI Asistanı",
+    "auditLog": "Denetim Kaydı",
+    "users": "Kullanıcılar ve Roller"
+  },
+  "dashboard": {
+    "welcome": "Hoş geldiniz, {name}",
+    "refresh": "Yenile",
+    "customize": "Özelleştir",
+    "emptyTitle": "Panelinizde bileşen yok",
+    "emptyBody": "Giriş yaptığınızda görmek istediklerinizi seçin.",
+    "addWidgets": "Bileşen ekle"
+  },
+  "plugins": {
+    "title": "Eklentiler",
+    "subtitle": "Sol menüdeki her sayfa bir eklentiden gelir. Şirketinizin kullandıklarını ekleyin, kullanmadıklarını kaldırın ve panelinizde hangi bileşenlerin görüneceğini seçin.",
+    "system": "Sistem",
+    "tabs": {
+      "plugins": "Eklentiler",
+      "widgets": "Panel bileşenleri"
+    },
+    "readOnly": "Eklentileri yalnızca bir yönetici ekleyip kaldırabilir. Kendi panel bileşenlerinizi yine de düzenleyebilirsiniz.",
+    "search": "Eklenti ara",
+    "filters": {
+      "all": "Tümü",
+      "installed": "Yüklü",
+      "available": "Yüklü değil"
+    },
+    "noMatches": "Aramanızla eşleşen bir şey yok.",
+    "sections": {
+      "core": "Çekirdek",
+      "packages": "Paketler"
+    },
+    "status": {
+      "installed": "Yüklü",
+      "notInstalled": "Yüklü değil",
+      "notLicensed": "Aboneliğinizde yok"
+    },
+    "widgetCount": "Panel bileşeni yok | {count} panel bileşeni | {count} panel bileşeni",
+    "actions": {
+      "add": "Ekle",
+      "remove": "Kaldır"
+    },
+    "removeNote": "Bir eklentiyi kaldırmak, sayfalarını ve panel bileşenlerini şirketinizdeki herkes için gizler. Hiçbir veri silinmez; eklentiyi yeniden eklediğinizde her şey eski haline döner.",
+    "errors": {
+      "toggle": "Eklenti değiştirilemedi. Yeniden deneyin.",
+      "layout": "Panel düzeniniz kaydedilemedi. Yeniden deneyin."
+    },
+    "widgets": {
+      "intro": "Bu ayarlar yalnızca size aittir. Sıralamak için sürükleyin veya okları kullanın. Yalnızca yüklü eklentilerin bileşenleri eklenebilir.",
+      "saving": "Kaydediliyor…",
+      "saved": "Tüm değişiklikler kaydedildi",
+      "reset": "Varsayılana dön",
+      "viewPanel": "Paneli görüntüle",
+      "onPanel": "Panelinizde",
+      "panelEmpty": "Panelinizde henüz bir şey yok. Aşağıdaki listeden bileşen ekleyin.",
+      "size": "Bileşen genişliği",
+      "sizes": {
+        "sm": "Küçük: satırın dörtte biri",
+        "md": "Orta: satırın yarısı",
+        "lg": "Büyük: satırın tamamı"
+      },
+      "sizeShort": {
+        "sm": "K",
+        "md": "O",
+        "lg": "B"
+      },
+      "moveUp": "Yukarı taşı",
+      "moveDown": "Aşağı taşı",
+      "remove": "Panelden kaldır",
+      "available": "Eklenebilir bileşenler",
+      "search": "Bileşen ara",
+      "allAdded": "Tüm bileşenler zaten panelinizde.",
+      "pluginRemoved": "Eklenti yüklü değil"
+    },
+    "catalog": {
+      "entities": {
+        "name": "Şirketler",
+        "description": "Hesabınız altında kendi defterlerini tutan tüzel kişilikleri yönetin."
+      },
+      "general_ledger": {
+        "name": "Genel Muhasebe",
+        "description": "Hesap planı, yevmiye kayıtları ve mizan."
+      },
+      "receivables_payables": {
+        "name": "Alacaklar ve Borçlar",
+        "description": "Cari hesaplar, satış faturaları, alış faturaları, ödemeler ve yaşlandırma."
+      },
+      "item_catalog": {
+        "name": "Ürün Kataloğu",
+        "description": "Satın aldığınız, stokladığınız, ürettiğiniz ve sattığınız ürün ve hizmetler."
+      },
+      "inventory": {
+        "name": "Envanter",
+        "description": "Depolar ve her giriş, çıkış ve transferle güncellenen stok durumu."
+      },
+      "purchasing": {
+        "name": "Satın Alma",
+        "description": "Onay süreci ve stoğa mal kabulü ile satın alma siparişleri."
+      },
+      "sales_crm": {
+        "name": "Satış ve CRM",
+        "description": "İlk temastan kazanıma kadar potansiyel müşteriler ve sevkiyata kadar satış siparişleri."
+      },
+      "manufacturing": {
+        "name": "Üretim",
+        "description": "Ürün reçeteleri ve bileşen tüketip stok üreten iş emirleri."
+      },
+      "hr_payroll": {
+        "name": "İK ve Bordro",
+        "description": "Çalışan kayıtları, izin talepleri ve aylık bordro dönemleri."
+      },
+      "pos": {
+        "name": "Perakende (POS)",
+        "description": "Kasa, gün sonu raporlu vardiyalar, iadeler ve mağaza/kasa ayarları."
+      },
+      "ecommerce": {
+        "name": "E-Ticaret",
+        "description": "Siparişleri içeri almak ve stok durumunu göndermek için pazaryerlerini bağlayın."
+      },
+      "bi_analytics": {
+        "name": "İş Zekası (BI)",
+        "description": "Uygulamanın geri kalanıyla aynı rakamlardan kendi raporlarınızı ve panolarınızı oluşturun."
+      }
     }
   },
-  "aiPanel": {
-    "title": "AI Asistanı",
-    "placeholder": "Bir soru sorun veya bir işlem isteyin...",
-    "send": "Gönder",
-    "confirmAction": "Onay Gerekiyor",
-    "approve": "Onayla",
-    "reject": "Reddet",
-    "actionApproved": "Onaylandı ve tamamlandı.",
-    "actionRejected": "Reddedildi.",
-    "actionFailed": "Onaylandı, ancak işlem başarısız oldu.",
-    "empty": "Herhangi bir modül hakkında soru sorabilirsiniz.",
-    "thinking": "Düşünüyor..."
+  "widgets": {
+    "ui": {
+      "view": "Görüntüle",
+      "loadFailed": "Bu bileşen yüklenemedi.",
+      "retry": "Yeniden dene",
+      "noData": "Bu dönem için henüz veri yok.",
+      "nothingHere": "Gösterilecek bir şey yok.",
+      "showing": "{total} kayıttan {shown} tanesi gösteriliyor",
+      "allClear": "Her şey yolunda. İlgilenmeniz gereken bir şey yok.",
+      "noPlugins": "Yüklü eklenti yok.",
+      "unassigned": "Atanmamış"
+    },
+    "compare": {
+      "vs_last_month": "geçen aya göre",
+      "vs_yesterday": "düne göre"
+    },
+    "series": {
+      "revenue": "Gelir",
+      "expenses": "Gider",
+      "amount": "Tutar",
+      "balance": "Kalan bakiye",
+      "inflow": "Vadesi gelen alacaklar",
+      "outflow": "Vadesi gelen borçlar",
+      "units": "Adet",
+      "leads": "Potansiyel müşteri",
+      "order_value": "Sipariş tutarı",
+      "work_orders": "İş emri",
+      "employer_cost": "İşveren maliyeti",
+      "employees": "Çalışan",
+      "net_sales": "Net satış"
+    },
+    "labels": {
+      "current": "Vadesi gelmemiş",
+      "d1_30": "1–30 gün",
+      "d31_60": "31–60 gün",
+      "d61_90": "61–90 gün",
+      "d90_plus": "90+ gün",
+      "overdue": "Vadesi geçmiş",
+      "new": "Yeni",
+      "qualified": "Nitelikli",
+      "won": "Kazanıldı",
+      "lost": "Kaybedildi",
+      "draft": "Taslak",
+      "released": "Serbest",
+      "in_progress": "Devam ediyor",
+      "completed": "Tamamlandı"
+    },
+    "secondary": {
+      "change_this_month": "Bu ayki değişim",
+      "overdue": "Vadesi geçmiş",
+      "open_documents": "Açık belge",
+      "inactive_items": "Pasif ürün",
+      "units_on_hand": "Eldeki adet",
+      "warehouses": "Depo",
+      "open_orders": "Açık sipariş",
+      "draft_orders": "Taslak",
+      "monthly_gross_payroll": "Aylık brüt bordro",
+      "on_leave_today": "Bugün izinde",
+      "transactions": "Bugünkü satış adedi",
+      "open_shifts": "Açık vardiya",
+      "failed_orders": "Aktarılamayan",
+      "unsynced_orders": "Aktarım bekleyen",
+      "input_tokens": "Girdi token",
+      "output_tokens": "Çıktı token"
+    },
+    "columns": {
+      "date": "Tarih",
+      "memo": "Açıklama",
+      "status": "Durum",
+      "amount": "Tutar",
+      "party": "Cari",
+      "due_date": "Vade",
+      "days_overdue": "Gecikme (gün)",
+      "balance_due": "Kalan bakiye",
+      "issue_date": "Düzenleme",
+      "total": "Toplam",
+      "direction": "Tür",
+      "method": "Yöntem",
+      "created_at": "Zaman",
+      "actor": "Kim",
+      "action": "İşlem",
+      "target": "Kayıt",
+      "sku": "Stok kodu",
+      "item": "Ürün",
+      "warehouse": "Depo",
+      "quantity": "Miktar",
+      "move_type": "Hareket",
+      "expected_date": "Beklenen",
+      "scheduled_date": "Planlanan",
+      "quantity_completed": "Tamamlanan",
+      "quantity_planned": "Planlanan miktar",
+      "employee": "Çalışan",
+      "leave_type": "Tür",
+      "start_date": "Başlangıç",
+      "end_date": "Bitiş",
+      "days": "Gün",
+      "store": "Mağaza",
+      "till": "Kasa",
+      "opened_by": "Açan",
+      "opened_at": "Açılış",
+      "sales": "Satış",
+      "name": "Ad",
+      "platform": "Platform",
+      "last_synced_at": "Son aktarım",
+      "failed_orders": "Hatalı sipariş",
+      "account": "Bağlantı",
+      "external_order_id": "Sipariş no",
+      "error": "Hata",
+      "summary": "Önerilen işlem",
+      "requested_by": "Talep eden",
+      "lines": "Kalemler",
+      "description": "Açıklama",
+      "unit_price": "Birim fiyat",
+      "currency": "Para birimi",
+      "entity": "Şirket",
+      "code": "Kod",
+      "account_type": "Hesap türü",
+      "is_active": "Aktif",
+      "parent": "Üst hesap",
+      "unit_of_measure": "Birim",
+      "cost_method": "Maliyet yöntemi",
+      "email": "E-posta",
+      "phone": "Telefon",
+      "tax_id": "Vergi no",
+      "party_type": "Tür",
+      "payment_terms_days": "Ödeme vadesi (gün)",
+      "debit": "Borç",
+      "credit": "Alacak",
+      "id": "No"
+    },
+    "status": {
+      "draft": "Taslak",
+      "posted": "Kesinleşti",
+      "sent": "Gönderildi",
+      "partially_paid": "Kısmen ödendi",
+      "paid": "Ödendi",
+      "cancelled": "İptal",
+      "overdue": "Vadesi geçmiş",
+      "due_soon": "Vadesi yakın",
+      "received": "Alındı",
+      "partially_received": "Kısmen alındı",
+      "confirmed": "Onaylandı",
+      "partially_fulfilled": "Kısmen sevk edildi",
+      "fulfilled": "Sevk edildi",
+      "released": "Serbest",
+      "in_progress": "Devam ediyor",
+      "completed": "Tamamlandı",
+      "annual": "Yıllık",
+      "sick": "Hastalık",
+      "receipt": "Giriş",
+      "transfer_in": "Transfer girişi",
+      "transfer_out": "Transfer çıkışı",
+      "adjustment": "Düzeltme",
+      "pick": "Çıkış",
+      "shopify": "Shopify",
+      "trendyol": "Trendyol",
+      "hepsiburada": "Hepsiburada",
+      "active": "Aktif",
+      "inactive": "Pasif"
+    },
+    "attentionItems": {
+      "draft_journal_entries": "{count} taslak yevmiye kaydı kesinleştirilmeyi bekliyor",
+      "overdue_invoices": "{count} satış faturasının vadesi geçti",
+      "overdue_bills": "{count} alış faturasının vadesi geçti",
+      "bills_due_soon": "{count} alış faturasının vadesi 7 gün içinde doluyor",
+      "flagged_bills": "{count} alış faturası tedarikçisinin ortalamasına göre olağandışı yüksek",
+      "low_stock": "{count} üründe stok azaldı",
+      "purchase_orders_awaiting_approval": "{count} satın alma siparişi onay bekliyor",
+      "late_purchase_orders": "{count} satın alma siparişinin beklenen tarihi geçti",
+      "late_sales_orders": "{count} satış siparişinin beklenen tarihi geçti",
+      "new_leads": "{count} yeni potansiyel müşteri takip bekliyor",
+      "late_work_orders": "{count} iş emri planın gerisinde",
+      "pending_leave_requests": "{count} izin talebi karar bekliyor",
+      "draft_payroll_runs": "{count} bordro dönemi kesinleştirilmedi",
+      "stale_open_shifts": "{count} kasa vardiyası 24 saatten uzun süredir açık",
+      "failed_marketplace_orders": "{count} pazaryeri siparişi aktarılamadı",
+      "stale_marketplace_syncs": "{count} pazaryeri bağlantısı 24 saattir aktarım yapmadı",
+      "ai_pending_approvals": "{count} AI önerisi onayınızı bekliyor"
+    },
+    "catalog": {
+      "attention": {
+        "title": "İlgilenilmesi gerekenler",
+        "description": "Eklentileriniz genelinde birini bekleyen her şey, en acil olan en üstte."
+      },
+      "quick_actions": {
+        "title": "Hızlı bağlantılar",
+        "description": "Yüklü eklentilerinizin tüm sayfalarına tek tıkla bağlantılar."
+      },
+      "cash_position": {
+        "title": "Kasa ve banka",
+        "description": "Güncel kasa ve banka bakiyesi ile son altı ayın ay sonu bakiyeleri."
+      },
+      "revenue_mtd": {
+        "title": "Bu ayki gelir",
+        "description": "Bu ay şimdiye kadar kesinleşen gelir, geçen ayla karşılaştırmalı."
+      },
+      "expenses_mtd": {
+        "title": "Bu ayki gider",
+        "description": "Bu ay şimdiye kadar kesinleşen gider, geçen ayla karşılaştırmalı."
+      },
+      "net_income_mtd": {
+        "title": "Bu ayki net kâr",
+        "description": "Bu ay şimdiye kadarki gelir eksi gider, geçen ayla karşılaştırmalı."
+      },
+      "ar_outstanding": {
+        "title": "Açık alacaklar",
+        "description": "Müşterilerin size borcu ve bunun ne kadarının vadesinin geçtiği."
+      },
+      "ap_outstanding": {
+        "title": "Açık borçlar",
+        "description": "Tedarikçilere borcunuz ve bunun ne kadarının vadesinin geçtiği."
+      },
+      "open_sales_orders": {
+        "title": "Açık satış siparişleri",
+        "description": "Onaylanmış ancak henüz tamamı sevk edilmemiş siparişlerin tutarı."
+      },
+      "open_purchase_orders": {
+        "title": "Açık satın alma siparişleri",
+        "description": "Verilmiş ancak henüz tamamı teslim alınmamış siparişlerin tutarı."
+      },
+      "stock_summary": {
+        "title": "Stoktaki ürünler",
+        "description": "Kaç ürünün stoğu olduğu ve bunların kaç depoda bulunduğu."
+      },
+      "headcount": {
+        "title": "Çalışan sayısı",
+        "description": "Aktif çalışanlar, aylık brüt bordro ve bugün izinde olanlar."
+      },
+      "pos_sales_today": {
+        "title": "Bugünkü mağaza satışları",
+        "description": "Bugünün iadeler düşülmüş kasa satışları, dünle karşılaştırmalı."
+      },
+      "marketplace_orders": {
+        "title": "Pazaryeri siparişleri, son 7 gün",
+        "description": "Pazaryerlerinizden gelen siparişler ve aktarılamayanlar."
+      },
+      "catalog_summary": {
+        "title": "Aktif ürünler",
+        "description": "Kataloğunuzdaki ürün sayısı."
+      },
+      "ai_usage": {
+        "title": "Bu ayki AI istekleri",
+        "description": "Şirketinizin bu ay AI asistanını ne kadar kullandığı."
+      },
+      "revenue_expense_trend": {
+        "title": "Gelir ve gider, son 12 ay",
+        "description": "Ay ay kesinleşen gelir ve gider."
+      },
+      "cash_forecast": {
+        "title": "Beklenen tahsilat ve ödemeler, önümüzdeki 4 hafta",
+        "description": "Vadesinin dolduğu haftaya göre açık alacaklar ve açık borçlar."
+      },
+      "ar_aging": {
+        "title": "Alacak yaşlandırma",
+        "description": "Ödenmemiş satış faturaları, gecikme süresine göre gruplanmış."
+      },
+      "ap_aging": {
+        "title": "Borç yaşlandırma",
+        "description": "Ödenmemiş alış faturaları, gecikme süresine göre gruplanmış."
+      },
+      "overdue_invoices": {
+        "title": "Vadesi geçmiş satış faturaları",
+        "description": "Vadesi geçmiş en yüksek tutarlı satış faturaları."
+      },
+      "upcoming_bills": {
+        "title": "Ödenecek faturalar",
+        "description": "Vadesi geçmiş veya 14 gün içinde dolacak alış faturaları."
+      },
+      "top_customers": {
+        "title": "En büyük müşteriler",
+        "description": "Faturalanan tutara göre sıralı müşterileriniz."
+      },
+      "top_vendors": {
+        "title": "En büyük tedarikçiler",
+        "description": "Faturalanan tutara göre sıralı tedarikçileriniz."
+      },
+      "expense_breakdown": {
+        "title": "Bu yılın en büyük gider hesapları",
+        "description": "Bu yıl şimdiye kadar paranın hangi hesaplara gittiği."
+      },
+      "flagged_bills": {
+        "title": "Olağandışı yüksek alış faturaları",
+        "description": "Tedarikçisinin olağan tutarının hayli üzerindeki ödenmemiş faturalar. Ödemeden önce inceleyin."
+      },
+      "recent_payments": {
+        "title": "Son ödemeler",
+        "description": "Müşterilerden alınan ve tedarikçilere yapılan son ödemeler."
+      },
+      "recent_journal_entries": {
+        "title": "Son yevmiye kayıtları",
+        "description": "Kesinleştirilmeyi bekleyen taslaklar dahil son yevmiye kayıtları."
+      },
+      "low_stock": {
+        "title": "Azalan stok",
+        "description": "Bir depoda 5 veya daha az adedi kalan ürünler."
+      },
+      "stock_by_warehouse": {
+        "title": "Depoya göre stok",
+        "description": "Her depodaki eldeki adet."
+      },
+      "recent_stock_moves": {
+        "title": "Son stok hareketleri",
+        "description": "Son girişler, çıkışlar, transferler ve düzeltmeler."
+      },
+      "pending_po_receipts": {
+        "title": "Teslim alınacak siparişler",
+        "description": "Malların beklendiği tarihe göre açık satın alma siparişleri."
+      },
+      "sales_pipeline": {
+        "title": "Aşamaya göre potansiyel müşteriler",
+        "description": "Kaç potansiyel müşterinin yeni, nitelikli, kazanılmış ve kaybedilmiş olduğu."
+      },
+      "orders_to_fulfill": {
+        "title": "Sevk edilecek satış siparişleri",
+        "description": "Müşterinin beklediği tarihe göre onaylanmış satış siparişleri."
+      },
+      "sales_order_trend": {
+        "title": "Satış siparişleri, son 6 ay",
+        "description": "Her ay alınan satış siparişlerinin tutarı."
+      },
+      "work_orders_status": {
+        "title": "Duruma göre iş emirleri",
+        "description": "Kaç iş emrinin taslak, serbest, devam eden ve tamamlanmış olduğu."
+      },
+      "upcoming_work_orders": {
+        "title": "Devam eden iş emirleri",
+        "description": "Planlanan tarihe göre açık iş emirleri ve tamamlanan miktar."
+      },
+      "pending_leave_requests": {
+        "title": "Karar bekleyen izin talepleri",
+        "description": "Onay veya ret bekleyen izin talepleri."
+      },
+      "payroll_cost_trend": {
+        "title": "Döneme göre bordro maliyeti",
+        "description": "Kesinleşmiş son altı bordro döneminin toplam işveren maliyeti."
+      },
+      "headcount_by_department": {
+        "title": "Departmana göre çalışanlar",
+        "description": "Her departmandaki aktif çalışan sayısı."
+      },
+      "pos_sales_trend": {
+        "title": "Mağaza satışları, son 14 gün",
+        "description": "İadeler düşülmüş günlük kasa satışları."
+      },
+      "open_shifts": {
+        "title": "Açık kasa vardiyaları",
+        "description": "Şu an açık olan vardiyalar ve her birinin satış adedi."
+      },
+      "pos_top_items": {
+        "title": "En çok satanlar, son 30 gün",
+        "description": "Kasada satılan ürünler, adede göre sıralı."
+      },
+      "marketplace_accounts": {
+        "title": "Pazaryeri bağlantıları",
+        "description": "Bağlı her pazaryeri, son aktarım zamanı ve hatalı siparişleri."
+      },
+      "failed_marketplace_orders": {
+        "title": "Aktarılamayan pazaryeri siparişleri",
+        "description": "Satış siparişine dönüştürülemeyen siparişler ve nedeni."
+      },
+      "ai_pending_approvals": {
+        "title": "Onay bekleyen AI işlemleri",
+        "description": "AI asistanının önerdiği, bir kişinin onaylaması veya reddetmesi gereken değişiklikler."
+      },
+      "recent_activity": {
+        "title": "Son işlemler",
+        "description": "Denetim kaydındaki son girişler."
+      }
+    }
   },
   "auth": {
     "login": "Giriş Yap",
     "logout": "Çıkış Yap"
+  },
+  "access": {
+    "title": "Kullanıcılar ve Roller",
+    "subtitle": "Kimin ne yapabileceğine karar verin. İşlemler yetkilerde, yetkiler rollerde toplanır; roller de kullanıcılara verilir.",
+    "loading": "Yükleniyor…",
+    "builtIn": "Hazır",
+    "builtInNote": "Bu kayıt hazır gelir ve otomatik olarak güncel tutulur; bu yüzden düzenlenemez. Özelleştirmek için kendinizinkini oluşturun.",
+    "actionsIntro": "Uygulamada yapılabilecek tüm işlemler, eklentiye göre. Kodunu görmek için bir işlemin üzerine gelin. İşlemleri Yetkiler sekmesinden bir yetkiye ekleyin.",
+    "tabs": {
+      "users": "Kullanıcılar",
+      "roles": "Roller",
+      "permissions": "Yetkiler",
+      "actions": "İşlemler"
+    },
+    "actions": {
+      "edit": "Düzenle",
+      "view": "Görüntüle",
+      "delete": "Sil",
+      "save": "Kaydet",
+      "cancel": "Vazgeç",
+      "close": "Kapat"
+    },
+    "errors": {
+      "load": "Kullanıcılar ve roller yüklenemedi.",
+      "save": "Değişiklikleriniz kaydedilemedi.",
+      "delete": "Bu kayıt silinemedi."
+    },
+    "levels": {
+      "view": "Görüntüleme",
+      "manage": "Tam erişim"
+    },
+    "systemRoles": {
+      "org_admin": "Kuruluş Yöneticisi",
+      "viewer": "İzleyici"
+    },
+    "systemRoleDescriptions": {
+      "org_admin": "Kullanıcıları, rolleri ve eklentileri yönetmek dahil her şeyi yapabilir.",
+      "viewer": "Her eklentideki her şeyi görebilir, hiçbir şeyi değiştiremez."
+    },
+    "users": {
+      "new": "Yeni kullanıcı",
+      "edit": "Kullanıcıyı düzenle",
+      "user": "Kullanıcı",
+      "roles": "Roller",
+      "status": "Durum",
+      "lastLogin": "Son giriş",
+      "neverLoggedIn": "Hiç",
+      "admin": "Yönetici",
+      "active": "Aktif",
+      "inactive": "Devre dışı",
+      "noAccess": "Henüz erişimi yok",
+      "directCount": "{count} tekil işlem",
+      "username": "Kullanıcı adı",
+      "email": "E-posta",
+      "firstName": "Ad",
+      "lastName": "Soyad",
+      "password": "Parola",
+      "newPassword": "Yeni parola",
+      "passwordUnchanged": "Mevcut parolayı korumak için boş bırakın",
+      "language": "Dil",
+      "canSignIn": "Bu kullanıcı giriş yapabilir",
+      "directActions": "Tekil işlemler",
+      "directActionsHint": "Rollerinin verdiklerine ek olarak yalnızca bu kullanıcıya tanınan işlemler."
+    },
+    "roles": {
+      "new": "Yeni rol",
+      "edit": "Rolü düzenle",
+      "name": "Rol adı",
+      "description": "Açıklama",
+      "everything": "Her şey",
+      "everythingNote": "Bu rol, ileride eklenecekler dahil uygulamadaki her işlemi yapabilir.",
+      "noPermissions": "Henüz yetkisi yok",
+      "userCount": "Kullanıcı yok | {count} kullanıcı | {count} kullanıcı"
+    },
+    "permissions": {
+      "new": "Yeni yetki",
+      "edit": "Yetkiyi düzenle",
+      "name": "Yetki adı",
+      "description": "Açıklama",
+      "actions": "İşlemler",
+      "usedIn": "Kullanıldığı yer",
+      "custom": "Sizin yetkileriniz",
+      "builtIn": "Hazır yetkiler",
+      "builtInNote": "Her eklenti için iki tane: görüntüleme ve tam erişim. Uygulama büyüdükçe kendiliğinden güncellenir.",
+      "noneYet": "Henüz bir yetki oluşturmadınız.",
+      "actionCount": "İşlem yok | {count} işlem | {count} işlem",
+      "roleCount": "Rol yok | {count} rol | {count} rol"
+    },
+    "delete": {
+      "roleTitle": "Rolü sil",
+      "roleBody": "\"{name}\" rolü silinsin mi? Bu role sahip kimse yok. | \"{name}\" rolü silinsin mi? {count} kullanıcı bu rolün verdiklerini kaybedecek. | \"{name}\" rolü silinsin mi? {count} kullanıcı bu rolün verdiklerini kaybedecek.",
+      "permissionTitle": "Yetkiyi sil",
+      "permissionBody": "\"{name}\" yetkisi silinsin mi? Hiçbir rol kullanmıyor. | \"{name}\" yetkisi silinsin mi? {count} rol bu yetkinin işlemlerini kaybedecek. | \"{name}\" yetkisi silinsin mi? {count} rol bu yetkinin işlemlerini kaybedecek."
+    },
+    "picker": {
+      "search": "İşlem ara",
+      "selected": "{count} seçili",
+      "selectAll": "Tümünü seç",
+      "clearAll": "Tümünü kaldır",
+      "toggleRow": "Tüm satırı seç veya kaldır",
+      "noMatches": "Aramanızla eşleşen işlem yok."
+    },
+    "groups": {
+      "administration": "Yönetim"
+    },
+    "resources": {
+      "entity": "Şirketler",
+      "item": "Ürünler",
+      "account": "Hesap planı",
+      "journal_entry": "Yevmiye kayıtları",
+      "trial_balance": "Mizan",
+      "party": "Cari hesaplar",
+      "invoice": "Satış faturaları",
+      "bill": "Alış faturaları",
+      "payment": "Ödemeler",
+      "ar_aging": "Alacak yaşlandırma",
+      "ap_aging": "Borç yaşlandırma",
+      "warehouse": "Depolar",
+      "stock_move": "Stok hareketleri",
+      "stock_level": "Stok durumu",
+      "purchase_order": "Satın alma siparişleri",
+      "lead": "Potansiyel müşteriler",
+      "sales_order": "Satış siparişleri",
+      "bom": "Ürün reçeteleri",
+      "work_order": "İş emirleri",
+      "employee": "Çalışanlar",
+      "leave_request": "İzin talepleri",
+      "payroll_run": "Bordro dönemleri",
+      "pos_store": "Mağazalar",
+      "pos_till": "Kasalar",
+      "pos_shift": "Kasa vardiyaları",
+      "pos_sale": "Kasa satışları",
+      "pos_return": "Kasa iadeleri",
+      "marketplace_account": "Pazaryeri bağlantıları",
+      "marketplace_listing": "Pazaryeri ürün eşleşmeleri",
+      "marketplace_order": "Pazaryeri siparişleri",
+      "report_series": "Rapor kataloğu",
+      "report_series_run": "Rapor verisi",
+      "saved_report": "Kayıtlı raporlar",
+      "bi_dashboard": "BI panoları",
+      "user": "Kullanıcılar",
+      "role": "Roller",
+      "permission": "Yetkiler",
+      "plugin": "Eklentiler",
+      "conversation": "AI görüşmesi"
+    },
+    "operations": {
+      "view": "Görüntüle",
+      "create": "Oluştur",
+      "update": "Düzenle",
+      "delete": "Sil",
+      "post_entry": "Kesinleştir",
+      "send_document": "Gönder",
+      "transfer": "Transfer et",
+      "approve": "Onayla",
+      "reject": "Reddet",
+      "receive": "Mal kabul",
+      "qualify": "Nitelikli yap",
+      "mark_won": "Kazanıldı işaretle",
+      "mark_lost": "Kaybedildi işaretle",
+      "confirm": "Onayla",
+      "fulfill": "Sevk et",
+      "release": "Serbest bırak",
+      "complete": "Tamamla",
+      "calculate": "Hesapla",
+      "finalize": "Kesinleştir",
+      "checkout": "Satış yap",
+      "close": "Kapat",
+      "return_sale": "İade al",
+      "sync_orders": "Siparişleri aktar",
+      "push_stock": "Stok gönder",
+      "add_tile": "Kutucuk ekle",
+      "remove_tile": "Kutucuk kaldır",
+      "reorder_tiles": "Kutucukları sırala"
+    }
+  },
+  "audit": {
+    "title": "Denetim Kaydı",
+    "subtitleAdmin": "Kuruluşunuzda yapılan her işlem: kimin yaptığı, elle mi yoksa AI asistanı aracılığıyla mı yapıldığı ve neyi değiştirdiği.",
+    "subtitleMember": "Kendi işlemleriniz ve görüntüleme yetkiniz olan kayıtlar üzerindeki işlemler.",
+    "system": "Sistem",
+    "details": "Ayrıntıları göster",
+    "entryId": "Kayıt #{id}",
+    "revertOf": "#{id} numaralı işlemin geri alınması",
+    "reverted": "#{id} ile geri alındı",
+    "noChanges": "Bu kayıt için alan değişikliği kaydedilmedi.",
+    "empty": "Henüz bir şey kaydedilmedi.",
+    "noMatches": "Bu filtrelerle eşleşen kayıt yok.",
+    "count": "{count} kayıt",
+    "page": "Sayfa {page} / {pages}",
+    "previous": "Önceki",
+    "next": "Sonraki",
+    "channels": {
+      "manual": "Elle",
+      "ai": "AI asistanı"
+    },
+    "columns": {
+      "when": "Zaman",
+      "who": "Kim",
+      "channel": "Kanal",
+      "action": "İşlem",
+      "record": "Kayıt",
+      "field": "Alan",
+      "before": "Önce",
+      "after": "Sonra"
+    },
+    "filters": {
+      "search": "Ara",
+      "searchPlaceholder": "Kayıt adı veya numarası",
+      "user": "Kullanıcı",
+      "anyone": "Herkes",
+      "channel": "Kanal",
+      "anyChannel": "Tüm kanallar",
+      "resource": "Ne",
+      "anything": "Her şey",
+      "from": "Başlangıç",
+      "to": "Bitiş",
+      "clear": "Filtreleri temizle"
+    },
+    "special": {
+      "ai_chat": "AI asistanına soruldu",
+      "plugin_install": "Eklentiler: Ekle",
+      "plugin_remove": "Eklentiler: Kaldır",
+      "reconciliation_sweep": "Mutabakat taraması"
+    },
+    "errors": {
+      "load": "Denetim kaydı yüklenemedi.",
+      "revert": "Bu işlem geri alınamadı."
+    },
+    "reasons": {
+      "not_an_action": "Bu kayıt geri alınabilir bir işlem değil, bir olayın kaydıdır.",
+      "is_a_revert": "Bu kayıt zaten bir geri alma işlemidir.",
+      "already_reverted": "Bu işlem zaten geri alındı.",
+      "not_reversible": "Bu tür bir işlem buradan geri alınamaz. Bunun yerine iade veya düzeltme kaydı gibi uygun ticari işlemi kullanın.",
+      "no_permission": "Bu işlemi yapma yetkiniz olmadığı için geri de alamazsınız.",
+      "changed_since": "Bu kayıt sonradan değiştirildi. Önce sonraki değişiklikleri geri alın.",
+      "failed": "Geri alma tamamlanamadı."
+    },
+    "revert": {
+      "button": "Geri al",
+      "title": "Bu işlem geri alınsın mı?",
+      "confirm": "Geri al",
+      "note": "Kayıt hiçbir zaman düzenlenmez. Geri alma, sizin adınıza yeni bir kayıt olarak işlenir.",
+      "effects": {
+        "create": "Oluşturulan kayıt silinecek.",
+        "update": "Kayıt, bu değişiklikten önceki değerlerine döndürülecek.",
+        "delete": "Kayıt, denetim kaydında tutulan kopyadan yeniden oluşturulacak. Yeni bir numara alır ve eski numaraya bağlı olanlar yeniden bağlanmaz.",
+        "post_entry": "Kesinleşmiş bir yevmiye kaydı taslağa döndürülemez. Bunun yerine tüm borç ve alacakları ters çevrilmiş bir ters kayıt bugünün tarihiyle kesinleştirilecek.",
+        "other": "Kayıt, bu işlemden önceki durumuna döndürülecek."
+      }
+    }
+  },
+  "assistant": {
+    "title": "AI Asistanı",
+    "intro": "Normalde arayıp bulacağınız veya ekranlarda tıklayarak yapacağınız her şeyi isteyebilirsiniz. Kayıtları tablo olarak gösterebilir, grafik çizebilir ve onaylamanız için değişiklikler hazırlayabilirim. Tam olarak sizin yetkiniz olan şeyleri yapabilirim.",
+    "newChat": "Yeni görüşme",
+    "noConversations": "Henüz görüşme yok.",
+    "delete": "Görüşmeyi sil",
+    "confirmDelete": "Silmek için tekrar tıklayın",
+    "placeholder": "Bir soru sorun veya yapılmasını istediğiniz şeyi anlatın…",
+    "send": "Gönder",
+    "thinking": "Üzerinde çalışıyorum…",
+    "sources": "Kaynaklar:",
+    "footnote": "Siz onaylamadan hiçbir şey değiştirilmez. Onayladığınız her şey denetim kaydına işlenir.",
+    "errors": {
+      "send": "Bir sorun oluştu ve mesajınız yanıtlanamadı. Lütfen tekrar deneyin.",
+      "resolve": "Bu işlem tamamlanamadı. Lütfen tekrar deneyin."
+    },
+    "values": {
+      "yes": "Evet",
+      "no": "Hayır",
+      "items": "Kalem yok | {count} kalem | {count} kalem",
+      "count": "Adet"
+    },
+    "series": {
+      "monthly_revenue": "Aylık gelir",
+      "revenue_by_customer": "Müşteriye göre gelir",
+      "spend_by_vendor": "Tedarikçiye göre harcama"
+    },
+    "proposal": {
+      "status": {
+        "pending": "Onayınızı bekliyor",
+        "executed": "Tamamlandı",
+        "failed": "Onaylandı, ancak gerçekleştirilemedi",
+        "rejected": "Reddedildi"
+      },
+      "approve": "Onayla",
+      "reject": "Reddet",
+      "nothingYet": "Henüz hiçbir şey değiştirilmedi.",
+      "noPermission": "Bunu onaylama yetkiniz yok. Yetkisi olan biri onaylayabilir.",
+      "failedBecause": "Hiçbir şey değiştirilmedi. Neden:",
+      "doneBy": "{user} tarafından gerçekleştirildi.",
+      "seeAudit": "Denetim kaydında görüntüle"
+    },
+    "examples": {
+      "overdue": "Hangi satış faturalarının vadesi geçti?",
+      "cash": "Kasa ve banka bakiyemiz ne kadar?",
+      "topCustomers": "Faturalanan tutara göre en büyük müşterilerimizi grafikle göster",
+      "accounts": "Her türden kaç hesabımız var? Grafik çiz",
+      "newItem": "Kataloğa yeni bir ürün ekle",
+      "newInvoice": "Bir müşteriye fatura oluştur",
+      "lowStock": "Hangi ürünlerin stoğu azalıyor?",
+      "leave": "Karar bekleyen izin taleplerini göster"
+    }
+  },
+  "landing": {
+    "nav": {
+      "modules": "Modüller",
+      "assistant": "AI asistanı",
+      "control": "Kontrol",
+      "plans": "Paketler",
+      "roadmap": "Yol haritası",
+      "faq": "SSS",
+      "signIn": "Giriş yap"
+    },
+    "hero": {
+      "eyebrow": "Küçük ve orta ölçekli şirketler için ERP",
+      "title": "Tüm şirketi tek yerden yönetin; ihtiyacınız olanı sormanız yeterli.",
+      "body": "ERPIntel finans, stok, satın alma, satış, üretim, İK ve perakendeyi tek sistemde toplar. Hepsinin içinde bir AI asistanı vardır: kayıtları bulur, grafiği çizer ve işi onayınıza hazırlar.",
+      "primary": "Giriş yap",
+      "secondary": "Paketleri gör",
+      "imageAlt": "ERPIntel paneli: kasa, gelir, alacak ve borç rakamları, gelir ve gider grafiği ve ilgilenilmesi gerekenler listesi.",
+      "imageNote": "Bu sayfadaki ekranlar örnek veri gösterir."
+    },
+    "facts": [
+      {
+        "value": "12",
+        "label": "eklenip kaldırılabilen eklenti"
+      },
+      {
+        "value": "130+",
+        "label": "işlem; her biri asistanla da yapılabilir"
+      },
+      {
+        "value": "47",
+        "label": "seçilebilir panel bileşeni"
+      },
+      {
+        "value": "TR / EN",
+        "label": "baştan sona Türkçe ve İngilizce"
+      }
+    ],
+    "modules": {
+      "title": "Büyüyen bir şirketin ihtiyaç duyduğu her şey",
+      "body": "Her alan bir eklentidir. Kullandıklarınızı kurun, kullanmadıklarınızı kaldırın, şirket büyüdükçe yenilerini ekleyin. Hepsi aynı defterleri ve aynı kayıtları kullanır.",
+      "items": {
+        "ledger": {
+          "title": "Genel muhasebe",
+          "body": "Tekdüzen Hesap Planı'na dayalı hesap planı, yevmiye kayıtları, mizan ve çok şirketli konsolidasyon."
+        },
+        "receivables": {
+          "title": "Alacaklar ve borçlar",
+          "body": "Cari hesaplar, satış ve alış faturaları, kısmi ödemeler ve gecikme gününe göre yaşlandırma."
+        },
+        "inventory": {
+          "title": "Envanter",
+          "body": "Birden çok depo, her giriş, çıkış ve transferi izleyen stok durumu ve azalan stok uyarıları."
+        },
+        "purchasing": {
+          "title": "Satın alma",
+          "body": "Onay eşiği olan satın alma siparişleri, stoğa mal kabulü ve sizin için oluşturulan alış faturası."
+        },
+        "sales": {
+          "title": "Satış ve CRM",
+          "body": "İlk temastan kazanıma potansiyel müşteriler, onaydan sevkiyata satış siparişleri."
+        },
+        "manufacturing": {
+          "title": "Üretim",
+          "body": "Ürün reçeteleri ve bileşenleri tüketip mamulü stoğa alan iş emirleri."
+        },
+        "hr": {
+          "title": "İK ve bordro",
+          "body": "Çalışan kayıtları, izin talepleri ve SGK primi, gelir vergisi ve damga vergisi hesaplanan aylık bordro."
+        },
+        "pos": {
+          "title": "Perakende (POS)",
+          "body": "Bölünmüş ödemeli kasa, vardiyalar ve gün sonu raporları, iadeler ve bağlantı kesilse de satış."
+        },
+        "ecommerce": {
+          "title": "E-ticaret",
+          "body": "Bir pazaryeri bağlayın; siparişler satış siparişi olarak gelsin, stok durumu karşıya gitsin."
+        },
+        "bi": {
+          "title": "Raporlar ve BI",
+          "body": "Sistemin geri kalanıyla aynı rakamlardan kendi grafiklerinizi ve panolarınızı oluşturun."
+        },
+        "companies": {
+          "title": "Şirketler",
+          "body": "Tek hesap altında, her biri kendi defterini tutan birden çok tüzel kişiliği yönetin ve tek tıkla aralarında geçiş yapın."
+        },
+        "catalog": {
+          "title": "Ürün kataloğu",
+          "body": "Satın aldığınız, stokladığınız, ürettiğiniz ve sattığınız ürün ve hizmetlerin, diğer tüm alanlarca paylaşılan tek listesi."
+        }
+      }
+    },
+    "assistant": {
+      "eyebrow": "AI asistanı",
+      "title": "Tıklamak yerine isteyin",
+      "body": "Asistan, ekranlarda yapabildiğiniz her şeyi günlük dille anlatmanız üzerine yapabilir; Türkçe veya İngilizce.",
+      "points": [
+        {
+          "title": "Kontrol edebileceğiniz yanıtlar",
+          "body": "Rakamlar kayıtlarınızdan gelir ve yanıtın yanında tablo veya grafik olarak, geldikleri ekranın bağlantısıyla gösterilir."
+        },
+        {
+          "title": "Sizin için hazırlanmış iş",
+          "body": "Fatura oluşturmasını, izni onaylamasını veya bir kaydı düzeltmesini isteyin. Değişikliği hazırlar ve tam olarak ne yapacağını gösterir."
+        },
+        {
+          "title": "Siz olmadan hiçbir şey olmaz",
+          "body": "Her değişiklik onayınızı bekler. Sonra sizin adınıza ve sizin yetkilerinizle yapılır ve denetim kaydına işlenir."
+        }
+      ],
+      "examplesTitle": "Sık sorulanlar",
+      "examples": [
+        "Hangi satış faturalarının vadesi geçti?",
+        "Bu yılın aylık gelirini grafikle göster",
+        "Anadolu Yapı'ya 12 palet için fatura oluştur",
+        "Bu hafta hangi ürünlerin stoğu bitecek?"
+      ],
+      "imageAlt": "Asistanla bir görüşme: vadesi geçmiş faturalar sorusuna tabloyla yanıt, bir gelir grafiği ve onay bekleyen bir fatura önerisi."
+    },
+    "control": {
+      "eyebrow": "Kontrol",
+      "title": "Kimin ne yapabileceğine siz karar verirsiniz, ne yapıldığını da görürsünüz",
+      "permissions": {
+        "title": "Çalışma şeklinize uyan yetkiler",
+        "body": "Bir raporu görüntülemekten yevmiye kaydını kesinleştirmeye kadar sistemdeki her işlem verilebilir veya kısıtlanabilir. İşlemleri yetkilerde, yetkileri rollerde toplayın ve rolleri kişilere verin. Asistan da aynı kurallara tabidir."
+      },
+      "audit": {
+        "title": "Geri alma özellikli tam denetim kaydı",
+        "body": "Her değişiklik kaydedilir: kimin yaptığı, ne zaman, elle mi asistanla mı yapıldığı ve kaydın öncesi ile sonrası. Hatalar kayıttan geri alınabilir; geri alma da kaydedilir.",
+        "imageAlt": "Denetim kaydı: kişi, kanal (elle veya AI asistanı), kayıt ve Geri al düğmesiyle işlemler listesi."
+      },
+      "plugins": {
+        "title": "Yalnızca ihtiyacınız olan ekranlar",
+        "body": "Bir eklentiyi ekleyin veya kaldırın; sayfaları, panel bileşenleri ve asistanın o alandaki yetenekleri birlikte gelir veya gider. Verileriniz her durumda yerinde kalır.",
+        "imageAlt": "Eklentiler sayfası: her eklenti için sayfalarını gösteren bir kart ve Ekle veya Kaldır düğmesi."
+      }
+    },
+    "safety": {
+      "title": "Asistana verilen bir istek nasıl değişikliğe dönüşür",
+      "steps": [
+        {
+          "title": "Siz istersiniz",
+          "body": "Kendi cümlelerinizle, çalıştığınız dilde."
+        },
+        {
+          "title": "Asistan kontrol eder",
+          "body": "Gerçek kayıtları bulur ve değişikliği ekranlardakiyle aynı kurallara göre doğrular."
+        },
+        {
+          "title": "Siz onaylarsınız",
+          "body": "İşlemi, kaydı ve değişecek her değeri görür; Onayla veya Reddet dersiniz."
+        },
+        {
+          "title": "Kayda geçer",
+          "body": "Değişiklik sizin adınıza yapılır, kaydedilir ve geri alınabilir."
+        }
+      ]
+    },
+    "plans": {
+      "eyebrow": "Paketler",
+      "title": "Açık fiyatlar, büyüklüğünüzle orantılı",
+      "body": "Her pakette çekirdek sistem ve AI asistanı vardır. Eklentiler kullanıcı başına eklenir; küçük ekip küçük fiyat öder.",
+      "perUser": "kullanıcı başına / ay",
+      "indicative": "Fiyatlar gösterge niteliğindedir ve genel kullanıma açılmadan önce değişebilir.",
+      "addOn": "Paketinizde olmayan bir eklentiye mi ihtiyacınız var? Kullanıcı başına sabit bir ücretle ekleyin.",
+      "popular": "En çok seçilen",
+      "tiers": [
+        {
+          "name": "Başlangıç",
+          "audience": "1–15 kişi, ilk ERP",
+          "price": "$15–25",
+          "features": [
+            "Çekirdek finans, alacaklar ve borçlar",
+            "Seçeceğiniz bir eklenti",
+            "Sorular ve raporlar için AI asistanı",
+            "Roller, yetkiler ve denetim kaydı"
+          ]
+        },
+        {
+          "name": "Büyüme",
+          "audience": "15–75 kişi",
+          "price": "$35–50",
+          "features": [
+            "Başlangıç'taki her şey",
+            "Dört eklentiye kadar",
+            "Aylık kullanım hakkıyla değişiklik hazırlayan AI asistanı"
+          ]
+        },
+        {
+          "name": "Profesyonel",
+          "audience": "75–250 kişi",
+          "price": "$60–90",
+          "features": [
+            "Büyüme'deki her şey",
+            "Tüm eklentiler",
+            "Daha yüksek AI kullanım hakkı",
+            "Gelişmiş raporlar ve BI",
+            "Çok şirketli konsolidasyon"
+          ]
+        },
+        {
+          "name": "Kurumsal",
+          "audience": "250+ kişi, birden çok şirket",
+          "price": "Özel teklif",
+          "features": [
+            "Profesyonel'deki her şey",
+            "Otomatik AI ajanları",
+            "Özel destek",
+            "Özel kurulum seçeneği"
+          ]
+        }
+      ]
+    },
+    "roadmap": {
+      "eyebrow": "Yol haritası",
+      "title": "Bugün neler var, sırada neler var",
+      "body": "Sonradan öğrenmeniz yerine baştan açıkça söylemeyi tercih ederiz.",
+      "today": {
+        "title": "Bugün kullanılabilir",
+        "items": [
+          "Genel muhasebe, alacaklar ve borçlar, çok şirket",
+          "Envanter, satın alma, satış ve CRM, üretim",
+          "İK ve bordro, perakende POS, pazaryeri aktarımı",
+          "Tablo, grafik ve onaylarla AI asistanı",
+          "Roller ve yetkiler, geri alma özellikli denetim kaydı",
+          "Özelleştirilebilir panel ve eklentiler"
+        ]
+      },
+      "next": {
+        "title": "Sırada",
+        "items": [
+          "e-Belgeler: e-Fatura, e-Arşiv, e-Defter, e-İrsaliye",
+          "SGK e-Bildirge ve KDV beyannameleri",
+          "Logo ve Mikro'dan veri aktarımı",
+          "Kendi başına çalışan zamanlanmış AI ajanları",
+          "Proje yönetimi",
+          "Tek oturum açma (SSO)"
+        ]
+      }
+    },
+    "faq": {
+      "title": "İlk sorulan sorular",
+      "items": [
+        {
+          "q": "AI verilerimi kendi başına değiştirebilir mi?",
+          "a": "Hayır. Sizin okuyabildiklerinizi okuyabilir ve sizin yapabildiğiniz değişiklikleri hazırlayabilir; ancak her değişiklik bir kişinin onayını bekler. Onaylanan değişiklikler o kişinin adına yapılır ve denetim kaydına yazılır."
+        },
+        {
+          "q": "AI rakam uydurur mu?",
+          "a": "Rakamlar ve grafikler AI tarafından yazılmaz; sistem tarafından kayıtlarınızdan hesaplanır ve her yanıt dayandığı tabloyu veya grafiği gösterir. Yine de onu bir yardımcı olarak görün: harekete geçmeden önce yanıtın yanındaki tabloya bakın."
+        },
+        {
+          "q": "Tüm modülleri kullanmak zorunda mıyım?",
+          "a": "Hayır. Her alan bir eklentidir. Finansla başlayın; envanteri, satışı veya bordroyu ihtiyaç duyduğunuzda ekleyin. Bir eklentiyi kaldırmak ekranlarını gizler, hiçbir veriyi silmez."
+        },
+        {
+          "q": "e-Fatura ve e-Defter için hazır mı?",
+          "a": "Henüz değil. Muhasebe Tekdüzen Hesap Planı'na, bordro Türkiye kurallarına uygundur; ancak GİB'e doğrudan e-belge gönderimi hâlâ geliştiriliyor. Yol haritasının ilk maddesidir."
+        },
+        {
+          "q": "Bir hatayı geri alabilir miyim?",
+          "a": "Çoğunlukla evet. Kayıt oluşturma, düzenleme ve silme ile fatura gönderme veya talep onaylama gibi adımlar denetim kaydından geri alınabilir. Mal kabulü veya POS satışı gibi stok ya da para hareketi yaratan işlemler ise iade veya düzeltme kaydıyla düzeltilir."
+        },
+        {
+          "q": "Kim neyi görebilir?",
+          "a": "İşlem işlem siz karar verirsiniz. Faturaları görüntüleme yetkisi olmayan biri onları ekranlarda, panelde, denetim kaydında veya asistan aracılığıyla göremez."
+        }
+      ]
+    },
+    "cta": {
+      "title": "Kendi şirketinizle görün",
+      "body": "Sistemi keşfetmek için giriş yapın.",
+      "primary": "Giriş yap"
+    },
+    "footer": {
+      "tagline": "Tüm şirket için tek sistem, içinde bir asistanla.",
+      "rights": "Tüm hakları saklıdır."
+    }
   }
 }

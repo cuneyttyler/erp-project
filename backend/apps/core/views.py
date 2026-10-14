@@ -27,8 +27,13 @@ from .serializers import (
     TrialBalanceRowSerializer,
     UserSerializer,
 )
+from apps.access import permissions as access_permissions
+from apps.access.catalog import resource
+from apps.access.revert import restore_fields
+from apps.core.reverts import reverse_posting
 
 
+@resource("entity", "entities", open_operations=("view",))
 class EntityViewSet(viewsets.ModelViewSet):
     """Legal entities/companies under this tenant (REQ-CORE-ENT-001)."""
 
@@ -65,6 +70,12 @@ def _serialize_user_with_tenant(request, user):
     data["tenant"] = {
         "active_packages": (tenant.active_packages if tenant else []),
         "subscription_tier": (tenant.subscription_tier if tenant else None),
+    }
+    # What this user may do right now (apps.access) -- the frontend offers
+    # pages and buttons from this list; the API enforces it regardless.
+    data["access"] = {
+        "is_org_admin": access_permissions.is_org_admin(user),
+        "actions": access_permissions.effective_codes(user, tenant),
     }
     return data
 
@@ -105,6 +116,7 @@ class MeView(APIView):
         return Response(_serialize_user_with_tenant(request, request.user))
 
 
+@resource("item", "item_catalog")
 class ItemViewSet(viewsets.ModelViewSet):
     """Product/service master data (REQ-INV-001) -- Core, not package-gated,
     since Purchasing/Inventory/Sales all need to reference the same catalog
@@ -116,6 +128,7 @@ class ItemViewSet(viewsets.ModelViewSet):
     filterset_fields = ["is_active"]
 
 
+@resource("account", "general_ledger")
 class AccountViewSet(viewsets.ModelViewSet):
     """Chart of Accounts (REQ-CORE-GL-001)."""
 
@@ -125,6 +138,7 @@ class AccountViewSet(viewsets.ModelViewSet):
     filterset_fields = ["entity", "account_type", "is_active"]
 
 
+@resource("journal_entry", "general_ledger", revert={"post_entry": reverse_posting})
 class JournalEntryViewSet(viewsets.ModelViewSet):
     """
     Journal entries (REQ-CORE-GL-002). Entries are created as drafts via the
@@ -150,6 +164,7 @@ class JournalEntryViewSet(viewsets.ModelViewSet):
         return Response(JournalEntrySerializer(entry).data)
 
 
+@resource("trial_balance", "general_ledger", description="Trial balance: total debits and credits per account, for one entity or consolidated.")
 class TrialBalanceView(APIView):
     """
     REQ-CORE-GL-006: trial balance. Deliberately a plain deterministic
@@ -194,6 +209,7 @@ class TrialBalanceView(APIView):
         return Response(TrialBalanceRowSerializer(rows, many=True).data)
 
 
+@resource("party", "receivables_payables")
 class PartyViewSet(viewsets.ModelViewSet):
     """Unified Customer/Vendor record (REQ-CORE-AR-*/AP-*)."""
 
@@ -222,6 +238,7 @@ class SendableDocumentMixin:
         return Response(self.get_serializer(obj).data)
 
 
+@resource("invoice", "receivables_payables", revert={"send_document": restore_fields("status")})
 class InvoiceViewSet(SendableDocumentMixin, viewsets.ModelViewSet):
     """Customer invoices (REQ-CORE-AR-001/002). An invoice has no `entity`
     field of its own -- it's derived from `party.entity` (REQ-CORE-ENT-001),
@@ -240,6 +257,7 @@ class InvoiceViewSet(SendableDocumentMixin, viewsets.ModelViewSet):
         return qs
 
 
+@resource("bill", "receivables_payables", revert={"send_document": restore_fields("status")})
 class BillViewSet(SendableDocumentMixin, viewsets.ModelViewSet):
     """Vendor bills (REQ-CORE-AP-001/002). Same derived-entity note as
     InvoiceViewSet applies here."""
@@ -257,6 +275,7 @@ class BillViewSet(SendableDocumentMixin, viewsets.ModelViewSet):
         return qs
 
 
+@resource("payment", "receivables_payables")
 class PaymentViewSet(viewsets.ModelViewSet):
     """
     Payments against an Invoice or Bill (REQ-CORE-AR-002/REQ-CORE-AP-002).
@@ -268,6 +287,14 @@ class PaymentViewSet(viewsets.ModelViewSet):
     serializer_class = PaymentSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["invoice", "bill"]
+
+    def perform_destroy(self, instance):
+        # The mirror of Payment.save(): removing a payment (directly, or by
+        # reverting the action that recorded it) must move the document's
+        # status back too, or it would stay "paid" with money still owed.
+        target = instance.invoice or instance.bill
+        instance.delete()
+        target.recompute_status()
 
 
 class IsSavedViewOwnerForWrite(permissions.BasePermission):
@@ -342,6 +369,7 @@ def _build_aging_rows(queryset):
     return rows
 
 
+@resource("ar_aging", "receivables_payables", description="Receivables aging: unpaid customer invoices bucketed by days overdue.")
 class ARAgingView(APIView):
     """REQ-CORE-AR-003: AR aging report, bucketed by days overdue.
     Optional `?entity=<id>` scopes to one entity (via party.entity);
@@ -357,6 +385,7 @@ class ARAgingView(APIView):
         return Response(AgingRowSerializer(_build_aging_rows(queryset), many=True).data)
 
 
+@resource("ap_aging", "receivables_payables", description="Payables aging: unpaid vendor bills bucketed by days overdue.")
 class APAgingView(APIView):
     """REQ-CORE-AP-002: AP aging report, bucketed by days overdue.
     Optional `?entity=<id>` scopes to one entity (via party.entity);

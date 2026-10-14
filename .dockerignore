@@ -1,0 +1,11 @@
+# For builds whose context is the repo root (infra/deploy/web.Dockerfile).
+.git
+**/node_modules
+**/.venv
+**/__pycache__
+**/dist
+**/.env
+**/.env.*
+!**/.env.example
+docs
+migration-agent

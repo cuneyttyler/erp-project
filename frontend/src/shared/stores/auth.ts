@@ -1,13 +1,17 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
+import { useAIStore } from '@/ai-panel/store'
 import { apiClient } from '@/shared/api/client'
+import { usePluginStore } from '@/shared/stores/plugins'
 import { useTenantStore, type PackageKey } from '@/shared/stores/tenant'
 
-export interface Role {
-  id: number
-  name: string
-  granted_actions: Record<string, string[]>
+// What the signed-in user may do (backend apps/access). `actions` are
+// catalog codes like `invoice.create` -- already narrowed to plugins that
+// are installed, so one check answers both "is it there" and "may I".
+export interface AccessInfo {
+  is_org_admin: boolean
+  actions: string[]
 }
 
 export interface TenantInfo {
@@ -22,8 +26,8 @@ export interface CurrentUser {
   full_name: string
   preferred_locale: 'tr' | 'en'
   mfa_enabled: boolean
-  roles: Role[]
   tenant: TenantInfo
+  access: AccessInfo
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -35,6 +39,12 @@ export const useAuthStore = defineStore('auth', () => {
   // package-gating).
   const isInitialized = ref(false)
 
+  const isOrgAdmin = computed(() => user.value?.access?.is_org_admin ?? false)
+  const actionSet = computed(() => new Set(user.value?.access?.actions ?? []))
+  // Only ever used to decide what to *offer* -- the API enforces the same
+  // rule on every request regardless of what the UI shows.
+  const can = computed(() => (action: string) => actionSet.value.has(action))
+
   function applyUser(data: CurrentUser | null) {
     user.value = data
     const tenantStore = useTenantStore()
@@ -43,6 +53,11 @@ export const useAuthStore = defineStore('auth', () => {
       if (data.tenant.subscription_tier) tenantStore.subscriptionTier = data.tenant.subscription_tier
     } else {
       tenantStore.setActivePackages([])
+      // Plugin/panel state and assistant conversations belong to the session
+      // that loaded them -- the next user to log in on this tab must get
+      // their own, not this one's.
+      usePluginStore().reset()
+      useAIStore().reset()
     }
   }
 
@@ -75,5 +90,5 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  return { user, isAuthenticated, isInitialized, login, logout, fetchMe, fetchCsrfCookie }
+  return { user, isAuthenticated, isInitialized, isOrgAdmin, can, login, logout, fetchMe, fetchCsrfCookie }
 })

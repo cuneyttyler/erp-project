@@ -3,119 +3,177 @@ import { ref } from 'vue'
 
 import { apiClient } from '@/shared/api/client'
 import { i18n } from '@/shared/i18n'
+import { useEntityStore } from '@/shared/stores/entity'
 
 export interface Citation {
   label: string
   route: string
 }
 
+// The structured results the assistant's tools produce, rendered under its
+// reply (shapes defined in backend apps/ai_core/tools.py).
+export interface TableBlock {
+  type: 'table'
+  title: string
+  resource: string
+  columns: string[]
+  rows: Record<string, unknown>[]
+  total: number
+}
+
+export interface ChartBlock {
+  type: 'chart'
+  title: string
+  // Set when the chart came from a named reporting series.
+  series_name?: string
+  chart: 'bar' | 'line' | 'hbar'
+  format: 'money' | 'number'
+  label_kind: 'month' | 'date' | 'text'
+  series: { name: string; points: { label: string; value: string }[] }[]
+}
+
+export interface RecordBlock {
+  type: 'record'
+  resource: string
+  id: string
+  title: string
+  fields: Record<string, unknown>
+}
+
+// A change the assistant has proposed (backend PendingApproval). Nothing
+// has happened while it is `pending`: it runs only when a person approves
+// it, as that person (REQ-CORE-AI-007).
+export interface Proposal {
+  id: number
+  action_name: string
+  resource: string
+  operation: string
+  target_id: string
+  action_input: Record<string, unknown>
+  preview: { target_label?: string; reason?: string; changes?: { field: string; before: unknown; after: unknown }[] }
+  status: 'pending' | 'executed' | 'failed' | 'rejected'
+  can_approve: boolean
+  requested_by_username: string
+  resolved_by_username: string | null
+  result: Record<string, unknown> | null
+  error: string
+}
+
+export interface ProposalBlock {
+  type: 'proposal'
+  approval: Proposal
+}
+
+export type Block = TableBlock | ChartBlock | RecordBlock | ProposalBlock
+
 export interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
   text: string
-  citations?: Citation[]
-  // Set when the assistant is proposing a mutating action (REQ-AI-XCUT-003) --
-  // the UI must render this distinctly from an already-completed action, and
-  // the message stays 'pending' until the user confirms or rejects it via
-  // POST ai/pending-approvals/{id}/approve|reject/ (backend's
-  // PendingApproval state machine, apps/ai_core/models.py).
-  pendingAction?: {
-    id: number
-    description: string
-    // Mirrors PendingApproval.STATUS_CHOICES (apps/ai_core/models.py)
-    // exactly -- 'executed'/'failed' are both terminal outcomes of
-    // approving, kept distinct so the UI can say if the action itself blew
-    // up even though the approval step succeeded.
-    status: 'pending' | 'executed' | 'failed' | 'rejected'
-    resolving?: boolean
-  }
+  blocks: Block[]
+  citations: Citation[]
 }
 
-// Conversation state for the persistent AI side-panel (technical.md §10.2).
-// Calls the synchronous /api/v1/ai/chat/ endpoint (technical.md §8.3) --
-// stateless server-side per docs/notes.md, so this store's own `messages`
-// list IS the conversation's source of truth; each turn resends the prior
-// history so the backend has context without persisting it itself.
+export interface ConversationSummary {
+  id: number
+  title: string
+  updated_at: string
+}
+
+interface ChatResponse {
+  conversation: ConversationSummary | null
+  reply: string
+  blocks: Block[]
+  citations: Citation[]
+  configured: boolean
+}
+
+// The assistant page's state. Conversations live on the server (so they
+// survive a reload and can be reopened); this store holds the list, the
+// one that's open, and the turn in flight.
 export const useAIStore = defineStore('ai', () => {
-  const isOpen = ref(false)
+  const conversations = ref<ConversationSummary[]>([])
+  const currentId = ref<number | null>(null)
   const messages = ref<ChatMessage[]>([])
-  const isStreaming = ref(false)
+  const isThinking = ref(false)
+  const isLoadingConversation = ref(false)
   const configured = ref(true)
 
-  function toggle() {
-    isOpen.value = !isOpen.value
+  async function fetchConversations() {
+    const { data } = await apiClient.get<ConversationSummary[]>('ai/conversations/')
+    conversations.value = data
   }
 
-  async function sendMessage(text: string) {
-    messages.value.push({ id: crypto.randomUUID(), role: 'user', text })
-    isStreaming.value = true
+  function startNew() {
+    currentId.value = null
+    messages.value = []
+  }
+
+  async function open(id: number) {
+    if (isThinking.value) return
+    isLoadingConversation.value = true
     try {
-      const history = messages.value
-        .slice(0, -1)
-        .map((m) => ({ role: m.role, content: m.text }))
-      const { data } = await apiClient.post<{
-        reply: string
-        citations: Citation[]
-        configured: boolean
-        pending_action: { id: number; description: string } | null
-      }>('ai/chat/', { message: text, locale: i18n.global.locale.value, history })
+      const { data } = await apiClient.get<ConversationSummary & { messages: (Omit<ChatMessage, 'id'> & { id: number })[] }>(`ai/conversations/${id}/`)
+      currentId.value = id
+      messages.value = data.messages.map((message) => ({ ...message, id: String(message.id) }))
+    } finally {
+      isLoadingConversation.value = false
+    }
+  }
+
+  async function remove(id: number) {
+    await apiClient.delete(`ai/conversations/${id}/`)
+    conversations.value = conversations.value.filter((conversation) => conversation.id !== id)
+    if (currentId.value === id) startNew()
+  }
+
+  async function send(text: string) {
+    messages.value.push({ id: crypto.randomUUID(), role: 'user', text, blocks: [], citations: [] })
+    isThinking.value = true
+    // The turn belongs to the conversation it was sent in, even if the
+    // user opens another one before the answer arrives.
+    const sentIn = currentId.value
+    try {
+      const { data } = await apiClient.post<ChatResponse>('ai/chat/', {
+        message: text,
+        locale: i18n.global.locale.value,
+        conversation_id: sentIn,
+        entity: useEntityStore().currentEntityId,
+      })
       configured.value = data.configured
-      messages.value.push({
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        text: data.reply,
-        citations: data.citations,
-        pendingAction: data.pending_action
-          ? { id: data.pending_action.id, description: data.pending_action.description, status: 'pending' }
-          : undefined,
-      })
+      if (data.conversation) {
+        const existing = conversations.value.findIndex((conversation) => conversation.id === data.conversation!.id)
+        if (existing !== -1) conversations.value.splice(existing, 1)
+        conversations.value.unshift(data.conversation)
+      }
+      if (currentId.value !== sentIn) return
+      if (data.conversation) currentId.value = data.conversation.id
+      messages.value.push({ id: crypto.randomUUID(), role: 'assistant', text: data.reply, blocks: data.blocks, citations: data.citations })
     } catch {
-      messages.value.push({
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        text:
-          i18n.global.locale.value === 'tr'
-            ? 'Bir hata oluştu, lütfen tekrar deneyin.'
-            : 'Something went wrong, please try again.',
-      })
+      if (currentId.value === sentIn) {
+        messages.value.push({ id: crypto.randomUUID(), role: 'assistant', text: i18n.global.t('assistant.errors.send'), blocks: [], citations: [] })
+      }
     } finally {
-      isStreaming.value = false
+      isThinking.value = false
     }
   }
 
-  async function resolvePendingAction(approvalId: number, decision: 'approve' | 'reject') {
-    const message = messages.value.find((m) => m.pendingAction?.id === approvalId)
-    if (!message?.pendingAction || message.pendingAction.resolving) return
-    message.pendingAction.resolving = true
+  // Approve or reject a proposal. The card updates in place with whatever
+  // the server says happened -- including "it ran and was refused".
+  async function resolve(proposal: Proposal, decision: 'approve' | 'reject'): Promise<string | null> {
     try {
-      const { data } = await apiClient.post<{ status: 'executed' | 'failed' | 'rejected' }>(
-        `ai/pending-approvals/${approvalId}/${decision}/`,
-      )
-      message.pendingAction.status = data.status
-    } catch {
-      // Leave it 'pending' -- the approve/reject buttons stay visible so the
-      // user can retry, rather than silently losing the proposal.
-    } finally {
-      message.pendingAction.resolving = false
+      const { data } = await apiClient.post<Proposal>(`ai/pending-approvals/${proposal.id}/${decision}/`)
+      Object.assign(proposal, data)
+      return null
+    } catch (e: any) {
+      return e?.response?.data?.detail ?? i18n.global.t('assistant.errors.resolve')
     }
   }
 
-  function approvePendingAction(approvalId: number) {
-    return resolvePendingAction(approvalId, 'approve')
+  function reset() {
+    conversations.value = []
+    startNew()
   }
 
-  function rejectPendingAction(approvalId: number) {
-    return resolvePendingAction(approvalId, 'reject')
-  }
-
-  return {
-    isOpen,
-    messages,
-    isStreaming,
-    configured,
-    toggle,
-    sendMessage,
-    approvePendingAction,
-    rejectPendingAction,
-  }
+  return { conversations, currentId, messages, isThinking, isLoadingConversation, configured, fetchConversations, startNew, open, remove, send, resolve, reset }
 })

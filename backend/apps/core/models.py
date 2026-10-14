@@ -58,47 +58,68 @@ class User(AbstractUser):
         return self.get_full_name() or self.username
 
 
-class Role(models.Model):
-    """
-    RBAC role (REQ-CORE-USR-002/003). `granted_actions` is a per-module action
-    map, e.g. {"purchasing": ["view", "create", "approve"], "hr_payroll": ["view"]}.
-    Field-level restrictions (REQ-CORE-USR-003) are enforced at the serializer
-    layer per package app, not modeled generically here.
-    """
-
-    name = models.CharField(max_length=100, unique=True)
-    granted_actions = models.JSONField(default=dict, blank=True)
-    users = models.ManyToManyField(User, related_name="roles", blank=True)
-
-    def __str__(self) -> str:
-        return self.name
-
-
 class AuditLogEntry(models.Model):
     """
-    Append-only audit trail (REQ-CORE-AUDIT-001/002). No update/delete path is
-    exposed anywhere in the application layer; production deployments additionally
+    Append-only audit trail (REQ-CORE-AUDIT-001/002/003): one row per action
+    taken, by anyone, through any channel. No update/delete path is exposed
+    anywhere in the application layer; production deployments additionally
     enforce this at the database permission level (technical.md §8.6) via an
-    INSERT-only Postgres role — that DB-level grant is an infra/migration concern
-    tracked separately, not something this model can express on its own.
+    INSERT-only Postgres role -- that DB-level grant is an infra/migration
+    concern tracked separately, not something this model can express on its
+    own.
 
-    AI-originated entries reuse this same table (technical.md §8.6 `AIActionLog`
-    is a specialized sibling of this model, not a replacement for it) — `actor`
-    is "user:<id>" for a human action or "ai:<user_id>" for an AI action taken on
-    that user's behalf, per REQ-CORE-AUDIT-003.
+    Rows are written in one place -- apps.access.audit.record(), called by
+    the hook every catalog resource's view shares -- so a write can't reach
+    the database without leaving one, whichever screen or assistant
+    conversation it came from.
+
+    - `user` is the person responsible. For an AI action that's the person
+      who approved it: the assistant has no account and no permissions of
+      its own (REQ-CORE-AI-004).
+    - `channel` says how the action arrived: `manual` (a screen) or `ai`
+      (the assistant, on that user's behalf).
+    - `action` is the catalog code (`invoice.create`), `target_type` the
+      resource and `target_id` the record; `before`/`after` are the record
+      as the API serializes it either side of the change -- which is what
+      makes reverting possible.
+    - Reverting never edits or removes a row: it performs the inverse action,
+      which is logged as a new row pointing back here through `reverts`. An
+      entry is "reverted" exactly when such a row exists.
+
+    `actor` ("user:<id>" / "ai:<id>") predates `user`/`channel` and is still
+    written for anything reading the older shape.
     """
 
+    MANUAL = "manual"
+    AI = "ai"
+    CHANNEL_CHOICES = [(MANUAL, "Manual"), (AI, "AI assistant")]
+
     actor = models.CharField(max_length=255)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="audit_entries"
+    )
+    channel = models.CharField(max_length=10, choices=CHANNEL_CHOICES, default=MANUAL)
     action = models.CharField(max_length=100)
     target_type = models.CharField(max_length=100)
     target_id = models.CharField(max_length=64)
+    # A human-readable name for the target as it was at the time ("INV-12
+    # Acme A.Ş.") -- kept on the row because the record itself may since
+    # have been renamed or deleted.
+    target_label = models.CharField(max_length=255, blank=True)
     before = models.JSONField(null=True, blank=True)
     after = models.JSONField(null=True, blank=True)
+    reverts = models.ForeignKey(
+        "self", null=True, blank=True, on_delete=models.PROTECT, related_name="reverted_by_entries"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ["-created_at", "-id"]
         verbose_name_plural = "audit log entries"
+        indexes = [
+            models.Index(fields=["target_type", "target_id"]),
+            models.Index(fields=["user", "created_at"]),
+        ]
 
     def __str__(self) -> str:
         return f"{self.actor} {self.action} {self.target_type}:{self.target_id}"
@@ -410,8 +431,38 @@ class InvoiceLine(models.Model):
 class Bill(FinancialDocument):
     """Vendor bill (AP) -- REQ-CORE-AP-001/002."""
 
+    # REQ-BI-004: "this vendor's invoice is 40% higher than their historical
+    # average -- review before approving." A simple ratio-over-trailing-
+    # average check, not a statistical outlier model (z-score, seasonality)
+    # -- deliberately the smallest thing that actually catches the example
+    # in the requirement, not a general anomaly-detection framework.
+    ANOMALY_THRESHOLD = Decimal("1.4")
+    ANOMALY_MIN_PRIOR_BILLS = 2
+
     def __str__(self) -> str:
         return f"BILL-{self.id} {self.party.name}"
+
+    @property
+    def anomaly_warning(self) -> str | None:
+        """None if not flagged -- either this bill isn't anomalous, or there
+        isn't enough history for this vendor yet (a vendor's first couple of
+        bills have no trailing average to compare against, so they're never
+        flagged; that's a real limit of the method, not a bug to work
+        around)."""
+        prior = Bill.objects.filter(party_id=self.party_id, status__in=[self.SENT, self.PARTIALLY_PAID, self.PAID]).exclude(
+            id=self.id
+        ).prefetch_related("lines")
+        prior_totals = [b.total for b in prior]
+        if len(prior_totals) < self.ANOMALY_MIN_PRIOR_BILLS:
+            return None
+        average = sum(prior_totals, Decimal("0")) / len(prior_totals)
+        if average <= 0 or self.total < average * self.ANOMALY_THRESHOLD:
+            return None
+        pct_over = int((self.total / average - 1) * 100)
+        return (
+            f"{self.party.name}'s bills have historically averaged "
+            f"{average.quantize(Decimal('0.01'))} TRY -- this one is {pct_over}% higher."
+        )
 
 
 class BillLine(models.Model):

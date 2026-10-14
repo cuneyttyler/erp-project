@@ -74,6 +74,7 @@ const columns: ColumnDef[] = [
   { key: 'total', label: 'Toplam' },
   { key: 'balance_due', label: 'Bakiye' },
   { key: 'status', label: 'Durum' },
+  { key: 'anomaly_warning', label: '', sortable: false, filterable: false },
   { key: 'actions', label: '', sortable: false, filterable: false },
 ]
 </script>
@@ -114,6 +115,15 @@ const columns: ColumnDef[] = [
         </template>
         <template #status="{ row }">
           {{ statusLabels[row.status] }}
+        </template>
+        <template #anomaly_warning="{ row }">
+          <span
+            v-if="row.anomaly_warning"
+            class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+            :title="row.anomaly_warning"
+          >
+            ⚠ Kontrol edin
+          </span>
         </template>
         <template #actions="{ row }">
           <button v-if="row.status === 'draft'" class="text-sm text-blue-600 hover:underline" @click="arap.sendBill(row.id)">

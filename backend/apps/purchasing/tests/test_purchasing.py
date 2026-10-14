@@ -16,7 +16,7 @@ class ApprovalWorkflowTests(TenantTestCase):
         self.vendor = Party.objects.create(name="Tedarikçi Ltd.", party_type=Party.VENDOR)
         self.warehouse = Warehouse.objects.create(code="WH-A", name="Main")
         self.item = Item.objects.create(sku="ITM-1", name="Widget")
-        self.user = User.objects.create_user(username="buyer", password="x")
+        self.user = User.objects.create_superuser(username="buyer", password="x")
 
     def _make_order(self, unit_price, quantity=1):
         order = PurchaseOrder.objects.create(party=self.vendor, warehouse=self.warehouse, order_date="2026-01-01")
@@ -108,7 +108,7 @@ class ReceivingTests(TenantTestCase):
 
 class PurchaseOrderAPITests(TenantTestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="buyer", password="x")
+        self.user = User.objects.create_superuser(username="buyer", password="x")
         self.vendor = Party.objects.create(name="Tedarikçi Ltd.", party_type=Party.VENDOR)
         self.warehouse = Warehouse.objects.create(code="WH-A", name="Main")
         self.item = Item.objects.create(sku="ITM-1", name="Widget")

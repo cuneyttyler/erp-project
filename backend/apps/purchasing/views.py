@@ -10,8 +10,11 @@ from apps.core.serializers import BillSerializer
 
 from .models import PurchaseOrder
 from .serializers import PurchaseOrderSerializer, ReceiveSerializer
+from apps.access.catalog import resource
+from apps.access.revert import restore_fields
 
 
+@resource("purchase_order", "purchasing", revert={"approve": restore_fields("approved_at", "approved_by"), "send_document": restore_fields("status")}, inputs={"receive": ReceiveSerializer})
 class PurchaseOrderViewSet(viewsets.ModelViewSet):
     """REQ-PUR-001 to 007 (except AI drafting/vendor-price-comparison,
     deferred -- see requirements.md §5.1)."""

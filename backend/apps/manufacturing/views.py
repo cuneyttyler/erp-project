@@ -9,8 +9,11 @@ from apps.core.permissions import HasActivePackage
 
 from .models import BOM, WorkOrder
 from .serializers import BOMSerializer, CompleteWorkOrderSerializer, WorkOrderSerializer
+from apps.access.catalog import resource
+from apps.access.revert import restore_fields
 
 
+@resource("bom", "manufacturing")
 class BOMViewSet(viewsets.ModelViewSet):
     """REQ-MFG-001."""
 
@@ -21,6 +24,7 @@ class BOMViewSet(viewsets.ModelViewSet):
     filterset_fields = ["is_active", "item"]
 
 
+@resource("work_order", "manufacturing", revert={"release": restore_fields("status")}, inputs={"complete": CompleteWorkOrderSerializer})
 class WorkOrderViewSet(viewsets.ModelViewSet):
     """REQ-MFG-002."""
 

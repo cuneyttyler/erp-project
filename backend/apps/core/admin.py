@@ -13,7 +13,6 @@ from .models import (
     JournalLine,
     Party,
     Payment,
-    Role,
     User,
 )
 
@@ -25,15 +24,10 @@ class UserAdmin(DjangoUserAdmin):
     )
 
 
-@admin.register(Role)
-class RoleAdmin(admin.ModelAdmin):
-    list_display = ("name",)
-
-
 @admin.register(AuditLogEntry)
 class AuditLogEntryAdmin(admin.ModelAdmin):
-    list_display = ("created_at", "actor", "action", "target_type", "target_id")
-    list_filter = ("action", "target_type")
+    list_display = ("created_at", "user", "channel", "action", "target_type", "target_id")
+    list_filter = ("channel", "action", "target_type")
     search_fields = ("actor", "target_id")
 
     def has_change_permission(self, request, obj=None):

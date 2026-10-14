@@ -12,6 +12,11 @@ export const i18n = createI18n({
   messages: { tr, en },
 })
 
+// Keep <html lang> in step with the UI language from the first paint, not
+// only after a switch: CSS `uppercase` follows it, and English text
+// uppercased under lang="tr" comes out with dotted capitals ("FİNANCE").
+document.documentElement.setAttribute('lang', i18n.global.locale.value)
+
 export function setLocale(locale: 'tr' | 'en') {
   i18n.global.locale.value = locale
   localStorage.setItem('locale', locale)

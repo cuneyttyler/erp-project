@@ -85,7 +85,7 @@ class TrialBalanceAPITests(TenantTestCase):
     """
 
     def setUp(self):
-        self.user = User.objects.create_user(username="tester", password="x")
+        self.user = User.objects.create_superuser(username="tester", password="x")
         self.entity = Entity.objects.create(code="MAIN", name="Ana Şirket")
         self.cash = Account.objects.create(entity=self.entity, code="100", name="Kasa", account_type=Account.ASSET)
         self.sales = Account.objects.create(

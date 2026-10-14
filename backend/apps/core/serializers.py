@@ -12,7 +12,6 @@ from .models import (
     JournalLine,
     Party,
     Payment,
-    Role,
     SavedView,
     User,
 )
@@ -25,14 +24,7 @@ class EntitySerializer(serializers.ModelSerializer):
         read_only_fields = ["created_at"]
 
 
-class RoleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Role
-        fields = ["id", "name", "granted_actions"]
-
-
 class UserSerializer(serializers.ModelSerializer):
-    roles = RoleSerializer(many=True, read_only=True)
     full_name = serializers.CharField(source="get_full_name", read_only=True)
 
     class Meta:
@@ -44,7 +36,6 @@ class UserSerializer(serializers.ModelSerializer):
             "full_name",
             "preferred_locale",
             "mfa_enabled",
-            "roles",
         ]
 
 
@@ -269,6 +260,10 @@ class BillSerializer(serializers.ModelSerializer):
     amount_paid = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
     balance_due = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
     is_overdue = serializers.BooleanField(read_only=True)
+    # REQ-BI-004: a non-null string means "review before approving," same
+    # discipline as every other proactive-flag field in this codebase --
+    # null when there's nothing to flag, not an empty string.
+    anomaly_warning = serializers.CharField(read_only=True, allow_null=True)
 
     class Meta:
         model = Bill
@@ -286,6 +281,7 @@ class BillSerializer(serializers.ModelSerializer):
             "amount_paid",
             "balance_due",
             "is_overdue",
+            "anomaly_warning",
             "created_at",
         ]
         read_only_fields = ["status", "created_at"]

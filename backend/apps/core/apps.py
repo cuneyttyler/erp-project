@@ -11,3 +11,4 @@ class CoreConfig(AppConfig):
         # shared registry (technical.md §8.2/§8.4) -- import side-effect
         # only, mirrors Django's own signals-registration ready() pattern.
         from . import ai_tools  # noqa: F401
+        from . import dashboard_widgets  # noqa: F401

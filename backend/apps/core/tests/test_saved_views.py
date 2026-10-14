@@ -8,8 +8,8 @@ from apps.core.models import SavedView, User
 
 class SavedViewAPITests(TenantTestCase):
     def setUp(self):
-        self.alice = User.objects.create_user(username="alice", password="x")
-        self.bob = User.objects.create_user(username="bob", password="x")
+        self.alice = User.objects.create_superuser(username="alice", password="x")
+        self.bob = User.objects.create_superuser(username="bob", password="x")
         self.client = APIClient()
 
     def test_create_forces_owner_to_requesting_user(self):

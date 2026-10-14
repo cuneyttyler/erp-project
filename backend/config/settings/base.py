@@ -52,6 +52,9 @@ TENANT_APPS = [
     "apps.hr_payroll",
     "apps.pos",
     "apps.ecommerce",
+    "apps.bi",
+    "apps.plugins",
+    "apps.access",
     "apps.ai_core",
 ]
 
@@ -200,12 +203,17 @@ CSRF_TRUSTED_ORIGINS = env.list(
 # --------------------------------------------------------------------------
 # AI Chat Layer — LLM gateway (technical.md §8.8)
 # --------------------------------------------------------------------------
-# Blank by default: apps.ai_core.llm_gateway.is_configured() checks this and
+# Which provider the assistant talks to: "mistral" (default) or "anthropic".
+# Each has its own key; AI_LLM_API_KEY is the key of whichever is selected.
+# Blank by default: apps.ai_core.llm_gateway.is_configured() checks it and
 # the ChatView degrades gracefully (REQ-CORE-AI-009) rather than erroring
-# when it's unset -- see docs/notes.md for what needs to be supplied to
-# activate the assistant.
-AI_LLM_API_KEY = env("ANTHROPIC_API_KEY", default="")
-AI_LLM_MODEL = env("AI_LLM_MODEL", default="claude-sonnet-5")
+# when it's unset.
+AI_LLM_PROVIDER = env("AI_LLM_PROVIDER", default="mistral").strip().lower()
+MISTRAL_API_KEY = env("MISTRAL_API_KEY", default="")
+ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
+AI_LLM_API_KEY = ANTHROPIC_API_KEY if AI_LLM_PROVIDER == "anthropic" else MISTRAL_API_KEY
+# Blank picks the provider's default (llm_gateway.model_name()).
+AI_LLM_MODEL = env("AI_LLM_MODEL", default="")
 
 # --------------------------------------------------------------------------
 # Celery — async jobs (technical.md §2)

@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import AppLogo from '@/shared/components/AppLogo.vue'
 import { useAuthStore } from '@/shared/stores/auth'
 
 const auth = useAuthStore()
@@ -17,7 +18,7 @@ async function submit() {
   submitting.value = true
   try {
     await auth.login(username.value, password.value)
-    router.push('/')
+    router.push({ name: 'dashboard' })
   } catch {
     error.value = 'Kullanıcı adı veya parola hatalı.'
   } finally {
@@ -32,7 +33,7 @@ async function submit() {
       class="w-80 space-y-4 rounded-lg border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
       @submit.prevent="submit"
     >
-      <h1 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">AI-Native ERP</h1>
+      <RouterLink :to="{ name: 'home' }" class="inline-block" aria-label="ERPIntel"><AppLogo size="md" /></RouterLink>
 
       <div>
         <label class="mb-1 block text-sm text-neutral-600 dark:text-neutral-400">Kullanıcı Adı</label>

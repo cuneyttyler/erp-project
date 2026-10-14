@@ -102,6 +102,46 @@ Flagged in `technical.md` §10/§11/§15 — confirm whether Turkish statutory b
 
 **A real gap, not hidden:** `MarketplaceAccount.api_key`/`api_secret` are stored as plaintext at the DB level -- write-only at the serializer layer (never returned by the API once set) is the only mitigation today. Field-level encryption or a secrets-manager reference is real follow-up work before this should hold a real merchant's live credentials.
 
+## 9. Plugins and the home panel — shipped
+
+**What's built:** every left-menu page belongs to a plugin (`frontend/src/plugins/registry.ts`, one `plugin.ts` manifest per module; matching catalog in `backend/apps/plugins/registry.py`). The router and sidebar are generated from the manifests. A tenant admin adds/removes plugins on the Plugins page (`PluginState`, tenant-wide); each user arranges their own panel widgets (`DashboardWidgetSetting`). 47 widgets, each registered by the app that owns its data (`apps/<app>/dashboard_widgets.py`).
+
+**Deliberate scope cut:** removing a plugin hides its pages and widgets; it does **not** block that package's REST API, because packages call each other through those APIs (POS reads warehouses, e-commerce creates sales orders). The subscription check (`HasActivePackage`) and per-action permissions (§10) are what guard the API.
+
+**Known limits:** "Low stock" uses one fixed threshold (5 units) because `Item` has no reorder level. Advanced BI has no panel widgets.
+
+## 10. Users, roles and permissions (REQ-CORE-USR-002/003) — shipped
+
+**What's built:** `apps.access`. An *action* is a code like `invoice.create`, read off the API views themselves (`@resource(...)` in each app's `views.py` → `catalog.py`), so the catalog can't drift from what the API does. Actions go into a `Permission`, permissions into a `Role`, roles onto users; a user can also hold individual actions (`UserGrant`). Enforced on every request by `HasActionPermission`. Built-in and kept in step automatically: an Organization Admin role, a Viewer role, and a View / Full access permission per plugin. Managed on the Users & Roles page (admins only).
+
+**Deliberate choices:** managing users, roles, permissions and plugins is admin-only and never grantable piece by piece — otherwise "edit roles" would be a way to make yourself an admin. Users are deactivated, never deleted (their history references them). The last active admin can't be removed. The old unused `core.Role` (with its `granted_actions` JSON) was replaced by `access.Role`.
+
+**Real gaps, not hidden:** no field-level restrictions (REQ-CORE-USR-003's "hide salary from non-payroll roles") and no row-level rules ("only your own store"). Screens hide whole pages a user can't view but still show buttons for actions they can't perform; the API refuses those with a 403. No SSO, MFA enforcement or password-reset-by-email.
+
+## 11. Audit log and undo (REQ-CORE-AUDIT-001..004) — shipped
+
+**What's built:** every successful write through a catalog resource is logged by the one hook all those views share (`apps/access/mixins.py`), in the same transaction as the write: who, when, channel (`manual` or `ai`), the action code, and the record as serialized before and after. The Audit Log page shows it with filters; admins see everything, others see their own actions plus actions on resources they may view.
+
+**Undo:** never edits the log — it performs the inverse action as the person undoing it, logged as a new entry pointing back. Create ↔ delete and update are generic. Other transitions are undoable only where a compensating handler is declared: sending an invoice/bill/PO, approving a PO, lead qualify/won/lost, sales order confirm, work order release, leave approve/reject (all restore the status), and posting a journal entry (posts a reversing entry — a posted entry is never unposted). Only the latest change to a record can be undone.
+
+**Deliberately not undoable:** receiving goods, fulfilling orders, completing work orders, POS sales/returns/shift close, payroll calculate/finalize, stock transfers, marketplace syncs. They move stock or money and have a proper business reversal (a return, a credit note); a silent undo would be wrong.
+
+**Real gaps:** reads are not logged (only writes, and each assistant conversation turn). An undone delete comes back with a new id, and anything that pointed at the old id is not re-linked. Writes made outside the API views (Django admin, management commands, the reconciliation sweep's own entry) don't go through the hook. The INSERT-only database role (technical.md §8.6) is still not set up.
+
+## 12. AI assistant — rebuilt on the action catalog
+
+**What's built:** a full-page assistant (`/assistant`, in the left menu under the panel; the header button and slide-over are gone) with server-side conversations. Instead of one hand-written tool per action, the model gets five generic tools over the catalog (`apps/ai_core/tools.py`): describe a resource, query records, get one record, summarize records (grouped totals computed in code, rendered as a chart or table), and propose an action. Plus the existing named metrics and series, now gated by the permission behind each figure. Everything runs through the same API views as the screens, as the signed-in user — so the assistant can do exactly what that user can, and is validated and audited the same way.
+
+**Writes are proposals:** `propose_action` checks the change (permission, record exists, data validates) and records a `PendingApproval`; nothing happens until a person approves the card, and it then runs as the approver with channel `ai`. The two old hand-written actions (`create_journal_entry`, `approve_leave_request`) and `ai_core/actions.py` were removed — they bypassed permissions and the audit trail.
+
+**Provider:** Mistral by default (`AI_LLM_PROVIDER=mistral`, `MISTRAL_API_KEY`, `AI_LLM_MODEL=mistral-large-latest` in `backend/.env`), called over HTTPS from `apps/ai_core/llm_gateway.py` — the only module that knows a provider's wire format. Anthropic is still selectable (`AI_LLM_PROVIDER=anthropic`, `ANTHROPIC_API_KEY`). Conversations are stored in a provider-neutral transcript, so one started under either provider continues under the other.
+
+**Verified live** (2026-10-13) on both providers: table lookup, computed chart, Turkish cash-position metric, a proposed item creation approved and then undone from the audit log; and, on Anthropic, a Viewer user being told it can't create.
+
+**What the Mistral run taught us** (each now fixed in code, worth knowing about): (1) it guessed a field name (`unit` for `unit_of_measure`), which the API silently ignores — proposals now reject any field the action doesn't take; (2) at its default temperature it embellished a real cash total with an invented cash/bank split — Mistral calls now use temperature 0 and the prompt forbids adding detail beyond a tool result; (3) it kept replying in the conversation's first language — the reply language is now stated per turn from the UI language. Point (2) is the one to keep watching: the totals come from tools, but nothing mechanically stops a model from narrating extra numbers around them, which is what a golden-query eval set would catch.
+
+**Real gaps:** responses are not streamed (one JSON reply per turn, so long turns just show "working"). Queries are filtered in Python over at most 2,000 rows per resource — fine at SME scale, but not a substitute for database-side filtering later. REQ-CORE-AI-010 (per-tenant auto-approve thresholds) is still not built: every proposed change needs approval. No golden-query eval set exists for the new tools yet (development-plan.md §9). Usage is metered per call but still not turned into credits or a spend cap.
+
 ## What's proceeding despite the two open decisions above
 
 Per your instruction, Phase 1 continued into **Phase 2 scope** (`development-plan.md` §5), completed it, and — per your go-ahead — is now into **Phase 3 scope** (`development-plan.md` §6) where it doesn't depend on either decision above. Sales & CRM, Manufacturing, HR & Payroll, the AI Chat Layer v1, Configurable Data Views, multi-entity consolidation, the metered AI agentic layer, POS/Retail (§7), and now E-commerce integration (§8) have all shipped. The items still genuinely blocked are the same ones flagged since Phase 1, plus the fiscal/e-Arşiv pieces of POS and e-commerce which turned out to share the identical blocker: SGK e-Bildirge, the Mikro connector, POS fiscal-device/e-Arşiv integration, and e-commerce e-Arşiv generation all need decision #1 and/or #2 above — your input, not more engineering.

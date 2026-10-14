@@ -12,7 +12,7 @@ from apps.inventory.models import StockMove, Warehouse
 
 class StockLevelTests(TenantTestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="tester", password="x")
+        self.user = User.objects.create_superuser(username="tester", password="x")
         self.item = Item.objects.create(sku="ITM-1", name="Widget")
         self.wh_a = Warehouse.objects.create(code="WH-A", name="Main")
         self.wh_b = Warehouse.objects.create(code="WH-B", name="Secondary")
@@ -73,7 +73,7 @@ class StockLevelTests(TenantTestCase):
 
 class PackageGatingTests(TenantTestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="tester", password="x")
+        self.user = User.objects.create_superuser(username="tester", password="x")
         self.tenant.active_packages = []  # inventory NOT purchased
         self.tenant.save()
         self.client = APIClient()

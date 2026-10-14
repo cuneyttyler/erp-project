@@ -43,6 +43,10 @@ export interface FinancialDocument {
   amount_paid: string
   balance_due: string
   is_overdue: boolean
+  // REQ-BI-004 -- Bill-only (Invoice's serializer doesn't set this field),
+  // shared here rather than a separate Bill type since FinancialDocument
+  // already covers both and this is the one field that doesn't apply to both.
+  anomaly_warning?: string | null
   created_at: string
 }
 

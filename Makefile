@@ -22,7 +22,7 @@ REDIS_CONTAINER := journalist-app_redis_1
 # `make tunnel TUNNEL_PORT=...`.
 TUNNEL_PORT := 5173
 
-BACKEND_TEST_APPS := apps.core apps.inventory apps.purchasing apps.sales_crm apps.manufacturing apps.hr_payroll apps.ai_core
+BACKEND_TEST_APPS := apps.core apps.inventory apps.purchasing apps.sales_crm apps.manufacturing apps.hr_payroll apps.ai_core apps.plugins apps.access
 
 .DEFAULT_GOAL := help
 

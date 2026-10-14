@@ -51,6 +51,11 @@ class Metric:
     # (technical.md §8.5: the AI layer must not be a back door around normal
     # permission checks).
     package: Optional[str]
+    # The catalog action (apps.access) a user must hold to be offered this
+    # figure -- the "view" action of the data it summarizes. Without it the
+    # assistant would answer "what do customers owe us" for someone who
+    # can't open the receivables screens. None = no data behind it to guard.
+    requires: Optional[str]
     # func(**params) -> {"result": <json-serializable>, "citations": [{"label": str, "route": str}]}
     func: Callable[..., dict]
 
@@ -58,14 +63,14 @@ class Metric:
 _METRICS: dict[str, Metric] = {}
 
 
-def register_metric(name: str, description: str, input_schema: dict, package: Optional[str] = None):
+def register_metric(name: str, description: str, input_schema: dict, package: Optional[str] = None, requires: Optional[str] = None):
     """Decorator: registers `func` as a callable metric. Re-registering the
     same name (e.g. on Django's autoreload re-importing a module) simply
     overwrites the previous entry -- registration is idempotent by design,
     not additive."""
 
     def decorator(func: Callable[..., dict]) -> Callable[..., dict]:
-        _METRICS[name] = Metric(name=name, description=description, input_schema=input_schema, package=package, func=func)
+        _METRICS[name] = Metric(name=name, description=description, input_schema=input_schema, package=package, requires=requires, func=func)
         return func
 
     return decorator

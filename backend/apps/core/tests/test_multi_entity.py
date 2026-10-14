@@ -25,7 +25,7 @@ class EntityScopedListEndpointsDontErrorTests(TenantTestCase):
     """
 
     def setUp(self):
-        self.user = User.objects.create_user(username="tester", password="x")
+        self.user = User.objects.create_superuser(username="tester", password="x")
         self.entity = Entity.objects.create(code="MAIN", name="Ana Şirket")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
@@ -69,7 +69,7 @@ class AccountEntityScopingTests(TenantTestCase):
 
 class JournalEntryEntityValidationTests(TenantTestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="tester", password="x")
+        self.user = User.objects.create_superuser(username="tester", password="x")
         self.entity_a = Entity.objects.create(code="A", name="Entity A")
         self.entity_b = Entity.objects.create(code="B", name="Entity B")
         self.cash_a = Account.objects.create(entity=self.entity_a, code="100", name="Kasa", account_type=Account.ASSET)
@@ -117,7 +117,7 @@ class JournalEntryEntityValidationTests(TenantTestCase):
 
 class TrialBalanceEntityScopingTests(TenantTestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="tester", password="x")
+        self.user = User.objects.create_superuser(username="tester", password="x")
         self.entity_a = Entity.objects.create(code="A", name="Entity A")
         self.entity_b = Entity.objects.create(code="B", name="Entity B")
 
@@ -181,7 +181,7 @@ class TrialBalanceEntityScopingTests(TenantTestCase):
 
 class PartyAndAgingEntityScopingTests(TenantTestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="tester", password="x")
+        self.user = User.objects.create_superuser(username="tester", password="x")
         self.entity_a = Entity.objects.create(code="A", name="Entity A")
         self.entity_b = Entity.objects.create(code="B", name="Entity B")
         self.customer_a = Party.objects.create(entity=self.entity_a, name="Müşteri A", party_type=Party.CUSTOMER)
@@ -226,7 +226,7 @@ class PartyAndAgingEntityScopingTests(TenantTestCase):
 
 class EntityViewSetTests(TenantTestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="tester", password="x")
+        self.user = User.objects.create_superuser(username="tester", password="x")
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 

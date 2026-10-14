@@ -1,20 +1,20 @@
 """
-Core's read-only AI metrics and write actions (technical.md §8.2/§8.4).
+Core's read-only AI metrics and chartable series (technical.md §8.2).
 Registered into apps.ai_core's shared registries from CoreConfig.ready()
--- see apps/core/apps.py.
+-- see apps/core/apps.py. Writes are not registered here: the assistant
+proposes any action in the catalog through apps.ai_core.tools.
 """
 
+from collections import defaultdict
 from decimal import Decimal
-from types import SimpleNamespace
 
 from django.db.models import Sum
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError as DRFValidationError
 
-from apps.ai_core.actions import register_action
+from apps.ai_core.reporting import register_series
 from apps.ai_core.semantic import format_money, register_metric
 
-from .models import Account, Bill, Invoice, JournalEntry
+from .models import Account, Bill, Invoice, JournalEntry, JournalLine
 from .views import _build_aging_rows
 
 # Tekdüzen Hesap Planı cash/bank account codes (see
@@ -26,6 +26,7 @@ CASH_ACCOUNT_CODES = ["100", "102"]
 
 @register_metric(
     name="cash_position",
+    requires="trial_balance.view",
     description="Current cash + bank balance (Kasa + Bankalar) across all posted journal entries.",
     input_schema={"type": "object", "properties": {}},
 )
@@ -44,6 +45,7 @@ def cash_position(**_kwargs) -> dict:
 
 @register_metric(
     name="overdue_ar_balance",
+    requires="ar_aging.view",
     description="Total overdue accounts-receivable balance (unpaid customer invoices past due date), and the top overdue customers.",
     input_schema={"type": "object", "properties": {}},
 )
@@ -66,6 +68,7 @@ def overdue_ar_balance(**_kwargs) -> dict:
 
 @register_metric(
     name="overdue_ap_balance",
+    requires="ap_aging.view",
     description="Total overdue accounts-payable balance (unpaid vendor bills past due date), and the top overdue vendors.",
     input_schema={"type": "object", "properties": {}},
 )
@@ -86,84 +89,108 @@ def overdue_ap_balance(**_kwargs) -> dict:
     }
 
 
-def _journal_entry_preview(entity=None, date=None, memo="", lines=None, **_kwargs) -> str:
-    """Read-only -- looks up account codes for a friendlier preview, but
-    never writes anything. Falls back to raw ids if a lookup fails, since
-    the preview must never itself error out and block showing the approval
-    prompt."""
-    line_descriptions = []
-    for line in lines or []:
-        try:
-            account = Account.objects.get(id=line.get("account_id"))
-            label = f"{account.code} — {account.name}"
-        except Account.DoesNotExist:
-            label = f"hesap #{line.get('account_id')}"
-        debit, credit = line.get("debit", "0"), line.get("credit", "0")
-        line_descriptions.append(f"{label}: borç {debit} / alacak {credit}")
-    lines_text = "; ".join(line_descriptions) if line_descriptions else "(satır yok)"
-    return f"{date} tarihli, '{memo or 'açıklama yok'}' açıklamalı bir TASLAK yevmiye kaydı oluşturulacak: {lines_text}"
-
-
-@register_action(
-    name="create_journal_entry",
-    description=(
-        "Create a DRAFT journal entry (not posted -- the user must still review and post it from the "
-        "Journal Entries screen). Every line's account must belong to the given entity's own Chart of "
-        "Accounts, and total debits must equal total credits."
-    ),
-    input_schema={
-        "type": "object",
-        "properties": {
-            "entity": {"type": "integer", "description": "The entity id this journal entry's ledger belongs to."},
-            "date": {"type": "string", "description": "YYYY-MM-DD"},
-            "memo": {"type": "string"},
-            "lines": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "account_id": {"type": "integer"},
-                        "debit": {"type": "string"},
-                        "credit": {"type": "string"},
-                        "description": {"type": "string"},
-                    },
-                    "required": ["account_id", "debit", "credit"],
-                },
-            },
-        },
-        "required": ["entity", "date", "lines"],
-    },
-    preview=_journal_entry_preview,
+@register_metric(
+    name="flagged_vendor_bills",
+    requires="bill.view",
+    description="Recent vendor bills whose amount is 40%+ above that vendor's historical average -- surfaced proactively, review before approving (REQ-BI-004).",
+    input_schema={"type": "object", "properties": {}},
 )
-def create_journal_entry(user, entity=None, date=None, memo="", lines=None) -> dict:
-    # Reuses JournalEntrySerializer itself for validation/creation --
-    # technical.md §8.4: "a thin wrapper around the same service-layer call
-    # the API view uses, not a separate code path with its own (possibly
-    # weaker) authorization logic." SimpleNamespace stands in for a real
-    # DRF Request here since the serializer only ever reads `.user` off it.
-    from .serializers import JournalEntrySerializer
-
-    payload = {
-        "entity": entity,
-        "date": date,
-        "memo": memo or "",
-        "lines": [
-            {
-                "account": line.get("account_id"),
-                "debit": line.get("debit", "0"),
-                "credit": line.get("credit", "0"),
-                "description": line.get("description", ""),
-            }
-            for line in (lines or [])
-        ],
-    }
-    serializer = JournalEntrySerializer(data=payload, context={"request": SimpleNamespace(user=user)})
-    try:
-        serializer.is_valid(raise_exception=True)
-    except DRFValidationError as exc:
-        raise ValueError(str(exc.detail)) from exc
-    entry = serializer.save()
+def flagged_vendor_bills(**_kwargs) -> dict:
+    recent = Bill.objects.filter(status__in=[Bill.DRAFT, Bill.SENT, Bill.PARTIALLY_PAID]).select_related("party").prefetch_related("lines")
+    flagged = [{"bill_id": b.id, "party": b.party.name, "total": format_money(b.total), "warning": b.anomaly_warning} for b in recent if b.anomaly_warning]
     return {
-        "result": {"id": entry.id, "status": entry.status, "entity": entity},
-        "summary": f"Draft journal entry #{entry.id} created for {entry.date} -- not yet posted.",
+        "result": {"count": len(flagged), "bills": flagged},
+        "citations": [{"label": "Alış Faturaları / Bills", "route": "/bills"}],
+    }
+
+
+def _month_bucket(date) -> str:
+    return f"{date.year:04d}-{date.month:02d}"
+
+
+def _months_back(from_date, months: int):
+    """`from_date` minus `months` calendar months, clamped to the 1st (bucket
+    boundaries only need year/month, not the exact day)."""
+    total = from_date.year * 12 + (from_date.month - 1) - months
+    return total // 12, total % 12 + 1
+
+
+@register_series(
+    name="monthly_revenue",
+    requires="trial_balance.view",
+    description="Posted revenue (credit minus debit across Revenue-type accounts), bucketed by calendar month, for the last N months.",
+    input_schema={"type": "object", "properties": {"months": {"type": "integer", "default": 12}}},
+    chart_kind="time",
+)
+def monthly_revenue(months=12, **_kwargs) -> dict:
+    months = int(months)
+    today = timezone.localdate()
+    start_year, start_month = _months_back(today, months - 1)
+    lines = JournalLine.objects.filter(
+        account__account_type=Account.REVENUE,
+        journal_entry__status=JournalEntry.POSTED,
+        journal_entry__date__year__gte=start_year,
+    ).select_related("journal_entry")
+
+    buckets: dict[str, Decimal] = defaultdict(Decimal)
+    for line in lines:
+        date = line.journal_entry.date
+        if (date.year, date.month) < (start_year, start_month):
+            continue
+        buckets[_month_bucket(date)] += line.credit - line.debit
+
+    ordered_keys = []
+    for i in range(months):
+        y, m = _months_back(today, months - 1 - i)
+        ordered_keys.append(f"{y:04d}-{m:02d}")
+
+    return {
+        "result": {"series": [{"label": key, "value": format_money(buckets.get(key, Decimal("0")))} for key in ordered_keys]},
+        "citations": [{"label": "Mizan / Trial Balance", "route": "/trial-balance"}],
+    }
+
+
+@register_series(
+    name="revenue_by_customer",
+    requires="invoice.view",
+    description="Total invoiced amount per customer (sent/partially paid/paid invoices), highest first, top N customers.",
+    input_schema={"type": "object", "properties": {"top_n": {"type": "integer", "default": 10}}},
+    chart_kind="category",
+)
+def revenue_by_customer(top_n=10, **_kwargs) -> dict:
+    top_n = int(top_n)
+    invoices = Invoice.objects.filter(
+        status__in=[Invoice.SENT, Invoice.PARTIALLY_PAID, Invoice.PAID]
+    ).select_related("party").prefetch_related("lines")
+    totals: dict[str, Decimal] = defaultdict(Decimal)
+    for invoice in invoices:
+        totals[invoice.party.name] += invoice.total
+
+    ranked = sorted(totals.items(), key=lambda item: item[1], reverse=True)[:top_n]
+    return {
+        "result": {"series": [{"label": name, "value": format_money(total)} for name, total in ranked]},
+        "citations": [{"label": "Satış Faturaları / Invoices", "route": "/invoices"}],
+    }
+
+
+@register_series(
+    name="spend_by_vendor",
+    requires="bill.view",
+    description="Total billed amount per vendor (sent/partially paid/paid bills), highest first, top N vendors.",
+    input_schema={"type": "object", "properties": {"top_n": {"type": "integer", "default": 10}}},
+    chart_kind="category",
+)
+def spend_by_vendor(top_n=10, **_kwargs) -> dict:
+    top_n = int(top_n)
+    bills = Bill.objects.filter(
+        status__in=[Bill.SENT, Bill.PARTIALLY_PAID, Bill.PAID]
+    ).select_related("party").prefetch_related("lines")
+    totals: dict[str, Decimal] = defaultdict(Decimal)
+    for bill in bills:
+        totals[bill.party.name] += bill.total
+
+    ranked = sorted(totals.items(), key=lambda item: item[1], reverse=True)[:top_n]
+    return {
+        "result": {"series": [{"label": name, "value": format_money(total)} for name, total in ranked]},
+        "citations": [{"label": "Alış Faturaları / Bills", "route": "/bills"}],
     }

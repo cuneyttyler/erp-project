@@ -1,23 +1,21 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
-import AIPanel from '@/ai-panel/AIPanel.vue'
-import { useAIStore } from '@/ai-panel/store'
 import AppSidebar from '@/shared/components/AppSidebar.vue'
 import { setLocale } from '@/shared/i18n'
 import { useAuthStore } from '@/shared/stores/auth'
 import { useEntityStore } from '@/shared/stores/entity'
 
 // The persistent app shell (technical.md §10.1): a collapsible left sidebar
-// (AppSidebar.vue) for navigation + a slim top bar for locale/entity/AI/
-// logout + the always-mounted AI side-panel + the router-view where
-// package modules render.
-const ai = useAIStore()
+// (AppSidebar.vue) for navigation -- including the AI assistant, which is a
+// full page reached from there rather than a button up here -- + a slim top
+// bar for entity/locale/logout + the router-view where pages render.
 const auth = useAuthStore()
 const entity = useEntityStore()
 const router = useRouter()
+const route = useRoute()
 const { t, locale } = useI18n()
 
 // REQ-CORE-ENT-001: load the tenant's entities once a session exists, so
@@ -46,12 +44,18 @@ async function createEntity() {
 
 async function logout() {
   await auth.logout()
-  router.push('/login')
+  router.push({ name: 'home' })
 }
 </script>
 
 <template>
-  <div class="flex h-full bg-white dark:bg-neutral-950">
+  <!-- A "bare" route (the public homepage) brings its own layout: no
+       sidebar, no app header, and it scrolls as one page. -->
+  <div v-if="route.meta.bare" class="h-full overflow-y-auto bg-white dark:bg-neutral-950">
+    <RouterView />
+  </div>
+
+  <div v-else class="flex h-full bg-white dark:bg-neutral-950">
     <AppSidebar v-if="auth.isAuthenticated" />
 
     <div class="flex flex-1 flex-col overflow-hidden">
@@ -107,14 +111,6 @@ async function logout() {
 
         <button
           v-if="auth.isAuthenticated"
-          class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
-          @click="ai.toggle"
-        >
-          {{ t('aiPanel.title') }}
-        </button>
-
-        <button
-          v-if="auth.isAuthenticated"
           class="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
           @click="logout"
         >
@@ -126,7 +122,5 @@ async function logout() {
         <RouterView />
       </main>
     </div>
-
-    <AIPanel v-if="auth.isAuthenticated" />
   </div>
 </template>

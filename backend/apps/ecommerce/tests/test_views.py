@@ -15,7 +15,7 @@ from apps.inventory.models import Warehouse
 
 class EcommerceViewTestBase(TenantTestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="admin", password="x")
+        self.user = User.objects.create_superuser(username="admin", password="x")
         self.client = APIClient()
         self.entity = Entity.objects.create(name="Acme A.Ş.", code="ACME")
         self.warehouse = Warehouse.objects.create(code="ECOM-DEPO", name="E-ticaret Depo")

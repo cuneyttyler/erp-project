@@ -8,6 +8,7 @@ from .models import MarketplaceAccount, MarketplaceOrder
 
 @register_metric(
     name="marketplace_sync_status",
+    requires="marketplace_account.view",
     description="Connected marketplace accounts, when each last synced, and how many orders failed to sync and still need attention.",
     input_schema={"type": "object", "properties": {}},
     package="ecommerce",

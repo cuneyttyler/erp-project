@@ -8,6 +8,7 @@ from .models import WorkOrder
 
 @register_metric(
     name="pending_work_orders",
+    requires="work_order.view",
     description="Work orders that are released or in progress (not yet completed or cancelled), with planned/completed quantities.",
     input_schema={"type": "object", "properties": {}},
     package="manufacturing",

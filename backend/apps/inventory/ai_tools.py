@@ -10,6 +10,7 @@ from .models import StockMove
 
 @register_metric(
     name="stock_on_hand",
+    requires="stock_level.view",
     description=(
         "Current stock-on-hand quantity. Pass `item_sku` to check one item, or omit it to get the "
         "items with the lowest stock across all warehouses."

@@ -105,7 +105,7 @@ class PaymentValidationTests(TenantTestCase):
 
 class AgingReportAPITests(TenantTestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="tester", password="x")
+        self.user = User.objects.create_superuser(username="tester", password="x")
         self.customer = Party.objects.create(name="Acme A.Ş.", party_type=Party.CUSTOMER)
 
         today = timezone.localdate()

@@ -12,7 +12,7 @@ from apps.pos.models import POSPayment, POSShift, Store, Till
 
 class POSMetricsTests(TenantTestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="cashier", password="x")
+        self.user = User.objects.create_superuser(username="cashier", password="x")
         self.entity = Entity.objects.create(name="Acme Perakende", code="ACME")
         self.warehouse = Warehouse.objects.create(code="MAG1", name="Mağaza 1 Depo")
         self.store = Store.objects.create(entity=self.entity, warehouse=self.warehouse, code="S1", name="Kadıköy")

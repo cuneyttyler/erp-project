@@ -1,0 +1,35 @@
+# {$SITE_ADDRESS} is the public hostname (set in .env). With a hostname,
+# Caddy obtains and renews a Let's Encrypt certificate on its own and
+# redirects HTTP to HTTPS.
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	# The API and the Django admin. No response timeout: an assistant turn
+	# can legitimately take a while.
+	@backend path /api/* /admin/*
+	handle @backend {
+		reverse_proxy backend:8000
+	}
+
+	# Django's collected static files (admin, API docs).
+	handle_path /static/* {
+		root * /srv/static
+		file_server
+	}
+
+	# The single-page app: real files as they are, any other path -> index.html
+	# so a deep link or a reload on /invoices still loads the app.
+	handle {
+		root * /srv/app
+		@hashed path /assets/*
+		header @hashed Cache-Control "public, max-age=31536000, immutable"
+		# Everything else -- index.html above all -- must be re-checked on
+		# every visit. Without this, browsers keep an old index.html pointing
+		# at the previous build's scripts, and a deploy doesn't show up until
+		# a hard refresh.
+		@unhashed not path /assets/*
+		header @unhashed Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+}

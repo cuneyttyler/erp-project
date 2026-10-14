@@ -10,8 +10,16 @@ from decimal import Decimal
 from django.utils import timezone
 from django_tenants.test.cases import TenantTestCase
 
-from apps.core.ai_tools import _journal_entry_preview, cash_position, create_journal_entry, overdue_ap_balance, overdue_ar_balance
-from apps.core.models import Account, Bill, BillLine, Entity, Invoice, InvoiceLine, JournalEntry, JournalLine, Party, User
+from apps.core.ai_tools import (
+    cash_position,
+    flagged_vendor_bills,
+    monthly_revenue,
+    overdue_ap_balance,
+    overdue_ar_balance,
+    revenue_by_customer,
+    spend_by_vendor,
+)
+from apps.core.models import Account, Bill, BillLine, Entity, Invoice, InvoiceLine, JournalEntry, JournalLine, Party
 
 
 class CashPositionTests(TenantTestCase):
@@ -86,81 +94,139 @@ class OverdueBalanceTests(TenantTestCase):
         self.assertEqual(outcome["result"]["count"], 0)
 
 
-class CreateJournalEntryActionTests(TenantTestCase):
-    """create_journal_entry (technical.md §8.4) is a thin wrapper around
-    JournalEntrySerializer -- these tests exist to confirm that wiring
-    actually holds (draft-only, balance validation, entity-scoping), not to
-    re-test the serializer's own validation logic from scratch."""
+class MonthlyRevenueSeriesTests(TenantTestCase):
+    """REQ-BI-001/002."""
 
-    def setUp(self):
-        self.user = User.objects.create_user(username="asker", password="x")
-        self.entity = Entity.objects.create(name="Acme A.Ş.", code="ACME")
-        self.other_entity = Entity.objects.create(name="Other Co.", code="OTHER")
-        self.cash = Account.objects.create(code="100", name="Kasa", account_type=Account.ASSET, entity=self.entity)
-        self.capital = Account.objects.create(code="500", name="Sermaye", account_type=Account.EQUITY, entity=self.entity)
-        self.other_account = Account.objects.create(
-            code="100", name="Kasa", account_type=Account.ASSET, entity=self.other_entity
-        )
-
-    def test_creates_a_draft_entry_that_balances(self):
-        outcome = create_journal_entry(
-            self.user,
-            entity=self.entity.id,
-            date="2026-08-01",
-            memo="Sermaye girişi",
-            lines=[
-                {"account_id": self.cash.id, "debit": "1000.00", "credit": "0"},
-                {"account_id": self.capital.id, "debit": "0", "credit": "1000.00"},
-            ],
-        )
-        entry = JournalEntry.objects.get(id=outcome["result"]["id"])
-        self.assertEqual(entry.status, JournalEntry.DRAFT)
-        self.assertEqual(entry.lines.count(), 2)
-        self.assertEqual(outcome["result"]["status"], JournalEntry.DRAFT)
-
-    def test_unbalanced_lines_raise_instead_of_creating_anything(self):
-        with self.assertRaises(ValueError):
-            create_journal_entry(
-                self.user,
-                entity=self.entity.id,
-                date="2026-08-01",
-                lines=[
-                    {"account_id": self.cash.id, "debit": "1000.00", "credit": "0"},
-                    {"account_id": self.capital.id, "debit": "0", "credit": "500.00"},
-                ],
-            )
-        self.assertEqual(JournalEntry.objects.count(), 0)
-
-    def test_account_from_a_different_entity_raises(self):
-        with self.assertRaises(ValueError):
-            create_journal_entry(
-                self.user,
-                entity=self.entity.id,
-                date="2026-08-01",
-                lines=[
-                    {"account_id": self.other_account.id, "debit": "1000.00", "credit": "0"},
-                    {"account_id": self.capital.id, "debit": "0", "credit": "1000.00"},
-                ],
-            )
-        self.assertEqual(JournalEntry.objects.count(), 0)
-
-
-class JournalEntryPreviewTests(TenantTestCase):
     def setUp(self):
         self.entity = Entity.objects.create(name="Acme A.Ş.", code="ACME")
         self.cash = Account.objects.create(code="100", name="Kasa", account_type=Account.ASSET, entity=self.entity)
+        self.revenue = Account.objects.create(code="600", name="Yurtiçi Satışlar", account_type=Account.REVENUE, entity=self.entity)
+        self.returns = Account.objects.create(code="610", name="Satıştan İadeler", account_type=Account.REVENUE, entity=self.entity)
 
-    def test_preview_includes_account_code_and_name(self):
-        preview = _journal_entry_preview(
-            entity=self.entity.id,
-            date="2026-08-01",
-            memo="test",
-            lines=[{"account_id": self.cash.id, "debit": "100.00", "credit": "0"}],
-        )
-        self.assertIn("100 — Kasa", preview)
+    def _post(self, date, revenue_account, amount, debit_account=None):
+        entry = JournalEntry.objects.create(entity=self.entity, date=date, status=JournalEntry.DRAFT)
+        JournalLine.objects.create(journal_entry=entry, account=debit_account or self.cash, debit=amount, credit=0)
+        JournalLine.objects.create(journal_entry=entry, account=revenue_account, debit=0, credit=amount)
+        entry.post()
 
-    def test_preview_falls_back_gracefully_for_unknown_account(self):
-        preview = _journal_entry_preview(
-            entity=self.entity.id, date="2026-08-01", lines=[{"account_id": 999999, "debit": "100.00", "credit": "0"}]
-        )
-        self.assertIn("hesap #999999", preview)
+    def test_returns_the_right_number_of_month_buckets_in_order(self):
+        outcome = monthly_revenue(months=3)
+        self.assertEqual(len(outcome["result"]["series"]), 3)
+        labels = [p["label"] for p in outcome["result"]["series"]]
+        self.assertEqual(labels, sorted(labels))
+
+    def test_sums_revenue_into_the_correct_month_bucket(self):
+        today = timezone.localdate()
+        self._post(today, self.revenue, Decimal("500.00"))
+        outcome = monthly_revenue(months=1)
+        self.assertEqual(outcome["result"]["series"][0]["value"], "500.00")
+
+    def test_a_contra_revenue_debit_reduces_the_bucket(self):
+        today = timezone.localdate()
+        self._post(today, self.revenue, Decimal("500.00"))
+        # A return posts a debit to a Revenue-type account (610) -- net
+        # revenue for the month should drop accordingly.
+        entry = JournalEntry.objects.create(entity=self.entity, date=today, status=JournalEntry.DRAFT)
+        JournalLine.objects.create(journal_entry=entry, account=self.returns, debit=Decimal("100.00"), credit=0)
+        JournalLine.objects.create(journal_entry=entry, account=self.cash, debit=0, credit=Decimal("100.00"))
+        entry.post()
+
+        outcome = monthly_revenue(months=1)
+        self.assertEqual(outcome["result"]["series"][0]["value"], "400.00")
+
+    def test_unposted_entries_are_excluded(self):
+        today = timezone.localdate()
+        entry = JournalEntry.objects.create(entity=self.entity, date=today, status=JournalEntry.DRAFT)
+        JournalLine.objects.create(journal_entry=entry, account=self.cash, debit=Decimal("999.00"), credit=0)
+        JournalLine.objects.create(journal_entry=entry, account=self.revenue, debit=0, credit=Decimal("999.00"))
+        # deliberately not posted
+        outcome = monthly_revenue(months=1)
+        self.assertEqual(outcome["result"]["series"][0]["value"], "0.00")
+
+
+class RevenueByCustomerSeriesTests(TenantTestCase):
+    def setUp(self):
+        self.acme = Party.objects.create(name="Acme A.Ş.", party_type=Party.CUSTOMER)
+        self.other = Party.objects.create(name="Diğer A.Ş.", party_type=Party.CUSTOMER)
+
+    def _sent_invoice(self, party, amount):
+        today = timezone.localdate()
+        invoice = Invoice.objects.create(party=party, issue_date=today, due_date=today + timedelta(days=30))
+        InvoiceLine.objects.create(invoice=invoice, description="x", quantity=1, unit_price=amount)
+        invoice.mark_sent()
+
+    def test_ranks_customers_by_total_descending(self):
+        self._sent_invoice(self.acme, Decimal("100.00"))
+        self._sent_invoice(self.other, Decimal("500.00"))
+        outcome = revenue_by_customer(top_n=10)
+        labels = [p["label"] for p in outcome["result"]["series"]]
+        self.assertEqual(labels[0], "Diğer A.Ş.")
+
+    def test_respects_top_n(self):
+        self._sent_invoice(self.acme, Decimal("100.00"))
+        self._sent_invoice(self.other, Decimal("500.00"))
+        outcome = revenue_by_customer(top_n=1)
+        self.assertEqual(len(outcome["result"]["series"]), 1)
+
+    def test_draft_invoices_are_excluded(self):
+        Invoice.objects.create(party=self.acme, issue_date=timezone.localdate(), due_date=timezone.localdate())
+        outcome = revenue_by_customer()
+        self.assertEqual(outcome["result"]["series"], [])
+
+
+class SpendByVendorSeriesTests(TenantTestCase):
+    def test_ranks_vendors_by_total_descending(self):
+        vendor_a = Party.objects.create(name="Tedarikçi A", party_type=Party.VENDOR)
+        vendor_b = Party.objects.create(name="Tedarikçi B", party_type=Party.VENDOR)
+        today = timezone.localdate()
+
+        bill_a = Bill.objects.create(party=vendor_a, issue_date=today, due_date=today + timedelta(days=30))
+        BillLine.objects.create(bill=bill_a, description="x", quantity=1, unit_price=Decimal("200.00"))
+        bill_a.mark_sent()
+
+        bill_b = Bill.objects.create(party=vendor_b, issue_date=today, due_date=today + timedelta(days=30))
+        BillLine.objects.create(bill=bill_b, description="x", quantity=1, unit_price=Decimal("900.00"))
+        bill_b.mark_sent()
+
+        outcome = spend_by_vendor(top_n=10)
+        self.assertEqual(outcome["result"]["series"][0]["label"], "Tedarikçi B")
+
+
+class BillAnomalyWarningTests(TenantTestCase):
+    """REQ-BI-004."""
+
+    def setUp(self):
+        self.vendor = Party.objects.create(name="Tedarikçi A", party_type=Party.VENDOR)
+
+    def _sent_bill(self, amount):
+        today = timezone.localdate()
+        bill = Bill.objects.create(party=self.vendor, issue_date=today, due_date=today + timedelta(days=30))
+        BillLine.objects.create(bill=bill, description="x", quantity=1, unit_price=amount)
+        bill.mark_sent()
+        return bill
+
+    def test_no_warning_with_insufficient_history(self):
+        self._sent_bill(Decimal("100.00"))
+        new_bill = self._sent_bill(Decimal("1000.00"))
+        self.assertIsNone(new_bill.anomaly_warning)
+
+    def test_flags_a_bill_well_above_the_trailing_average(self):
+        self._sent_bill(Decimal("100.00"))
+        self._sent_bill(Decimal("100.00"))
+        new_bill = self._sent_bill(Decimal("500.00"))
+        self.assertIsNotNone(new_bill.anomaly_warning)
+        self.assertIn("Tedarikçi A", new_bill.anomaly_warning)
+
+    def test_does_not_flag_a_bill_close_to_the_average(self):
+        self._sent_bill(Decimal("100.00"))
+        self._sent_bill(Decimal("100.00"))
+        new_bill = self._sent_bill(Decimal("110.00"))
+        self.assertIsNone(new_bill.anomaly_warning)
+
+    def test_flagged_vendor_bills_metric_lists_only_anomalous_ones(self):
+        self._sent_bill(Decimal("100.00"))
+        self._sent_bill(Decimal("100.00"))
+        self._sent_bill(Decimal("500.00"))
+        outcome = flagged_vendor_bills()
+        self.assertEqual(outcome["result"]["count"], 1)
+        self.assertEqual(outcome["result"]["bills"][0]["total"], "500.00")

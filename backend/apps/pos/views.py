@@ -19,8 +19,10 @@ from .serializers import (
     StoreSerializer,
     TillSerializer,
 )
+from apps.access.catalog import resource
 
 
+@resource("pos_store", "pos")
 class StoreViewSet(viewsets.ModelViewSet):
     """REQ-POS-002."""
 
@@ -31,6 +33,7 @@ class StoreViewSet(viewsets.ModelViewSet):
     filterset_fields = ["is_active", "entity"]
 
 
+@resource("pos_till", "pos")
 class TillViewSet(viewsets.ModelViewSet):
     """REQ-POS-002."""
 
@@ -41,6 +44,7 @@ class TillViewSet(viewsets.ModelViewSet):
     filterset_fields = ["is_active", "store"]
 
 
+@resource("pos_shift", "pos", inputs={"checkout": CheckoutSerializer, "close": CloseShiftSerializer})
 class POSShiftViewSet(viewsets.ModelViewSet):
     """REQ-POS-001/004. Checkout, close, and the Z-report all hang off the
     shift they belong to -- there's no route to take a POS sale outside a
@@ -89,6 +93,7 @@ class POSShiftViewSet(viewsets.ModelViewSet):
         return Response(shift.z_report())
 
 
+@resource("pos_sale", "pos", inputs={"return_sale": ReturnSaleSerializer})
 class POSSaleViewSet(viewsets.ReadOnlyModelViewSet):
     """Read-only -- a sale is only ever created via
     `POSShiftViewSet.checkout` and only ever amended via
@@ -120,6 +125,7 @@ class POSSaleViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(POSReturnSerializer(pos_return).data, status=status.HTTP_201_CREATED)
 
 
+@resource("pos_return", "pos")
 class POSReturnViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated, HasActivePackage("pos")]
     queryset = POSReturn.objects.select_related("sale", "created_by").prefetch_related("lines__sale_line__item")

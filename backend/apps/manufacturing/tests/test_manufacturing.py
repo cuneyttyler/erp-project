@@ -91,7 +91,7 @@ class WorkOrderCompletionTests(TenantTestCase):
 
 class ManufacturingAPITests(TenantTestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="planner", password="x")
+        self.user = User.objects.create_superuser(username="planner", password="x")
         self.warehouse = Warehouse.objects.create(code="WH-A", name="Main")
         self.finished_good = Item.objects.create(sku="FG-1", name="Assembled Widget")
         self.component = Item.objects.create(sku="COMP-A", name="Screw")

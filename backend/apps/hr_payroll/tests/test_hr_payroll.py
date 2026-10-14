@@ -130,7 +130,7 @@ class PayrollRunTests(TenantTestCase):
 
 class PayrollRunAPITests(TenantTestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="hr-admin", password="x")
+        self.user = User.objects.create_superuser(username="hr-admin", password="x")
         self.employee = Employee.objects.create(
             first_name="Ayşe", last_name="Yılmaz", hire_date="2024-01-15", monthly_gross_salary=Decimal("30000.00")
         )

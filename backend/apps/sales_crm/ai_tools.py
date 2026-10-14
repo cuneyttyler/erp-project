@@ -8,6 +8,7 @@ from .models import Lead, SalesOrder
 
 @register_metric(
     name="open_sales_orders",
+    requires="sales_order.view",
     description="Sales orders that are confirmed but not yet fully fulfilled (confirmed or partially_fulfilled status), with customer and total.",
     input_schema={"type": "object", "properties": {}},
     package="sales_crm",
@@ -39,6 +40,7 @@ def open_sales_orders(**_kwargs) -> dict:
 
 @register_metric(
     name="open_leads",
+    requires="lead.view",
     description="Leads still in the pipeline (new or qualified status, not yet won or lost).",
     input_schema={"type": "object", "properties": {}},
     package="sales_crm",

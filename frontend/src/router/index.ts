@@ -1,146 +1,34 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import AgingView from '@/core/views/AgingView.vue'
-import BillsView from '@/core/views/BillsView.vue'
-import ChartOfAccountsView from '@/core/views/ChartOfAccountsView.vue'
 import DashboardView from '@/core/views/DashboardView.vue'
-import EntitiesView from '@/core/views/EntitiesView.vue'
-import InvoicesView from '@/core/views/InvoicesView.vue'
-import ItemsView from '@/core/views/ItemsView.vue'
-import JournalEntriesView from '@/core/views/JournalEntriesView.vue'
 import LoginView from '@/core/views/LoginView.vue'
-import PartiesView from '@/core/views/PartiesView.vue'
-import TrialBalanceView from '@/core/views/TrialBalanceView.vue'
-import StockLevelsView from '@/modules/inventory/views/StockLevelsView.vue'
-import WarehousesView from '@/modules/inventory/views/WarehousesView.vue'
-import EmployeesView from '@/modules/hr_payroll/views/EmployeesView.vue'
-import LeaveRequestsView from '@/modules/hr_payroll/views/LeaveRequestsView.vue'
-import PayrollRunsView from '@/modules/hr_payroll/views/PayrollRunsView.vue'
-import BOMsView from '@/modules/manufacturing/views/BOMsView.vue'
-import WorkOrdersView from '@/modules/manufacturing/views/WorkOrdersView.vue'
-import MarketplaceAccountsView from '@/modules/ecommerce/views/MarketplaceAccountsView.vue'
-import MarketplaceOrdersView from '@/modules/ecommerce/views/MarketplaceOrdersView.vue'
-import POSCheckoutView from '@/modules/pos/views/POSCheckoutView.vue'
-import POSSetupView from '@/modules/pos/views/POSSetupView.vue'
-import POSShiftsView from '@/modules/pos/views/POSShiftsView.vue'
-import PurchaseOrdersView from '@/modules/purchasing/views/PurchaseOrdersView.vue'
-import LeadsView from '@/modules/sales_crm/views/LeadsView.vue'
-import SalesOrdersView from '@/modules/sales_crm/views/SalesOrdersView.vue'
+import { pluginRoutes } from '@/plugins/registry'
 import { useAuthStore } from '@/shared/stores/auth'
-import { useTenantStore } from '@/shared/stores/tenant'
+import { usePluginStore } from '@/shared/stores/plugins'
 
-// technical.md §10.1: package routes carry `meta.requiresPackage` and are
-// rejected by the guard below unless the tenant's active_packages includes
-// that key -- a tenant without Purchasing/Inventory can still navigate to
-// these paths (Vue Router doesn't "not download" a route the way a
-// server-rendered app would), but the guard stops them from actually
-// reaching the view, and the nav (App.vue) doesn't link to it in the first
-// place. The Core (non-package) routes ship with every subscription tier
-// (product.md §6.1) and carry no such gate.
+// The routes declared here are the system screens -- the public homepage,
+// login, the home panel, the AI assistant, the audit log, and the two administration pages
+// (plugins, users & roles). None of them can be removed. Every other page
+// belongs to a plugin and is generated from its manifest
+// (src/plugins/registry.ts), carrying `meta.plugin` and `meta.action`. A
+// user can still type the URL of a page they aren't offered (Vue Router
+// doesn't "not know" a route the way a server-rendered app would), but the
+// guard below stops them reaching the view, the sidebar doesn't link to it,
+// its lazy chunk is never downloaded (technical.md §10.1) -- and the API
+// behind it refuses them regardless.
 export const router = createRouter({
   history: createWebHistory(),
   routes: [
+    // The public homepage. A signed-in visitor is sent on to their panel.
+    { path: '/', name: 'home', component: () => import('@/landing/LandingView.vue'), meta: { public: true, bare: true } },
     { path: '/login', name: 'login', component: LoginView, meta: { public: true } },
-    { path: '/', name: 'dashboard', component: DashboardView },
-    { path: '/entities', name: 'entities', component: EntitiesView },
-    { path: '/accounts', name: 'accounts', component: ChartOfAccountsView },
-    { path: '/items', name: 'items', component: ItemsView },
-    { path: '/journal-entries', name: 'journal-entries', component: JournalEntriesView },
-    { path: '/trial-balance', name: 'trial-balance', component: TrialBalanceView },
-    { path: '/parties', name: 'parties', component: PartiesView },
-    { path: '/invoices', name: 'invoices', component: InvoicesView },
-    { path: '/bills', name: 'bills', component: BillsView },
-    { path: '/aging', name: 'aging', component: AgingView },
-    {
-      path: '/warehouses',
-      name: 'warehouses',
-      component: WarehousesView,
-      meta: { requiresPackage: 'inventory' },
-    },
-    {
-      path: '/stock-levels',
-      name: 'stock-levels',
-      component: StockLevelsView,
-      meta: { requiresPackage: 'inventory' },
-    },
-    {
-      path: '/purchase-orders',
-      name: 'purchase-orders',
-      component: PurchaseOrdersView,
-      meta: { requiresPackage: 'purchasing' },
-    },
-    {
-      path: '/leads',
-      name: 'leads',
-      component: LeadsView,
-      meta: { requiresPackage: 'sales_crm' },
-    },
-    {
-      path: '/sales-orders',
-      name: 'sales-orders',
-      component: SalesOrdersView,
-      meta: { requiresPackage: 'sales_crm' },
-    },
-    {
-      path: '/boms',
-      name: 'boms',
-      component: BOMsView,
-      meta: { requiresPackage: 'manufacturing' },
-    },
-    {
-      path: '/work-orders',
-      name: 'work-orders',
-      component: WorkOrdersView,
-      meta: { requiresPackage: 'manufacturing' },
-    },
-    {
-      path: '/employees',
-      name: 'employees',
-      component: EmployeesView,
-      meta: { requiresPackage: 'hr_payroll' },
-    },
-    {
-      path: '/leave-requests',
-      name: 'leave-requests',
-      component: LeaveRequestsView,
-      meta: { requiresPackage: 'hr_payroll' },
-    },
-    {
-      path: '/payroll-runs',
-      name: 'payroll-runs',
-      component: PayrollRunsView,
-      meta: { requiresPackage: 'hr_payroll' },
-    },
-    {
-      path: '/pos',
-      name: 'pos-checkout',
-      component: POSCheckoutView,
-      meta: { requiresPackage: 'pos' },
-    },
-    {
-      path: '/pos/shifts',
-      name: 'pos-shifts',
-      component: POSShiftsView,
-      meta: { requiresPackage: 'pos' },
-    },
-    {
-      path: '/pos/setup',
-      name: 'pos-setup',
-      component: POSSetupView,
-      meta: { requiresPackage: 'pos' },
-    },
-    {
-      path: '/ecommerce/accounts',
-      name: 'ecommerce-accounts',
-      component: MarketplaceAccountsView,
-      meta: { requiresPackage: 'ecommerce' },
-    },
-    {
-      path: '/ecommerce/orders',
-      name: 'ecommerce-orders',
-      component: MarketplaceOrdersView,
-      meta: { requiresPackage: 'ecommerce' },
-    },
+    { path: '/panel', name: 'dashboard', component: DashboardView },
+    { path: '/assistant', name: 'assistant', component: () => import('@/ai-panel/AssistantView.vue') },
+    { path: '/audit-log', name: 'audit-log', component: () => import('@/core/views/AuditLogView.vue') },
+    { path: '/plugins', name: 'plugins', component: () => import('@/core/views/PluginsView.vue') },
+    { path: '/users', name: 'users', component: () => import('@/core/views/UsersView.vue'), meta: { orgAdmin: true } },
+    ...pluginRoutes,
+    { path: '/:pathMatch(.*)*', redirect: { name: 'dashboard' } },
   ],
 })
 
@@ -152,13 +40,25 @@ router.beforeEach(async (to) => {
   if (!to.meta.public && !auth.isAuthenticated) {
     return { name: 'login' }
   }
-  if (to.name === 'login' && auth.isAuthenticated) {
+  if ((to.name === 'login' || to.name === 'home') && auth.isAuthenticated) {
     return { name: 'dashboard' }
   }
-  const requiredPackage = to.meta.requiresPackage as string | undefined
-  if (requiredPackage) {
-    const tenant = useTenantStore()
-    if (!tenant.hasPackage(requiredPackage as any)) {
+  if (auth.isAuthenticated) {
+    const plugins = usePluginStore()
+    if (!plugins.isLoaded) {
+      // A failed load isn't fatal: isActive() falls back to the tenant's
+      // subscription, and the next navigation retries.
+      await plugins.load().catch(() => undefined)
+    }
+    const requiredPlugin = to.meta.plugin as string | undefined
+    if (requiredPlugin && !plugins.isActive(requiredPlugin)) {
+      return { name: 'dashboard' }
+    }
+    const requiredAction = to.meta.action as string | undefined
+    if (requiredAction && !auth.can(requiredAction)) {
+      return { name: 'dashboard' }
+    }
+    if (to.meta.orgAdmin && !auth.isOrgAdmin) {
       return { name: 'dashboard' }
     }
   }

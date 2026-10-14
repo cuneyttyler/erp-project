@@ -1,9 +1,10 @@
 {
   "app": {
-    "name": "AI-Native ERP"
+    "name": "ERPIntel"
   },
   "nav": {
     "dashboard": "Dashboard",
+    "plugins": "Plugins",
     "entities": "Entities",
     "accounts": "Chart of Accounts",
     "journalEntries": "Journal Entries",
@@ -28,6 +29,8 @@
     "posSetup": "Store/Till Setup",
     "ecommerceAccounts": "Marketplace Connections",
     "ecommerceOrders": "Marketplace Orders",
+    "biReports": "Reports",
+    "biDashboards": "Dashboards",
     "groups": {
       "finance": "Finance",
       "inventory": "Inventory & Purchasing",
@@ -35,24 +38,1088 @@
       "manufacturing": "Manufacturing",
       "hr": "HR & Payroll",
       "pos": "Retail (POS)",
-      "ecommerce": "E-Commerce"
+      "ecommerce": "E-Commerce",
+      "bi": "Advanced BI"
+    },
+    "assistant": "AI Assistant",
+    "auditLog": "Audit Log",
+    "users": "Users & Roles"
+  },
+  "dashboard": {
+    "welcome": "Welcome, {name}",
+    "refresh": "Refresh",
+    "customize": "Customize",
+    "emptyTitle": "Your dashboard has no widgets",
+    "emptyBody": "Choose what you want to see when you log in.",
+    "addWidgets": "Add widgets"
+  },
+  "plugins": {
+    "title": "Plugins",
+    "subtitle": "Every page in the left menu comes from a plugin. Add the ones your company uses, remove the ones it doesn't, and choose which widgets appear on your dashboard.",
+    "system": "System",
+    "tabs": {
+      "plugins": "Plugins",
+      "widgets": "Dashboard widgets"
+    },
+    "readOnly": "Only an administrator can add or remove plugins. You can still arrange your own dashboard widgets.",
+    "search": "Search plugins",
+    "filters": {
+      "all": "All",
+      "installed": "Installed",
+      "available": "Not installed"
+    },
+    "noMatches": "Nothing matches your search.",
+    "sections": {
+      "core": "Core",
+      "packages": "Packages"
+    },
+    "status": {
+      "installed": "Installed",
+      "notInstalled": "Not installed",
+      "notLicensed": "Not in your subscription"
+    },
+    "widgetCount": "No dashboard widgets | {count} dashboard widget | {count} dashboard widgets",
+    "actions": {
+      "add": "Add",
+      "remove": "Remove"
+    },
+    "removeNote": "Removing a plugin hides its pages and dashboard widgets for everyone in your company. No data is deleted, and adding it back restores everything as it was.",
+    "errors": {
+      "toggle": "The plugin could not be changed. Try again.",
+      "layout": "Your dashboard layout could not be saved. Try again."
+    },
+    "widgets": {
+      "intro": "These settings are yours alone. Drag to reorder, or use the arrows. Widgets are only offered for plugins that are installed.",
+      "saving": "Saving…",
+      "saved": "All changes saved",
+      "reset": "Reset to defaults",
+      "viewPanel": "View dashboard",
+      "onPanel": "On your dashboard",
+      "panelEmpty": "Nothing on your dashboard yet. Add widgets from the list below.",
+      "size": "Widget width",
+      "sizes": {
+        "sm": "Small: a quarter of the row",
+        "md": "Medium: half of the row",
+        "lg": "Large: the full row"
+      },
+      "sizeShort": {
+        "sm": "S",
+        "md": "M",
+        "lg": "L"
+      },
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "remove": "Remove from dashboard",
+      "available": "Available to add",
+      "search": "Search widgets",
+      "allAdded": "Every widget is already on your dashboard.",
+      "pluginRemoved": "Plugin not installed"
+    },
+    "catalog": {
+      "entities": {
+        "name": "Companies",
+        "description": "Manage the legal entities that keep their own books under your account."
+      },
+      "general_ledger": {
+        "name": "General Ledger",
+        "description": "Chart of accounts, journal entries and the trial balance."
+      },
+      "receivables_payables": {
+        "name": "Receivables & Payables",
+        "description": "Customers and vendors, sales invoices, vendor bills, payments and aging."
+      },
+      "item_catalog": {
+        "name": "Item Catalog",
+        "description": "The products and services you buy, stock, make and sell."
+      },
+      "inventory": {
+        "name": "Inventory",
+        "description": "Warehouses and stock levels, updated by every receipt, pick and transfer."
+      },
+      "purchasing": {
+        "name": "Purchasing",
+        "description": "Purchase orders with approval and goods receipt into stock."
+      },
+      "sales_crm": {
+        "name": "Sales & CRM",
+        "description": "Leads from first contact to won, and sales orders through fulfillment."
+      },
+      "manufacturing": {
+        "name": "Manufacturing",
+        "description": "Bills of materials and work orders that consume components and produce stock."
+      },
+      "hr_payroll": {
+        "name": "HR & Payroll",
+        "description": "Employee records, leave requests and monthly payroll runs."
+      },
+      "pos": {
+        "name": "Retail (POS)",
+        "description": "Checkout, shifts with end-of-day reports, returns, and store and till setup."
+      },
+      "ecommerce": {
+        "name": "E-Commerce",
+        "description": "Connect marketplaces to pull in orders and push out stock levels."
+      },
+      "bi_analytics": {
+        "name": "Advanced BI",
+        "description": "Build your own reports and dashboards from the same figures the rest of the app uses."
+      }
     }
   },
-  "aiPanel": {
-    "title": "AI Assistant",
-    "placeholder": "Ask a question or request an action...",
-    "send": "Send",
-    "confirmAction": "Confirmation Required",
-    "approve": "Approve",
-    "reject": "Reject",
-    "actionApproved": "Approved and completed.",
-    "actionRejected": "Rejected.",
-    "actionFailed": "Approved, but the action failed.",
-    "empty": "Ask about anything across your active modules.",
-    "thinking": "Thinking..."
+  "widgets": {
+    "ui": {
+      "view": "View",
+      "loadFailed": "This widget could not be loaded.",
+      "retry": "Try again",
+      "noData": "No data for this period yet.",
+      "nothingHere": "Nothing to show.",
+      "showing": "Showing {shown} of {total}",
+      "allClear": "All clear. Nothing needs your attention.",
+      "noPlugins": "No plugins are installed.",
+      "unassigned": "Unassigned"
+    },
+    "compare": {
+      "vs_last_month": "vs. last month",
+      "vs_yesterday": "vs. yesterday"
+    },
+    "series": {
+      "revenue": "Revenue",
+      "expenses": "Expenses",
+      "amount": "Amount",
+      "balance": "Balance due",
+      "inflow": "Receivables due",
+      "outflow": "Payables due",
+      "units": "Units",
+      "leads": "Leads",
+      "order_value": "Order value",
+      "work_orders": "Work orders",
+      "employer_cost": "Employer cost",
+      "employees": "Employees",
+      "net_sales": "Net sales"
+    },
+    "labels": {
+      "current": "Not yet due",
+      "d1_30": "1–30 days",
+      "d31_60": "31–60 days",
+      "d61_90": "61–90 days",
+      "d90_plus": "90+ days",
+      "overdue": "Overdue",
+      "new": "New",
+      "qualified": "Qualified",
+      "won": "Won",
+      "lost": "Lost",
+      "draft": "Draft",
+      "released": "Released",
+      "in_progress": "In progress",
+      "completed": "Completed"
+    },
+    "secondary": {
+      "change_this_month": "Change this month",
+      "overdue": "Overdue",
+      "open_documents": "Open documents",
+      "inactive_items": "Inactive items",
+      "units_on_hand": "Units on hand",
+      "warehouses": "Warehouses",
+      "open_orders": "Open orders",
+      "draft_orders": "Drafts",
+      "monthly_gross_payroll": "Monthly gross payroll",
+      "on_leave_today": "On leave today",
+      "transactions": "Sales today",
+      "open_shifts": "Open shifts",
+      "failed_orders": "Failed to sync",
+      "unsynced_orders": "Waiting to sync",
+      "input_tokens": "Input tokens",
+      "output_tokens": "Output tokens"
+    },
+    "columns": {
+      "date": "Date",
+      "memo": "Memo",
+      "status": "Status",
+      "amount": "Amount",
+      "party": "Customer/Vendor",
+      "due_date": "Due",
+      "days_overdue": "Days overdue",
+      "balance_due": "Balance due",
+      "issue_date": "Issued",
+      "total": "Total",
+      "direction": "Type",
+      "method": "Method",
+      "created_at": "When",
+      "actor": "Who",
+      "action": "Action",
+      "target": "Record",
+      "sku": "SKU",
+      "item": "Item",
+      "warehouse": "Warehouse",
+      "quantity": "Quantity",
+      "move_type": "Movement",
+      "expected_date": "Expected",
+      "scheduled_date": "Scheduled",
+      "quantity_completed": "Completed",
+      "quantity_planned": "Planned",
+      "employee": "Employee",
+      "leave_type": "Type",
+      "start_date": "From",
+      "end_date": "To",
+      "days": "Days",
+      "store": "Store",
+      "till": "Till",
+      "opened_by": "Opened by",
+      "opened_at": "Opened",
+      "sales": "Sales",
+      "name": "Name",
+      "platform": "Platform",
+      "last_synced_at": "Last synced",
+      "failed_orders": "Failed orders",
+      "account": "Connection",
+      "external_order_id": "Order no.",
+      "error": "Error",
+      "summary": "Proposed action",
+      "requested_by": "Requested by",
+      "lines": "Lines",
+      "description": "Description",
+      "unit_price": "Unit price",
+      "currency": "Currency",
+      "entity": "Company",
+      "code": "Code",
+      "account_type": "Account type",
+      "is_active": "Active",
+      "parent": "Parent",
+      "unit_of_measure": "Unit",
+      "cost_method": "Cost method",
+      "email": "Email",
+      "phone": "Phone",
+      "tax_id": "Tax no.",
+      "party_type": "Type",
+      "payment_terms_days": "Payment terms (days)",
+      "debit": "Debit",
+      "credit": "Credit",
+      "id": "No."
+    },
+    "status": {
+      "draft": "Draft",
+      "posted": "Posted",
+      "sent": "Sent",
+      "partially_paid": "Partially paid",
+      "paid": "Paid",
+      "cancelled": "Cancelled",
+      "overdue": "Overdue",
+      "due_soon": "Due soon",
+      "received": "Received",
+      "partially_received": "Partially received",
+      "confirmed": "Confirmed",
+      "partially_fulfilled": "Partially fulfilled",
+      "fulfilled": "Fulfilled",
+      "released": "Released",
+      "in_progress": "In progress",
+      "completed": "Completed",
+      "annual": "Annual",
+      "sick": "Sick",
+      "receipt": "Receipt",
+      "transfer_in": "Transfer in",
+      "transfer_out": "Transfer out",
+      "adjustment": "Adjustment",
+      "pick": "Pick",
+      "shopify": "Shopify",
+      "trendyol": "Trendyol",
+      "hepsiburada": "Hepsiburada",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "attentionItems": {
+      "draft_journal_entries": "{count} draft journal entry to post | {count} draft journal entries to post",
+      "overdue_invoices": "{count} customer invoice is overdue | {count} customer invoices are overdue",
+      "overdue_bills": "{count} vendor bill is overdue | {count} vendor bills are overdue",
+      "bills_due_soon": "{count} vendor bill is due within 7 days | {count} vendor bills are due within 7 days",
+      "flagged_bills": "{count} vendor bill is unusually high for its vendor | {count} vendor bills are unusually high for their vendor",
+      "low_stock": "{count} item is low on stock | {count} items are low on stock",
+      "purchase_orders_awaiting_approval": "{count} purchase order is waiting for approval | {count} purchase orders are waiting for approval",
+      "late_purchase_orders": "{count} purchase order is past its expected date | {count} purchase orders are past their expected date",
+      "late_sales_orders": "{count} sales order is past its expected date | {count} sales orders are past their expected date",
+      "new_leads": "{count} new lead to follow up | {count} new leads to follow up",
+      "late_work_orders": "{count} work order is behind schedule | {count} work orders are behind schedule",
+      "pending_leave_requests": "{count} leave request is waiting for a decision | {count} leave requests are waiting for a decision",
+      "draft_payroll_runs": "{count} payroll run is not finalized | {count} payroll runs are not finalized",
+      "stale_open_shifts": "{count} till shift has been open for over 24 hours | {count} till shifts have been open for over 24 hours",
+      "failed_marketplace_orders": "{count} marketplace order failed to sync | {count} marketplace orders failed to sync",
+      "stale_marketplace_syncs": "{count} marketplace connection has not synced in 24 hours | {count} marketplace connections have not synced in 24 hours",
+      "ai_pending_approvals": "{count} AI-proposed action is waiting for your approval | {count} AI-proposed actions are waiting for your approval"
+    },
+    "catalog": {
+      "attention": {
+        "title": "Needs attention",
+        "description": "Everything across your plugins that is waiting on someone, most urgent first."
+      },
+      "quick_actions": {
+        "title": "Quick links",
+        "description": "One-click links to every page of your installed plugins."
+      },
+      "cash_position": {
+        "title": "Cash and bank",
+        "description": "Current cash and bank balance, with the last six month-end balances."
+      },
+      "revenue_mtd": {
+        "title": "Revenue this month",
+        "description": "Posted revenue so far this month, compared with last month."
+      },
+      "expenses_mtd": {
+        "title": "Expenses this month",
+        "description": "Posted expenses so far this month, compared with last month."
+      },
+      "net_income_mtd": {
+        "title": "Net income this month",
+        "description": "Revenue minus expenses so far this month, compared with last month."
+      },
+      "ar_outstanding": {
+        "title": "Receivables outstanding",
+        "description": "What customers owe you, and how much of it is overdue."
+      },
+      "ap_outstanding": {
+        "title": "Payables outstanding",
+        "description": "What you owe vendors, and how much of it is overdue."
+      },
+      "open_sales_orders": {
+        "title": "Open sales orders",
+        "description": "Value of confirmed orders that are not yet fully shipped."
+      },
+      "open_purchase_orders": {
+        "title": "Open purchase orders",
+        "description": "Value of orders placed that are not yet fully received."
+      },
+      "stock_summary": {
+        "title": "Items in stock",
+        "description": "How many items have stock on hand, across how many warehouses."
+      },
+      "headcount": {
+        "title": "Headcount",
+        "description": "Active employees, monthly gross payroll and who is on leave today."
+      },
+      "pos_sales_today": {
+        "title": "Store sales today",
+        "description": "Today's till sales net of returns, compared with yesterday."
+      },
+      "marketplace_orders": {
+        "title": "Marketplace orders, last 7 days",
+        "description": "Orders pulled in from your marketplaces, and any that failed to sync."
+      },
+      "catalog_summary": {
+        "title": "Active items",
+        "description": "How many items are in your catalog."
+      },
+      "ai_usage": {
+        "title": "AI requests this month",
+        "description": "How much your company has used the AI assistant this month."
+      },
+      "revenue_expense_trend": {
+        "title": "Revenue and expenses, last 12 months",
+        "description": "Posted revenue against posted expenses, month by month."
+      },
+      "cash_forecast": {
+        "title": "Cash due in and out, next 4 weeks",
+        "description": "Open receivables against open payables by the week they fall due."
+      },
+      "ar_aging": {
+        "title": "Receivables aging",
+        "description": "Unpaid customer invoices grouped by how overdue they are."
+      },
+      "ap_aging": {
+        "title": "Payables aging",
+        "description": "Unpaid vendor bills grouped by how overdue they are."
+      },
+      "overdue_invoices": {
+        "title": "Overdue customer invoices",
+        "description": "The largest customer invoices that are past their due date."
+      },
+      "upcoming_bills": {
+        "title": "Bills to pay",
+        "description": "Vendor bills that are overdue or due in the next 14 days."
+      },
+      "top_customers": {
+        "title": "Top customers",
+        "description": "Your customers ranked by invoiced amount."
+      },
+      "top_vendors": {
+        "title": "Top vendors",
+        "description": "Your vendors ranked by billed amount."
+      },
+      "expense_breakdown": {
+        "title": "Largest expense accounts this year",
+        "description": "Where the money has gone so far this year, by account."
+      },
+      "flagged_bills": {
+        "title": "Unusually high vendor bills",
+        "description": "Unpaid bills well above that vendor's usual amount. Review before paying."
+      },
+      "recent_payments": {
+        "title": "Recent payments",
+        "description": "The latest payments received from customers and made to vendors."
+      },
+      "recent_journal_entries": {
+        "title": "Recent journal entries",
+        "description": "The latest journal entries, including drafts still to post."
+      },
+      "low_stock": {
+        "title": "Low stock",
+        "description": "Items with 5 or fewer units left in a warehouse."
+      },
+      "stock_by_warehouse": {
+        "title": "Stock by warehouse",
+        "description": "Units on hand in each warehouse."
+      },
+      "recent_stock_moves": {
+        "title": "Recent stock movements",
+        "description": "The latest receipts, picks, transfers and adjustments."
+      },
+      "pending_po_receipts": {
+        "title": "Purchase orders to receive",
+        "description": "Open purchase orders by when the goods are expected."
+      },
+      "sales_pipeline": {
+        "title": "Leads by stage",
+        "description": "How many leads are new, qualified, won and lost."
+      },
+      "orders_to_fulfill": {
+        "title": "Sales orders to ship",
+        "description": "Confirmed sales orders by when the customer expects them."
+      },
+      "sales_order_trend": {
+        "title": "Sales orders, last 6 months",
+        "description": "Value of sales orders placed each month."
+      },
+      "work_orders_status": {
+        "title": "Work orders by status",
+        "description": "How many work orders are in draft, released, in progress and completed."
+      },
+      "upcoming_work_orders": {
+        "title": "Work orders in progress",
+        "description": "Open work orders by scheduled date, with how much is completed."
+      },
+      "pending_leave_requests": {
+        "title": "Leave requests to decide",
+        "description": "Leave requests waiting for approval or rejection."
+      },
+      "payroll_cost_trend": {
+        "title": "Payroll cost by period",
+        "description": "Total employer cost of the last six finalized payroll runs."
+      },
+      "headcount_by_department": {
+        "title": "Employees by department",
+        "description": "Active employees in each department."
+      },
+      "pos_sales_trend": {
+        "title": "Store sales, last 14 days",
+        "description": "Daily till sales net of returns."
+      },
+      "open_shifts": {
+        "title": "Open till shifts",
+        "description": "Shifts that are currently open, and how many sales each has taken."
+      },
+      "pos_top_items": {
+        "title": "Best sellers, last 30 days",
+        "description": "Items sold at the till, ranked by units."
+      },
+      "marketplace_accounts": {
+        "title": "Marketplace connections",
+        "description": "Each connected marketplace, when it last synced, and its failed orders."
+      },
+      "failed_marketplace_orders": {
+        "title": "Marketplace orders that failed",
+        "description": "Orders that could not be turned into sales orders, with the reason."
+      },
+      "ai_pending_approvals": {
+        "title": "AI actions awaiting approval",
+        "description": "Changes the AI assistant has proposed that need a person to approve or reject."
+      },
+      "recent_activity": {
+        "title": "Recent activity",
+        "description": "The latest entries in the audit trail."
+      }
+    }
   },
   "auth": {
     "login": "Log In",
     "logout": "Log Out"
+  },
+  "access": {
+    "title": "Users & Roles",
+    "subtitle": "Decide who can do what. Actions are grouped into permissions, permissions into roles, and roles are given to users.",
+    "loading": "Loading…",
+    "builtIn": "Built-in",
+    "builtInNote": "This is built in and kept up to date automatically, so it can't be edited. Create your own to customize.",
+    "actionsIntro": "Every action that can be taken in the app, by plugin. Hover an action to see its code. Add actions to a permission on the Permissions tab.",
+    "tabs": {
+      "users": "Users",
+      "roles": "Roles",
+      "permissions": "Permissions",
+      "actions": "Actions"
+    },
+    "actions": {
+      "edit": "Edit",
+      "view": "View",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel",
+      "close": "Close"
+    },
+    "errors": {
+      "load": "Users and roles could not be loaded.",
+      "save": "Your changes could not be saved.",
+      "delete": "This could not be deleted."
+    },
+    "levels": {
+      "view": "View",
+      "manage": "Full access"
+    },
+    "systemRoles": {
+      "org_admin": "Organization Admin",
+      "viewer": "Viewer"
+    },
+    "systemRoleDescriptions": {
+      "org_admin": "Can do everything, including managing users, roles and plugins.",
+      "viewer": "Can see everything in every plugin, and change nothing."
+    },
+    "users": {
+      "new": "New user",
+      "edit": "Edit user",
+      "user": "User",
+      "roles": "Roles",
+      "status": "Status",
+      "lastLogin": "Last sign-in",
+      "neverLoggedIn": "Never",
+      "admin": "Admin",
+      "active": "Active",
+      "inactive": "Deactivated",
+      "noAccess": "No access yet",
+      "directCount": "{count} individual action | {count} individual actions",
+      "username": "Username",
+      "email": "Email",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "password": "Password",
+      "newPassword": "New password",
+      "passwordUnchanged": "Leave empty to keep the current one",
+      "language": "Language",
+      "canSignIn": "This user can sign in",
+      "directActions": "Individual actions",
+      "directActionsHint": "Extra actions for this user only, on top of what their roles give them."
+    },
+    "roles": {
+      "new": "New role",
+      "edit": "Edit role",
+      "name": "Role name",
+      "description": "Description",
+      "everything": "Everything",
+      "everythingNote": "This role can perform every action in the app, including ones added in the future.",
+      "noPermissions": "No permissions yet",
+      "userCount": "No users | {count} user | {count} users"
+    },
+    "permissions": {
+      "new": "New permission",
+      "edit": "Edit permission",
+      "name": "Permission name",
+      "description": "Description",
+      "actions": "Actions",
+      "usedIn": "Used in",
+      "custom": "Your permissions",
+      "builtIn": "Built-in permissions",
+      "builtInNote": "Two for each plugin: viewing it, and full access to it. They follow the app as it grows.",
+      "noneYet": "You haven't created any permissions yet.",
+      "actionCount": "No actions | {count} action | {count} actions",
+      "roleCount": "No roles | {count} role | {count} roles"
+    },
+    "delete": {
+      "roleTitle": "Delete role",
+      "roleBody": "Delete the role \"{name}\"? Nobody has it. | Delete the role \"{name}\"? {count} user will lose what it grants. | Delete the role \"{name}\"? {count} users will lose what it grants.",
+      "permissionTitle": "Delete permission",
+      "permissionBody": "Delete the permission \"{name}\"? No role uses it. | Delete the permission \"{name}\"? {count} role will lose its actions. | Delete the permission \"{name}\"? {count} roles will lose its actions."
+    },
+    "picker": {
+      "search": "Search actions",
+      "selected": "{count} selected",
+      "selectAll": "Select all",
+      "clearAll": "Clear all",
+      "toggleRow": "Select or clear the whole row",
+      "noMatches": "No actions match your search."
+    },
+    "groups": {
+      "administration": "Administration"
+    },
+    "resources": {
+      "entity": "Companies",
+      "item": "Items",
+      "account": "Chart of accounts",
+      "journal_entry": "Journal entries",
+      "trial_balance": "Trial balance",
+      "party": "Customers and vendors",
+      "invoice": "Invoices",
+      "bill": "Bills",
+      "payment": "Payments",
+      "ar_aging": "Receivables aging",
+      "ap_aging": "Payables aging",
+      "warehouse": "Warehouses",
+      "stock_move": "Stock movements",
+      "stock_level": "Stock levels",
+      "purchase_order": "Purchase orders",
+      "lead": "Leads",
+      "sales_order": "Sales orders",
+      "bom": "Bills of materials",
+      "work_order": "Work orders",
+      "employee": "Employees",
+      "leave_request": "Leave requests",
+      "payroll_run": "Payroll runs",
+      "pos_store": "Stores",
+      "pos_till": "Tills",
+      "pos_shift": "Till shifts",
+      "pos_sale": "Till sales",
+      "pos_return": "Till returns",
+      "marketplace_account": "Marketplace connections",
+      "marketplace_listing": "Marketplace listings",
+      "marketplace_order": "Marketplace orders",
+      "report_series": "Report catalog",
+      "report_series_run": "Report data",
+      "saved_report": "Saved reports",
+      "bi_dashboard": "BI dashboards",
+      "user": "Users",
+      "role": "Roles",
+      "permission": "Permissions",
+      "plugin": "Plugins",
+      "conversation": "AI conversation"
+    },
+    "operations": {
+      "view": "View",
+      "create": "Create",
+      "update": "Edit",
+      "delete": "Delete",
+      "post_entry": "Post",
+      "send_document": "Send",
+      "transfer": "Transfer",
+      "approve": "Approve",
+      "reject": "Reject",
+      "receive": "Receive goods",
+      "qualify": "Qualify",
+      "mark_won": "Mark won",
+      "mark_lost": "Mark lost",
+      "confirm": "Confirm",
+      "fulfill": "Ship",
+      "release": "Release",
+      "complete": "Complete",
+      "calculate": "Calculate",
+      "finalize": "Finalize",
+      "checkout": "Ring up a sale",
+      "close": "Close",
+      "return_sale": "Return",
+      "sync_orders": "Sync orders",
+      "push_stock": "Push stock",
+      "add_tile": "Add tile",
+      "remove_tile": "Remove tile",
+      "reorder_tiles": "Reorder tiles"
+    }
+  },
+  "audit": {
+    "title": "Audit Log",
+    "subtitleAdmin": "Every action taken in your organization: who took it, whether by hand or through the AI assistant, and what it changed.",
+    "subtitleMember": "Your own actions, and actions on the records you're allowed to view.",
+    "system": "System",
+    "details": "Show details",
+    "entryId": "Entry #{id}",
+    "revertOf": "Undo of #{id}",
+    "reverted": "Undone by #{id}",
+    "noChanges": "No field changes were recorded for this entry.",
+    "empty": "Nothing has been recorded yet.",
+    "noMatches": "No entries match these filters.",
+    "count": "{count} entry | {count} entries",
+    "page": "Page {page} of {pages}",
+    "previous": "Previous",
+    "next": "Next",
+    "channels": {
+      "manual": "Manual",
+      "ai": "AI assistant"
+    },
+    "columns": {
+      "when": "When",
+      "who": "Who",
+      "channel": "Channel",
+      "action": "Action",
+      "record": "Record",
+      "field": "Field",
+      "before": "Before",
+      "after": "After"
+    },
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Record name or number",
+      "user": "User",
+      "anyone": "Anyone",
+      "channel": "Channel",
+      "anyChannel": "Any channel",
+      "resource": "What",
+      "anything": "Anything",
+      "from": "From",
+      "to": "To",
+      "clear": "Clear filters"
+    },
+    "special": {
+      "ai_chat": "Asked the AI assistant",
+      "plugin_install": "Plugins: Add",
+      "plugin_remove": "Plugins: Remove",
+      "reconciliation_sweep": "Reconciliation sweep"
+    },
+    "errors": {
+      "load": "The audit log could not be loaded.",
+      "revert": "This action could not be undone."
+    },
+    "reasons": {
+      "not_an_action": "This entry is a record of an event, not an action that can be undone.",
+      "is_a_revert": "This entry is itself an undo.",
+      "already_reverted": "This action has already been undone.",
+      "not_reversible": "This kind of action can't be undone here. Use the proper business reversal instead, such as a return or a correcting entry.",
+      "no_permission": "You don't have permission to perform this action, so you can't undo it.",
+      "changed_since": "This record has been changed since. Undo the later changes first.",
+      "failed": "The undo could not be completed."
+    },
+    "revert": {
+      "button": "Undo",
+      "title": "Undo this action?",
+      "confirm": "Undo",
+      "note": "The log is never edited. The undo is recorded as a new entry under your name.",
+      "effects": {
+        "create": "The record that was created will be deleted.",
+        "update": "The record will be set back to the values it had before this change.",
+        "delete": "The record will be created again from the copy kept in the log. It gets a new number, and anything that referred to the old one is not re-linked.",
+        "post_entry": "A posted journal entry can't be unposted. A reversing entry, with every debit and credit swapped, will be posted today instead.",
+        "other": "The record will be put back to the state it was in before this action."
+      }
+    }
+  },
+  "assistant": {
+    "title": "AI Assistant",
+    "intro": "Ask for anything you'd otherwise look up or click through. I can show records as tables, draw charts, and prepare changes for you to approve. I can do exactly what you're permitted to do.",
+    "newChat": "New conversation",
+    "noConversations": "No conversations yet.",
+    "delete": "Delete conversation",
+    "confirmDelete": "Click again to delete",
+    "placeholder": "Ask a question or describe what you want done…",
+    "send": "Send",
+    "thinking": "Working on it…",
+    "sources": "Sources:",
+    "footnote": "Nothing is changed until you approve it. Everything you approve is recorded in the audit log.",
+    "errors": {
+      "send": "Something went wrong and your message wasn't answered. Please try again.",
+      "resolve": "This could not be completed. Please try again."
+    },
+    "values": {
+      "yes": "Yes",
+      "no": "No",
+      "items": "No items | {count} item | {count} items",
+      "count": "Count"
+    },
+    "series": {
+      "monthly_revenue": "Monthly revenue",
+      "revenue_by_customer": "Revenue by customer",
+      "spend_by_vendor": "Spend by vendor"
+    },
+    "proposal": {
+      "status": {
+        "pending": "Waiting for your approval",
+        "executed": "Done",
+        "failed": "Approved, but it could not be carried out",
+        "rejected": "Rejected"
+      },
+      "approve": "Approve",
+      "reject": "Reject",
+      "nothingYet": "Nothing has been changed yet.",
+      "noPermission": "You don't have permission to approve this. Someone who does can approve it.",
+      "failedBecause": "Nothing was changed. Reason:",
+      "doneBy": "Carried out by {user}.",
+      "seeAudit": "See it in the audit log"
+    },
+    "examples": {
+      "overdue": "Which customer invoices are overdue?",
+      "cash": "What is our cash and bank balance?",
+      "topCustomers": "Show our top customers by invoiced amount as a chart",
+      "accounts": "How many accounts do we have of each type? Draw a chart",
+      "newItem": "Add a new item to the catalog",
+      "newInvoice": "Create an invoice for a customer",
+      "lowStock": "Which items are running low on stock?",
+      "leave": "Show the leave requests waiting for a decision"
+    }
+  },
+  "landing": {
+    "nav": {
+      "modules": "Modules",
+      "assistant": "AI assistant",
+      "control": "Control",
+      "plans": "Plans",
+      "roadmap": "Roadmap",
+      "faq": "FAQ",
+      "signIn": "Sign in"
+    },
+    "hero": {
+      "eyebrow": "ERP for small and mid-sized companies",
+      "title": "Run the whole company from one place, and just ask for what you need.",
+      "body": "ERPIntel brings finance, stock, purchasing, sales, production, HR and retail into one system. An AI assistant is built into all of it: it looks things up, draws the chart, and prepares the work for you to approve.",
+      "primary": "Sign in",
+      "secondary": "See plans",
+      "imageAlt": "The ERPIntel dashboard: cash, revenue, receivables and payables as figures, a revenue and expenses chart, and a list of items needing attention.",
+      "imageNote": "Screens on this page show sample data."
+    },
+    "facts": [
+      {
+        "value": "12",
+        "label": "plugins you can add or remove"
+      },
+      {
+        "value": "130+",
+        "label": "actions, each one usable by the assistant"
+      },
+      {
+        "value": "47",
+        "label": "dashboard widgets to choose from"
+      },
+      {
+        "value": "TR / EN",
+        "label": "Turkish and English, throughout"
+      }
+    ],
+    "modules": {
+      "title": "Everything a growing company runs on",
+      "body": "Each area is a plugin. Install the ones you use, remove the ones you don't, and add more as the company grows. They all share one set of books and one set of records.",
+      "items": {
+        "ledger": {
+          "title": "General ledger",
+          "body": "Chart of accounts based on the Tekdüzen Hesap Planı, journal entries, trial balance, and multi-company consolidation."
+        },
+        "receivables": {
+          "title": "Receivables and payables",
+          "body": "Customers and vendors, invoices and bills, partial payments, and aging by days overdue."
+        },
+        "inventory": {
+          "title": "Inventory",
+          "body": "Multiple warehouses, stock levels that follow every receipt, pick and transfer, and low-stock warnings."
+        },
+        "purchasing": {
+          "title": "Purchasing",
+          "body": "Purchase orders with an approval threshold, goods receipt into stock, and the vendor bill created for you."
+        },
+        "sales": {
+          "title": "Sales and CRM",
+          "body": "Leads from first contact to won, and sales orders from confirmation to shipment."
+        },
+        "manufacturing": {
+          "title": "Manufacturing",
+          "body": "Bills of materials and work orders that consume components and put finished goods into stock."
+        },
+        "hr": {
+          "title": "HR and payroll",
+          "body": "Employee records, leave requests, and monthly payroll with SGK premiums, income tax and stamp duty calculated."
+        },
+        "pos": {
+          "title": "Retail (POS)",
+          "body": "Checkout with split payments, shifts and end-of-day reports, returns, and selling through a lost connection."
+        },
+        "ecommerce": {
+          "title": "E-commerce",
+          "body": "Connect a marketplace to bring orders in as sales orders and send stock levels out."
+        },
+        "bi": {
+          "title": "Reports and BI",
+          "body": "Build your own charts and dashboards from the same figures the rest of the system uses."
+        },
+        "companies": {
+          "title": "Companies",
+          "body": "Run several legal entities under one account, each with its own books, and switch between them in a click."
+        },
+        "catalog": {
+          "title": "Item catalog",
+          "body": "One list of the products and services you buy, stock, make and sell, shared by every other area."
+        }
+      }
+    },
+    "assistant": {
+      "eyebrow": "AI assistant",
+      "title": "Ask for it instead of clicking for it",
+      "body": "The assistant can do what you can do in the screens, described in plain language, in Turkish or English.",
+      "points": [
+        {
+          "title": "Answers you can check",
+          "body": "Figures come from your records and are shown as a table or a chart beside the answer, with a link to the screen they came from."
+        },
+        {
+          "title": "Work, prepared for you",
+          "body": "Ask it to create an invoice, approve leave or correct a record. It prepares the change and shows you exactly what it will do."
+        },
+        {
+          "title": "Nothing happens without you",
+          "body": "Every change waits for your approval. It then runs under your name and your permissions, and appears in the audit log."
+        }
+      ],
+      "examplesTitle": "Things people ask",
+      "examples": [
+        "Which customer invoices are overdue?",
+        "Show revenue by month for this year as a chart",
+        "Create an invoice for Anadolu Yapı for 12 pallets",
+        "Which items will run out this week?"
+      ],
+      "imageAlt": "A conversation with the assistant: a question about overdue invoices answered with a table, a revenue chart, and a proposed invoice waiting for approval."
+    },
+    "control": {
+      "eyebrow": "Control",
+      "title": "You decide who can do what, and you can see what was done",
+      "permissions": {
+        "title": "Permissions that match how you work",
+        "body": "Every action in the system, from viewing a report to posting a journal entry, can be granted or withheld. Bundle actions into permissions, permissions into roles, and give roles to people. The assistant is held to the same rules."
+      },
+      "audit": {
+        "title": "A full audit log, with undo",
+        "body": "Every change is recorded: who made it, when, by hand or through the assistant, and what the record looked like before and after. Mistakes can be undone from the log, and the undo is recorded too.",
+        "imageAlt": "The audit log: a list of actions with the person, the channel (manual or AI assistant), the record, and an Undo button."
+      },
+      "plugins": {
+        "title": "Only the screens you need",
+        "body": "Add or remove a plugin and its pages, dashboard widgets and assistant abilities appear or disappear together. Your data stays put either way.",
+        "imageAlt": "The plugins page: a card for each plugin with its pages and an Add or Remove button."
+      }
+    },
+    "safety": {
+      "title": "How a request to the assistant becomes a change",
+      "steps": [
+        {
+          "title": "You ask",
+          "body": "In your own words, in the language you work in."
+        },
+        {
+          "title": "It checks",
+          "body": "It finds the real records and validates the change against the same rules as the screens."
+        },
+        {
+          "title": "You approve",
+          "body": "You see the action, the record and every value that will change, and choose Approve or Reject."
+        },
+        {
+          "title": "It's on the record",
+          "body": "The change is made under your name and logged, and can be undone."
+        }
+      ]
+    },
+    "plans": {
+      "eyebrow": "Plans",
+      "title": "Public prices, proportional to your size",
+      "body": "Every plan includes the core system and the AI assistant. Plugins are added per user, so a small team pays a small price.",
+      "perUser": "per user / month",
+      "indicative": "Prices are indicative and may change before general availability.",
+      "addOn": "Need a plugin your plan doesn't include? Add it for a flat per-user fee.",
+      "popular": "Most chosen",
+      "tiers": [
+        {
+          "name": "Starter",
+          "audience": "1–15 people, a first ERP",
+          "price": "$15–25",
+          "features": [
+            "Core finance, receivables and payables",
+            "One plugin of your choice",
+            "AI assistant for questions and reports",
+            "Roles, permissions and audit log"
+          ]
+        },
+        {
+          "name": "Growth",
+          "audience": "15–75 people",
+          "price": "$35–50",
+          "features": [
+            "Everything in Starter",
+            "Up to four plugins",
+            "AI assistant that prepares changes, with a monthly allowance"
+          ]
+        },
+        {
+          "name": "Professional",
+          "audience": "75–250 people",
+          "price": "$60–90",
+          "features": [
+            "Everything in Growth",
+            "Every plugin",
+            "A larger AI allowance",
+            "Advanced reports and BI",
+            "Multi-company consolidation"
+          ]
+        },
+        {
+          "name": "Enterprise",
+          "audience": "250+ people, several companies",
+          "price": "Custom",
+          "features": [
+            "Everything in Professional",
+            "Automated AI agents",
+            "Dedicated support",
+            "Private deployment option"
+          ]
+        }
+      ]
+    },
+    "roadmap": {
+      "eyebrow": "Roadmap",
+      "title": "What's here today, and what's next",
+      "body": "We'd rather tell you plainly than have you find out later.",
+      "today": {
+        "title": "Available today",
+        "items": [
+          "General ledger, receivables and payables, multi-company",
+          "Inventory, purchasing, sales and CRM, manufacturing",
+          "HR and payroll, retail POS, marketplace sync",
+          "AI assistant with tables, charts and approvals",
+          "Roles and permissions, audit log with undo",
+          "Configurable dashboard and plugins"
+        ]
+      },
+      "next": {
+        "title": "Coming next",
+        "items": [
+          "Turkish e-documents: e-Fatura, e-Arşiv, e-Defter, e-İrsaliye",
+          "SGK e-Bildirge and KDV declarations",
+          "Migration from Logo and Mikro",
+          "Scheduled AI agents that work on their own",
+          "Project management",
+          "Single sign-on"
+        ]
+      }
+    },
+    "faq": {
+      "title": "Questions people ask first",
+      "items": [
+        {
+          "q": "Can the AI change my data on its own?",
+          "a": "No. It can read what you are allowed to read and prepare changes you are allowed to make, but every change waits for a person to approve it. Approved changes run under that person's name and are written to the audit log."
+        },
+        {
+          "q": "Does the AI make up numbers?",
+          "a": "Figures and charts are computed by the system from your records, not written by the AI, and each answer shows the table or chart it is based on. You should still treat it as an assistant: check the table next to an answer before acting on it."
+        },
+        {
+          "q": "Do I have to use every module?",
+          "a": "No. Each area is a plugin. Start with finance and add inventory, sales or payroll when you need them. Removing a plugin hides its screens without deleting any data."
+        },
+        {
+          "q": "Is it ready for Turkish e-Fatura and e-Defter?",
+          "a": "Not yet. The accounting follows the Tekdüzen Hesap Planı and payroll follows Turkish rules, but direct e-document filing with GİB is still being built. It is the first item on the roadmap."
+        },
+        {
+          "q": "Can I undo a mistake?",
+          "a": "Usually, yes. Creating, editing and deleting records can be undone from the audit log, as can steps like sending an invoice or approving a request. Actions that move stock or money, such as receiving goods or a POS sale, are corrected with a return or a correcting entry instead."
+        },
+        {
+          "q": "Who can see what?",
+          "a": "You decide, action by action. Someone without permission to view invoices cannot see them in the screens, in the dashboard, in the audit log or through the assistant."
+        }
+      ]
+    },
+    "cta": {
+      "title": "See it with your own company in it",
+      "body": "Sign in to explore the system.",
+      "primary": "Sign in"
+    },
+    "footer": {
+      "tagline": "One system for the whole company, with an assistant built in.",
+      "rights": "All rights reserved."
+    }
   }
 }

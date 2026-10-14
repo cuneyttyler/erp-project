@@ -12,6 +12,7 @@ from .models import POSSale
 
 @register_metric(
     name="todays_pos_sales",
+    requires="pos_sale.view",
     description="Total POS sales (net of returns) and transaction count across all stores/tills so far today.",
     input_schema={"type": "object", "properties": {}},
     package="pos",
@@ -33,6 +34,7 @@ def todays_pos_sales(**_kwargs) -> dict:
 
 @register_metric(
     name="open_pos_shifts",
+    requires="pos_shift.view",
     description="Currently open POS shifts (till, who opened it, and when) across all stores.",
     input_schema={"type": "object", "properties": {}},
     package="pos",

@@ -15,8 +15,10 @@ from .serializers import (
     MarketplaceOrderSerializer,
     SyncResultSerializer,
 )
+from apps.access.catalog import resource
 
 
+@resource("marketplace_account", "ecommerce")
 class MarketplaceAccountViewSet(viewsets.ModelViewSet):
     """REQ-ECOM-001/003."""
 
@@ -54,6 +56,7 @@ class MarketplaceAccountViewSet(viewsets.ModelViewSet):
         return Response(SyncResultSerializer(result).data)
 
 
+@resource("marketplace_listing", "ecommerce")
 class MarketplaceListingViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, HasActivePackage("ecommerce")]
     queryset = MarketplaceListing.objects.select_related("account", "item").all()
@@ -62,6 +65,7 @@ class MarketplaceListingViewSet(viewsets.ModelViewSet):
     filterset_fields = ["account", "is_active"]
 
 
+@resource("marketplace_order", "ecommerce")
 class MarketplaceOrderViewSet(viewsets.ReadOnlyModelViewSet):
     """Read-only -- a MarketplaceOrder is only ever created by
     `services.sync_orders`, never directly through the API."""

@@ -34,3 +34,6 @@ django-cors-headers>=4.4
 # HTTP client for external integrations (technical.md §9 integrations/ --
 # e-commerce marketplace clients, apps/ecommerce/adapters.py)
 requests>=2.32
+
+# Production WSGI server (infra/deploy/)
+gunicorn>=22.0

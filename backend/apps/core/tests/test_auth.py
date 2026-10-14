@@ -15,7 +15,7 @@ from apps.core.models import User
 
 class LoginTenantInfoTests(TenantTestCase):
     def setUp(self):
-        User.objects.create_user(username="tester", password="secret123")
+        User.objects.create_superuser(username="tester", password="secret123")
         self.tenant.active_packages = ["purchasing", "inventory"]
         self.tenant.save()
         self.client = APIClient()

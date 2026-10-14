@@ -94,7 +94,7 @@ class SalesOrderFulfillmentTests(TenantTestCase):
 
 class SalesOrderAPITests(TenantTestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username="rep", password="x")
+        self.user = User.objects.create_superuser(username="rep", password="x")
         self.customer = Party.objects.create(name="Acme A.Ş.", party_type=Party.CUSTOMER)
         self.warehouse = Warehouse.objects.create(code="WH-A", name="Main")
         self.item = Item.objects.create(sku="ITM-1", name="Widget")

@@ -10,8 +10,11 @@ from apps.core.serializers import InvoiceSerializer
 
 from .models import Lead, SalesOrder
 from .serializers import FulfillSerializer, LeadSerializer, SalesOrderSerializer
+from apps.access.catalog import resource
+from apps.access.revert import restore_fields
 
 
+@resource("lead", "sales_crm", revert={"qualify": restore_fields("status"), "mark_won": restore_fields("status", "party"), "mark_lost": restore_fields("status")}, inputs={"mark_won": {"party": "id of the party (customer record) this lead became; create the party first if it doesn't exist"}})
 class LeadViewSet(viewsets.ModelViewSet):
     """REQ-CRM-001."""
 
@@ -55,6 +58,7 @@ class LeadViewSet(viewsets.ModelViewSet):
         return Response(self.get_serializer(lead).data)
 
 
+@resource("sales_order", "sales_crm", revert={"confirm": restore_fields("status")}, inputs={"fulfill": FulfillSerializer})
 class SalesOrderViewSet(viewsets.ModelViewSet):
     """REQ-CRM-002/003."""
 

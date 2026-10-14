@@ -9,8 +9,11 @@ from apps.core.permissions import HasActivePackage
 
 from .models import Employee, LeaveRequest, PayrollRun
 from .serializers import EmployeeSerializer, LeaveRequestSerializer, PayrollRunSerializer
+from apps.access.catalog import resource
+from apps.access.revert import restore_fields
 
 
+@resource("employee", "hr_payroll")
 class EmployeeViewSet(viewsets.ModelViewSet):
     """REQ-HR-001. Note: no field-level restriction on salary visibility yet
     (e.g. hiding monthly_gross_salary from non-payroll roles) -- the same
@@ -26,6 +29,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     filterset_fields = ["is_active", "department"]
 
 
+@resource("leave_request", "hr_payroll", revert={"approve": restore_fields("status"), "reject": restore_fields("status")})
 class LeaveRequestViewSet(viewsets.ModelViewSet):
     """REQ-HR-002."""
 
@@ -54,6 +58,7 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
         return Response(self.get_serializer(leave).data)
 
 
+@resource("payroll_run", "hr_payroll")
 class PayrollRunViewSet(viewsets.ModelViewSet):
     """REQ-HR-003. See models.py's PayrollRun docstring re: REQ-HR-004
     (SGK e-Bildirge submission) being explicitly out of scope here."""

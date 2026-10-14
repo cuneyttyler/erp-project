@@ -1,26 +1,35 @@
 from django.core.exceptions import ValidationError
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import permissions, status, viewsets
+from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.core.models import AuditLogEntry
+from apps.access import audit, catalog
+from apps.access.permissions import granted_actions, is_org_admin
 
-from . import chat
-from .models import PendingApproval
-from .serializers import ChatRequestSerializer, ChatResponseSerializer, PendingApprovalSerializer
+from . import chat, llm_gateway
+from .models import Conversation, PendingApproval
+from .serializers import (
+    ChatRequestSerializer,
+    ConversationDetailSerializer,
+    ConversationSerializer,
+    PendingApprovalSerializer,
+    hydrate_blocks,
+)
 
 
 class ChatView(APIView):
     """
-    REQ-CORE-AI-001/002/003/004/006/007/008/009. The single entry point for
-    the AI side-panel (frontend/src/ai-panel/). Authenticates as the
-    requesting user's own session -- there is no elevated AI service
-    account, so every tool call this view triggers (read or write) is
-    scoped to exactly what `request.tenant` permits, same as any other
-    endpoint (technical.md §8.5). Write actions never execute from here --
-    see chat.answer()'s docstring and PendingApprovalViewSet.approve.
+    REQ-CORE-AI-001/002/003/004/006/007/008/009. One turn with the
+    assistant. It runs as the requesting user's own session -- there is no
+    elevated AI service account, so everything a turn reads or proposes is
+    limited to what that user may do (technical.md §8.5). Changes are never
+    made from here: the assistant can only propose them (chat.answer's
+    docstring), and a person approves each one through
+    PendingApprovalViewSet.
     """
 
     permission_classes = [permissions.IsAuthenticated]
@@ -28,53 +37,78 @@ class ChatView(APIView):
     def post(self, request):
         req = ChatRequestSerializer(data=request.data)
         req.is_valid(raise_exception=True)
+        message = req.validated_data["message"]
 
-        tenant = getattr(request, "tenant", None)
-        active_packages = tenant.active_packages if tenant else []
+        conversation = None
+        if llm_gateway.is_configured():
+            conversation_id = req.validated_data.get("conversation_id")
+            if conversation_id:
+                # Scoped to the owner: another user's id is a 404, not a peek.
+                conversation = get_object_or_404(Conversation, id=conversation_id, user=request.user)
+            else:
+                conversation = Conversation.objects.create(user=request.user, title=" ".join(message.split())[:120])
 
         result = chat.answer(
             user=request.user,
-            active_packages=active_packages,
+            tenant=getattr(request, "tenant", None),
             locale=req.validated_data.get("locale", "en"),
-            history=req.validated_data.get("history", []),
-            message=req.validated_data["message"],
+            message=message,
+            conversation=conversation,
+            entity_id=req.validated_data.get("entity"),
         )
 
-        # Append-only audit trail (REQ-CORE-AI-008, technical.md §8.6) --
-        # AuditLogEntry is the same table human-initiated actions log to
-        # (models.py's docstring on AuditLogEntry), actor prefixed "ai:" per
-        # REQ-CORE-AUDIT-003 so AI-originated rows are distinguishable from
-        # user-originated ones without a separate table.
-        AuditLogEntry.objects.create(
-            actor=f"ai:{request.user.id}",
+        # REQ-CORE-AI-008: what was asked, what was answered and which tools
+        # ran. Any change the user later approves is logged separately, as
+        # that action, by the resource's own view.
+        audit.record(
+            user=request.user,
+            channel=audit.AI,
             action="ai_chat",
             target_type="conversation",
-            target_id=str(request.user.id),
-            before={"message": req.validated_data["message"]},
+            target_id=conversation.id if conversation else "",
+            # What was asked reads better in the log than the conversation's
+            # title, which is the same for every turn in it.
+            target_label=" ".join(message.split()),
+            before={"message": message},
             after={"reply": result["reply"], "tool_calls": result["tool_calls"], "configured": result["configured"]},
         )
 
         return Response(
-            ChatResponseSerializer(
-                {
-                    "reply": result["reply"],
-                    "citations": result["citations"],
-                    "configured": result["configured"],
-                    "pending_action": result["pending_action"],
-                }
-            ).data,
+            {
+                "conversation": ConversationSerializer(conversation).data if conversation else None,
+                "reply": result["reply"],
+                "blocks": hydrate_blocks(result["blocks"], request),
+                "citations": result["citations"],
+                "configured": result["configured"],
+            },
             status=status.HTTP_200_OK,
         )
 
 
+class ConversationViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    """A user's own conversations with the assistant: list them, reopen one,
+    delete one. Never anyone else's -- see Conversation's docstring."""
+
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        return Conversation.objects.filter(user=self.request.user)
+
+    def get_serializer_class(self):
+        return ConversationDetailSerializer if self.action == "retrieve" else ConversationSerializer
+
+
 class PendingApprovalViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    REQ-CORE-AI-007/010: list/approve/reject the write actions the AI has
-    proposed. Read-only ModelViewSet (list/retrieve) plus the two explicit
-    state-transition actions -- there's no generic update/delete on a
-    PendingApproval, only the two sanctioned transitions out of `pending`,
-    same "narrow API surface, wide state machine" shape as
-    JournalEntryViewSet.post_entry / SendableDocumentMixin elsewhere.
+    REQ-CORE-AI-007/010: the changes the assistant has proposed, with the
+    two things a person can do to one -- approve it or reject it. There is
+    no generic update/delete, only those two transitions out of `pending`.
+
+    A user sees the proposals they asked for and the ones they'd be allowed
+    to carry out (so a colleague with the right permission can approve what
+    someone else's conversation proposed); an admin sees all of them.
+    Approving runs the action as the approver -- PendingApproval.approve.
     """
 
     permission_classes = [permissions.IsAuthenticated]
@@ -83,23 +117,20 @@ class PendingApprovalViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_fields = ["status"]
 
     def get_queryset(self):
-        # Every authenticated user on the tenant can see and act on any
-        # pending approval, not just the one who triggered it -- a
-        # colleague should be able to review/approve what a teammate's AI
-        # conversation proposed. Field/row-level restriction beyond "same
-        # tenant" is the same known gap flagged elsewhere in this codebase
-        # (e.g. EmployeeViewSet's docstring), not unique to this endpoint.
-        return PendingApproval.objects.select_related("requested_by", "resolved_by").all()
+        user = self.request.user
+        proposals = PendingApproval.objects.select_related("requested_by", "resolved_by")
+        if is_org_admin(user):
+            return proposals
+        open_codes = [res.code(op) for res in catalog.grantable_resources() for op in res.open_operations]
+        return proposals.filter(Q(requested_by=user) | Q(action_name__in=[*granted_actions(user), *open_codes]))
 
     @action(detail=True, methods=["post"])
     def approve(self, request, pk=None):
         approval = self.get_object()
-        tenant = getattr(request, "tenant", None)
-        active_packages = tenant.active_packages if tenant else []
         try:
-            approval.approve(request.user, active_packages)
+            approval.approve(request.user, getattr(request, "tenant", None))
         except ValidationError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": " ".join(exc.messages)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(self.get_serializer(approval).data)
 
     @action(detail=True, methods=["post"])
@@ -108,5 +139,5 @@ class PendingApprovalViewSet(viewsets.ReadOnlyModelViewSet):
         try:
             approval.reject(request.user)
         except ValidationError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": " ".join(exc.messages)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(self.get_serializer(approval).data)
