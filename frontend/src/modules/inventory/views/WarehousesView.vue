@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { onMounted, reactive } from 'vue'
+import { computed, onMounted, reactive } from 'vue'
 
+import PageInsights from '@/core/dashboard/PageInsights.vue'
 import { useInventoryStore } from '@/modules/inventory/stores/inventory'
 import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // REQ-INV-002: warehouse master data.
 const inventory = useInventoryStore()
@@ -17,10 +21,10 @@ async function submit() {
   form.name = ''
 }
 
-const columns: ColumnDef[] = [
-  { key: 'code', label: 'Kod' },
-  { key: 'name', label: 'Ad', editable: true },
-]
+const columns = computed<ColumnDef[]>(() => [
+  { key: 'code', label: t('common.code') },
+  { key: 'name', label: t('common.name'), editable: true },
+])
 
 async function onCellEdit({ row, column, value }: { row: any; column: string; value: any }) {
   await inventory.updateWarehouse(row.id, { [column]: value })
@@ -29,18 +33,19 @@ async function onCellEdit({ row, column, value }: { row: any; column: string; va
 
 <template>
   <section class="p-8">
-    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Depolar</h1>
+    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">{{ t('warehouses.title') }}</h1>
+    <PageInsights screen-key="warehouses" :widgets="['stock_by_warehouse','stock_flow']" :follow="inventory.warehouses" />
 
     <form class="mt-4 flex max-w-md items-end gap-2 rounded border border-neutral-200 p-4 dark:border-neutral-800" @submit.prevent="submit">
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">Kod</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('common.code') }}</label>
         <input v-model="form.code" required class="w-24 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       </div>
       <div class="flex-1">
-        <label class="mb-1 block text-xs text-neutral-500">Ad</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('common.name') }}</label>
         <input v-model="form.name" required class="w-full rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       </div>
-      <button type="submit" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">Ekle</button>
+      <button type="submit" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">{{ t('common.add') }}</button>
     </form>
 
     <div class="mt-6">

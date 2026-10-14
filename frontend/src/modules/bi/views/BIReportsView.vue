@@ -3,6 +3,9 @@ import { onMounted, reactive, ref } from 'vue'
 
 import ChartTile from '@/shared/components/ChartTile.vue'
 import { useBIStore, type ChartType, type SeriesPoint } from '@/modules/bi/stores/bi'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // REQ-BI-001/003: pick a registered series, save it as a named report
 // (personal or shared), preview it live before saving.
@@ -31,7 +34,7 @@ async function preview() {
     previewData.value = result.series
     form.chart_type = result.chart_kind === 'time' ? 'line' : 'bar'
   } catch (e: any) {
-    error.value = e?.response?.data?.detail ?? 'Önizleme başarısız.'
+    error.value = e?.response?.data?.detail ?? t('biReports.errors.preview')
   } finally {
     previewing.value = false
   }
@@ -40,7 +43,7 @@ async function preview() {
 async function submit() {
   error.value = ''
   if (!form.name.trim() || !form.series_name) {
-    error.value = 'İsim ve veri serisi seçin.'
+    error.value = t('biReports.errors.required')
     return
   }
   try {
@@ -48,7 +51,7 @@ async function submit() {
     form.name = ''
     previewData.value = null
   } catch (e: any) {
-    error.value = e?.response?.data?.detail ?? 'Rapor kaydedilemedi.'
+    error.value = e?.response?.data?.detail ?? t('biReports.errors.save')
   }
 }
 
@@ -62,45 +65,44 @@ async function loadReportPreview(reportId: number, seriesName: string, params: R
 
 <template>
   <section class="p-8">
-    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Raporlar</h1>
+    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">{{ t('biReports.title') }}</h1>
     <p class="mt-1 text-sm text-neutral-500">
-      REQ-BI-001: kayıtlı bir veri serisi seçin, önizleyin, isim verip kaydedin. Panolara (Dashboard) eklemek için
-      kaydedilmiş bir rapor gerekir.
+      {{ t('biReports.subtitle') }}
     </p>
 
     <div class="mt-4 grid grid-cols-2 gap-6">
       <form class="rounded border border-neutral-200 p-4 dark:border-neutral-800" @submit.prevent="submit">
         <div>
-          <label class="mb-1 block text-xs text-neutral-500">Veri Serisi</label>
+          <label class="mb-1 block text-xs text-neutral-500">{{ t('biReports.series') }}</label>
           <select v-model="form.series_name" class="w-full rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" @change="preview">
-            <option value="" disabled>Seçin</option>
+            <option value="" disabled>{{ t('common.select') }}</option>
             <option v-for="s in bi.availableSeries" :key="s.name" :value="s.name">{{ s.description }}</option>
           </select>
         </div>
         <div class="mt-2">
-          <label class="mb-1 block text-xs text-neutral-500">Rapor Adı</label>
+          <label class="mb-1 block text-xs text-neutral-500">{{ t('biReports.name') }}</label>
           <input v-model="form.name" class="w-full rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
         </div>
         <label class="mt-2 flex items-center gap-2 text-sm">
           <input v-model="form.is_shared" type="checkbox" />
-          Ekiple paylaş
+          {{ t('biReports.share') }}
         </label>
         <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
-        <button type="submit" class="mt-3 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">Kaydet</button>
+        <button type="submit" class="mt-3 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">{{ t('common.save') }}</button>
       </form>
 
       <div>
         <ChartTile
           v-if="previewData"
-          title="Önizleme"
+          :title="t('biReports.preview')"
           :chart-kind="form.chart_type === 'line' ? 'time' : 'category'"
           :data="previewData"
         />
-        <p v-else-if="previewing" class="text-sm text-neutral-500">Yükleniyor...</p>
+        <p v-else-if="previewing" class="text-sm text-neutral-500">{{ t('common.loading') }}</p>
       </div>
     </div>
 
-    <h2 class="mt-8 text-sm font-semibold text-neutral-700 dark:text-neutral-300">Kayıtlı Raporlar</h2>
+    <h2 class="mt-8 text-sm font-semibold text-neutral-700 dark:text-neutral-300">{{ t('biReports.saved') }}</h2>
     <div class="mt-2 grid grid-cols-2 gap-4 lg:grid-cols-3">
       <div v-for="r in bi.reports" :key="r.id" @mouseenter="loadReportPreview(r.id, r.series_name, r.params)">
         <ChartTile v-if="reportPreviews[r.id]" :title="r.name" :chart-kind="r.chart_type === 'line' ? 'time' : 'category'" :data="reportPreviews[r.id]" />

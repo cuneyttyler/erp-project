@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 
+import PageInsights from '@/core/dashboard/PageInsights.vue'
 import { useInventoryStore } from '@/modules/inventory/stores/inventory'
 import { useManufacturingStore } from '@/modules/manufacturing/stores/manufacturing'
 import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // REQ-MFG-002: create, release, and complete work orders.
 const manufacturing = useManufacturingStore()
@@ -27,13 +31,13 @@ const completeDrafts = reactive<Record<number, string>>({})
 async function submit() {
   error.value = ''
   if (form.bom === null || form.warehouse === null) {
-    error.value = 'Reçete ve depo seçin.'
+    error.value = t('workOrders.errors.required')
     return
   }
   try {
     await manufacturing.createWorkOrder(form.bom, form.warehouse, form.quantity_planned, form.scheduled_date)
   } catch (e: any) {
-    error.value = e?.response?.data?.detail ?? 'İş emri oluşturulamadı.'
+    error.value = e?.response?.data?.detail ?? t('workOrders.errors.create')
   }
 }
 
@@ -41,7 +45,7 @@ async function release(id: number) {
   try {
     await manufacturing.releaseWorkOrder(id)
   } catch (e: any) {
-    error.value = e?.response?.data?.detail ?? 'Serbest bırakılamadı.'
+    error.value = e?.response?.data?.detail ?? t('workOrders.errors.release')
   }
 }
 
@@ -53,44 +57,45 @@ async function complete(id: number) {
     completeDrafts[id] = ''
     error.value = ''
   } catch (e: any) {
-    error.value = e?.response?.data?.detail ?? 'Tamamlanamadı.'
+    error.value = e?.response?.data?.detail ?? t('workOrders.errors.complete')
   }
 }
 
-const statusLabels: Record<string, string> = {
-  draft: 'Taslak',
-  released: 'Serbest Bırakıldı',
-  in_progress: 'Devam Ediyor',
-  completed: 'Tamamlandı',
-  cancelled: 'İptal',
-}
+const statusLabels = computed<Record<string, string>>(() => ({
+  draft: t('widgets.status.draft'),
+  released: t('widgets.status.released'),
+  in_progress: t('widgets.status.in_progress'),
+  completed: t('widgets.status.completed'),
+  cancelled: t('widgets.status.cancelled'),
+}))
 
-const columns: ColumnDef[] = [
-  { key: 'bom_item_sku', label: 'Ürün' },
-  { key: 'warehouse_code', label: 'Depo' },
-  { key: 'quantity_planned', label: 'Planlanan', type: 'number' },
-  { key: 'quantity_completed', label: 'Tamamlanan', type: 'number' },
-  { key: 'status', label: 'Durum' },
+const columns = computed<ColumnDef[]>(() => [
+  { key: 'bom_item_sku', label: t('common.item') },
+  { key: 'warehouse_code', label: t('common.warehouse') },
+  { key: 'quantity_planned', label: t('workOrders.planned'), type: 'number' },
+  { key: 'quantity_completed', label: t('workOrders.completedQty'), type: 'number' },
+  { key: 'status', label: t('common.status') },
   { key: 'actions', label: '', sortable: false, filterable: false },
-]
+])
 </script>
 
 <template>
   <section class="p-8">
-    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">İş Emirleri</h1>
+    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">{{ t('workOrders.title') }}</h1>
+    <PageInsights screen-key="work-orders" :widgets="['production_output','work_orders_status']" :follow="manufacturing.workOrders" />
 
     <form class="mt-4 flex max-w-2xl flex-wrap items-end gap-2 rounded border border-neutral-200 p-4 dark:border-neutral-800" @submit.prevent="submit">
       <select v-model.number="form.bom" class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800">
-        <option :value="null" disabled>Reçete seçin</option>
+        <option :value="null" disabled>{{ t('workOrders.selectBom') }}</option>
         <option v-for="b in manufacturing.boms" :key="b.id" :value="b.id">{{ b.item_sku }} — {{ b.name }}</option>
       </select>
       <select v-model.number="form.warehouse" class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800">
-        <option :value="null" disabled>Depo seçin</option>
+        <option :value="null" disabled>{{ t('common.selectWarehouse') }}</option>
         <option v-for="w in inventory.warehouses" :key="w.id" :value="w.id">{{ w.code }} — {{ w.name }}</option>
       </select>
-      <input v-model="form.quantity_planned" type="number" step="0.01" placeholder="Planlanan Miktar" class="w-32 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
+      <input v-model="form.quantity_planned" type="number" step="0.01" :placeholder="t('workOrders.plannedQuantity')" class="w-32 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       <input v-model="form.scheduled_date" type="date" class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
-      <button type="submit" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">Oluştur</button>
+      <button type="submit" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">{{ t('common.create') }}</button>
     </form>
 
     <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
@@ -100,11 +105,11 @@ const columns: ColumnDef[] = [
         <template #status="{ row }">{{ statusLabels[row.status] }}</template>
         <template #actions="{ row }">
           <button v-if="row.status === 'draft'" class="rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700" @click="release(row.id)">
-            Serbest Bırak
+            {{ t('workOrders.release') }}
           </button>
           <template v-if="row.status === 'released' || row.status === 'in_progress'">
             <input v-model="completeDrafts[row.id]" type="number" step="0.01" class="w-20 rounded border border-neutral-300 px-1 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800" />
-            <button class="text-xs text-blue-600 hover:underline" @click="complete(row.id)">Tamamla</button>
+            <button class="text-xs text-blue-600 hover:underline" @click="complete(row.id)">{{ t('workOrders.complete') }}</button>
           </template>
         </template>
       </DataTable>

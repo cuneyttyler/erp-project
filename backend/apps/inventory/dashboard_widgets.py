@@ -1,8 +1,12 @@
 """Inventory's home-panel widgets. Registered from InventoryConfig.ready()."""
 
+import datetime
+from collections import defaultdict
 from decimal import Decimal
 
 from django.db.models import F, Sum
+from django.db.models.functions import TruncWeek
+from django.utils import timezone
 
 from apps.plugins import registry as r
 
@@ -95,3 +99,58 @@ def recent_stock_moves(ctx: r.WidgetContext) -> dict:
 @r.register_attention("inventory")
 def _inventory_attention(ctx: r.WidgetContext) -> list:
     return [r.attention_item("low_stock", len(_low_stock_rows()), r.WARNING, "/stock-levels")]
+
+
+# Page charts (see apps/core/dashboard_widgets.py).
+@r.register_widget("stock_flow", plugin="inventory", kind=r.CHART, order=1100, default_enabled=False)
+def stock_flow(ctx: r.WidgetContext) -> dict:
+    """Units received into and shipped out of stock per week, last eight
+    weeks. Transfers between warehouses move stock without changing it, so
+    they're left out."""
+    today = timezone.localdate()
+    this_week = today - datetime.timedelta(days=today.weekday())
+    weeks = [this_week - datetime.timedelta(weeks=7 - i) for i in range(8)]
+    rows = (
+        StockMove.objects.filter(created_at__date__gte=weeks[0], move_type__in=[StockMove.RECEIPT, StockMove.PICK])
+        .annotate(week=TruncWeek("created_at"))
+        .values("week", "move_type")
+        .annotate(q=Sum("quantity"))
+    )
+    totals = defaultdict(lambda: ZERO)
+    for row in rows:
+        totals[(row["week"].date() if hasattr(row["week"], "date") else row["week"], row["move_type"])] += abs(row["q"] or ZERO)
+    return r.chart(
+        "bar",
+        [
+            r.series("received_units", [(week, totals[(week, StockMove.RECEIPT)]) for week in weeks]),
+            r.series("shipped_units", [(week, totals[(week, StockMove.PICK)]) for week in weeks]),
+        ],
+        fmt="number",
+        label_kind="date",
+        route="/stock-levels",
+    )
+
+
+@r.register_widget("top_stock_items", plugin="inventory", kind=r.CHART, order=1110, default_enabled=False)
+def top_stock_items(ctx: r.WidgetContext) -> dict:
+    """The items with the most units on hand, across every warehouse."""
+    rows = (
+        StockMove.objects.values("item__name")
+        .annotate(q=Sum("quantity"))
+        .filter(q__gt=0)
+        .order_by("-q")[:8]
+    )
+    return r.chart("hbar", [r.series("units", [(row["item__name"], row["q"]) for row in rows])], fmt="number", route="/stock-levels")
+
+
+@r.register_widget("top_moving_items", plugin="inventory", kind=r.CHART, order=1120, default_enabled=False)
+def top_moving_items(ctx: r.WidgetContext) -> dict:
+    """The items shipped most in the last 90 days, in units."""
+    since = timezone.localdate() - datetime.timedelta(days=89)
+    rows = (
+        StockMove.objects.filter(move_type=StockMove.PICK, created_at__date__gte=since)
+        .values("item__name")
+        .annotate(q=Sum("quantity"))
+        .order_by("q")[:8]  # picks are negative: the most-shipped sort first
+    )
+    return r.chart("hbar", [r.series("shipped_units", [(row["item__name"], -row["q"]) for row in rows])], fmt="number", route="/items")

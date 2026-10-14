@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { onMounted, reactive } from 'vue'
+import { computed, onMounted, reactive } from 'vue'
 
 import { useEntityStore } from '@/shared/stores/entity'
 import { useInventoryStore } from '@/modules/inventory/stores/inventory'
 import { usePOSStore } from '@/modules/pos/stores/pos'
 import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // REQ-POS-002: multi-store/multi-till configuration. One screen for both,
 // since a till is meaningless without a store to pick it from -- splitting
@@ -37,73 +40,73 @@ async function createTill() {
   tillForm.name = ''
 }
 
-const storeColumns: ColumnDef[] = [
-  { key: 'code', label: 'Kod' },
-  { key: 'name', label: 'Mağaza' },
-  { key: 'entity_code', label: 'Şirket' },
-  { key: 'warehouse_code', label: 'Depo' },
-  { key: 'is_active', label: 'Aktif', type: 'boolean' },
-]
-const tillColumns: ColumnDef[] = [
-  { key: 'store_code', label: 'Mağaza' },
-  { key: 'code', label: 'Kod' },
-  { key: 'name', label: 'Kasa' },
-  { key: 'is_active', label: 'Aktif', type: 'boolean' },
-]
+const storeColumns = computed<ColumnDef[]>(() => [
+  { key: 'code', label: t('common.code') },
+  { key: 'name', label: t('common.store') },
+  { key: 'entity_code', label: t('common.company') },
+  { key: 'warehouse_code', label: t('common.warehouse') },
+  { key: 'is_active', label: t('common.active'), type: 'boolean' },
+])
+const tillColumns = computed<ColumnDef[]>(() => [
+  { key: 'store_code', label: t('common.store') },
+  { key: 'code', label: t('common.code') },
+  { key: 'name', label: t('common.till') },
+  { key: 'is_active', label: t('common.active'), type: 'boolean' },
+])
 </script>
 
 <template>
   <section class="p-8">
-    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Mağaza ve Kasa Ayarları</h1>
+    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">{{ t('posSetup.title') }}</h1>
 
-    <h2 class="mt-6 text-sm font-semibold text-neutral-700 dark:text-neutral-300">Mağazalar</h2>
+    <h2 class="mt-6 text-sm font-semibold text-neutral-700 dark:text-neutral-300">{{ t('posSetup.stores') }}</h2>
     <form class="mt-2 flex max-w-3xl flex-wrap items-end gap-2 rounded border border-neutral-200 p-4 dark:border-neutral-800" @submit.prevent="createStore">
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">Şirket</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('common.company') }}</label>
         <select v-model.number="storeForm.entity" class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800">
-          <option :value="null" disabled>Seçin</option>
+          <option :value="null" disabled>{{ t('common.select') }}</option>
           <option v-for="e in entity.entities" :key="e.id" :value="e.id">{{ e.code }} — {{ e.name }}</option>
         </select>
       </div>
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">Depo</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('common.warehouse') }}</label>
         <select v-model.number="storeForm.warehouse" class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800">
-          <option :value="null" disabled>Seçin</option>
+          <option :value="null" disabled>{{ t('common.select') }}</option>
           <option v-for="w in inventory.warehouses" :key="w.id" :value="w.id">{{ w.code }} — {{ w.name }}</option>
         </select>
       </div>
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">Kod</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('common.code') }}</label>
         <input v-model="storeForm.code" class="w-24 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       </div>
       <div class="flex-1">
-        <label class="mb-1 block text-xs text-neutral-500">Mağaza Adı</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('posSetup.storeName') }}</label>
         <input v-model="storeForm.name" class="w-full rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       </div>
-      <button type="submit" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">Ekle</button>
+      <button type="submit" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">{{ t('common.add') }}</button>
     </form>
     <div class="mt-3">
       <DataTable screen-key="pos-stores" :columns="storeColumns" :rows="pos.stores" />
     </div>
 
-    <h2 class="mt-8 text-sm font-semibold text-neutral-700 dark:text-neutral-300">Kasalar</h2>
+    <h2 class="mt-8 text-sm font-semibold text-neutral-700 dark:text-neutral-300">{{ t('posSetup.tills') }}</h2>
     <form class="mt-2 flex max-w-2xl flex-wrap items-end gap-2 rounded border border-neutral-200 p-4 dark:border-neutral-800" @submit.prevent="createTill">
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">Mağaza</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('common.store') }}</label>
         <select v-model.number="tillForm.store" class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800">
-          <option :value="null" disabled>Seçin</option>
+          <option :value="null" disabled>{{ t('common.select') }}</option>
           <option v-for="s in pos.stores" :key="s.id" :value="s.id">{{ s.code }} — {{ s.name }}</option>
         </select>
       </div>
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">Kod</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('common.code') }}</label>
         <input v-model="tillForm.code" class="w-24 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       </div>
       <div class="flex-1">
-        <label class="mb-1 block text-xs text-neutral-500">Kasa Adı</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('posSetup.tillName') }}</label>
         <input v-model="tillForm.name" class="w-full rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       </div>
-      <button type="submit" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">Ekle</button>
+      <button type="submit" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">{{ t('common.add') }}</button>
     </form>
     <div class="mt-3">
       <DataTable screen-key="pos-tills" :columns="tillColumns" :rows="pos.tills" />

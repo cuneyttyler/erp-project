@@ -5,6 +5,9 @@ import { useCatalogStore } from '@/core/stores/catalog'
 import { usePOSStore, type CheckoutLineInput, type CheckoutPaymentInput, type PaymentMethod } from '@/modules/pos/stores/pos'
 import { queueOfflineSale, flushOfflineQueue, isOnline, pendingOfflineCount } from '@/modules/pos/offlineQueue'
 import { registerPOSServiceWorker } from '@/modules/pos/registerSW'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // REQ-POS-001: item scan/lookup, discounts, multiple payment methods.
 // REQ-POS-008: if the checkout POST fails because the browser is offline
@@ -74,11 +77,11 @@ async function checkout() {
   error.value = ''
   lastReceipt.value = null
   if (openShiftId.value === null) {
-    error.value = 'Önce bir vardiya açmalısınız (Vardiyalar sayfası).'
+    error.value = t('pos.errors.noShift')
     return
   }
   if (cart.value.length === 0) {
-    error.value = 'Sepet boş.'
+    error.value = t('pos.errors.emptyCart')
     return
   }
 
@@ -110,7 +113,7 @@ async function checkout() {
       lastReceipt.value = 'queued'
       cart.value = []
     } else {
-      error.value = e.response?.data?.detail ?? 'Satış tamamlanamadı.'
+      error.value = e.response?.data?.detail ?? t('pos.errors.checkout')
     }
   }
 }
@@ -119,50 +122,50 @@ async function checkout() {
 <template>
   <section class="p-8">
     <div class="flex items-center justify-between">
-      <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Kasa (POS)</h1>
+      <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">{{ t('pos.title') }}</h1>
       <div class="flex items-center gap-3 text-xs">
         <span v-if="pendingOfflineCount > 0" class="rounded-full bg-amber-100 px-2 py-1 font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-          {{ pendingOfflineCount }} satış senkronizasyon bekliyor
+          {{ t('pos.pendingSync', { n: pendingOfflineCount }) }}
         </span>
-        <span :class="isOnline() ? 'text-green-600' : 'text-red-600'">{{ isOnline() ? '● Çevrimiçi' : '● Çevrimdışı' }}</span>
+        <span :class="isOnline() ? 'text-green-600' : 'text-red-600'">{{ isOnline() ? t('pos.online') : t('pos.offline') }}</span>
       </div>
     </div>
 
     <p v-if="openShiftId === null" class="mt-2 text-sm text-amber-700 dark:text-amber-400">
-      Açık vardiya bulunamadı -- <RouterLink to="/pos/shifts" class="underline">Vardiyalar</RouterLink> sayfasından bir vardiya açın.
+      {{ t('pos.noShift.before') }} <RouterLink to="/pos/shifts" class="underline">{{ t('pos.noShift.link') }}</RouterLink>{{ t('pos.noShift.after') }}
     </p>
 
     <div class="mt-4 grid grid-cols-3 gap-6">
       <div class="col-span-2">
         <div class="flex flex-wrap items-end gap-2 rounded border border-neutral-200 p-4 dark:border-neutral-800">
           <div class="flex-1">
-            <label class="mb-1 block text-xs text-neutral-500">Ürün</label>
+            <label class="mb-1 block text-xs text-neutral-500">{{ t('common.item') }}</label>
             <select v-model.number="pickerItemId" data-testid="pos-item-select" class="w-full rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800">
-              <option :value="null" disabled>Ürün seçin</option>
+              <option :value="null" disabled>{{ t('common.selectItem') }}</option>
               <option v-for="i in catalog.items" :key="i.id" :value="i.id">{{ i.sku }} — {{ i.name }}</option>
             </select>
           </div>
           <div>
-            <label class="mb-1 block text-xs text-neutral-500">Adet</label>
+            <label class="mb-1 block text-xs text-neutral-500">{{ t('pos.qty') }}</label>
             <input v-model="pickerQuantity" data-testid="pos-quantity-input" class="w-20 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
           </div>
           <div>
-            <label class="mb-1 block text-xs text-neutral-500">Birim Fiyat</label>
+            <label class="mb-1 block text-xs text-neutral-500">{{ t('common.unitPrice') }}</label>
             <input v-model="pickerUnitPrice" data-testid="pos-price-input" class="w-24 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
           </div>
           <button type="button" data-testid="pos-add-to-cart" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700" @click="addToCart">
-            Sepete Ekle
+            {{ t('pos.addToCart') }}
           </button>
         </div>
 
         <table class="mt-4 w-full text-sm">
           <thead>
             <tr class="border-b border-neutral-200 text-left text-xs text-neutral-500 dark:border-neutral-800">
-              <th class="py-1">Ürün</th>
-              <th class="py-1">Adet</th>
-              <th class="py-1">Birim Fiyat</th>
-              <th class="py-1">İndirim</th>
-              <th class="py-1">Tutar</th>
+              <th class="py-1">{{ t('common.item') }}</th>
+              <th class="py-1">{{ t('pos.qty') }}</th>
+              <th class="py-1">{{ t('common.unitPrice') }}</th>
+              <th class="py-1">{{ t('pos.discount') }}</th>
+              <th class="py-1">{{ t('pos.amount') }}</th>
               <th class="py-1"></th>
             </tr>
           </thead>
@@ -173,20 +176,20 @@ async function checkout() {
               <td class="py-1">{{ line.unit_price }}</td>
               <td class="py-1"><input v-model="line.discount_amount" class="w-16 rounded border border-neutral-300 px-1 py-0.5 text-xs dark:border-neutral-700 dark:bg-neutral-800" /></td>
               <td class="py-1">{{ (Number(line.quantity) * Number(line.unit_price) - Number(line.discount_amount || 0)).toFixed(2) }}</td>
-              <td class="py-1"><button class="text-xs text-red-600 hover:underline" @click="removeLine(idx)">Sil</button></td>
+              <td class="py-1"><button class="text-xs text-red-600 hover:underline" @click="removeLine(idx)">{{ t('common.delete') }}</button></td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <div class="rounded border border-neutral-200 p-4 dark:border-neutral-800">
-        <p class="text-sm text-neutral-500">Toplam</p>
+        <p class="text-sm text-neutral-500">{{ t('common.total') }}</p>
         <p class="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">{{ cartTotal }} ₺</p>
 
-        <label class="mt-4 mb-1 block text-xs text-neutral-500">Ödeme Yöntemi</label>
+        <label class="mt-4 mb-1 block text-xs text-neutral-500">{{ t('pos.paymentMethod') }}</label>
         <select v-model="paymentMethod" class="w-full rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800">
-          <option value="cash">Nakit</option>
-          <option value="card">Kart</option>
+          <option value="cash">{{ t('pos.cash') }}</option>
+          <option value="card">{{ t('pos.card') }}</option>
         </select>
 
         <button
@@ -195,15 +198,15 @@ async function checkout() {
           :disabled="cart.length === 0"
           @click="checkout"
         >
-          Tahsil Et
+          {{ t('pos.charge') }}
         </button>
 
         <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
         <p v-if="lastReceipt === 'queued'" class="mt-2 text-sm text-amber-700 dark:text-amber-400">
-          Bağlantı yok -- satış çevrimdışı kuyruğa alındı, bağlantı gelince otomatik gönderilecek.
+          {{ t('pos.queued') }}
         </p>
         <p v-else-if="lastReceipt" class="mt-2 text-sm text-green-700 dark:text-green-400">
-          Satış #{{ lastReceipt.id }} tamamlandı ({{ lastReceipt.subtotal }} ₺).
+          {{ t('pos.completed', { id: lastReceipt.id, total: lastReceipt.subtotal }) }}
         </p>
       </div>
     </div>

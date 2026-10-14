@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 
+import PageInsights from '@/core/dashboard/PageInsights.vue'
 import { useCatalogStore } from '@/core/stores/catalog'
 import { useEntityStore } from '@/shared/stores/entity'
 import { useInventoryStore } from '@/modules/inventory/stores/inventory'
 import { useEcommerceStore, type Platform, type SyncResult } from '@/modules/ecommerce/stores/ecommerce'
 import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // REQ-ECOM-001/003: connect a marketplace account, map its SKUs to our
 // Items (MarketplaceListing), then sync orders in and push stock back out.
@@ -36,7 +40,7 @@ const error = ref('')
 async function createAccount() {
   error.value = ''
   if (accountForm.entity === null || accountForm.warehouse === null || !accountForm.name.trim()) {
-    error.value = 'Şirket, depo ve isim gerekli.'
+    error.value = t('marketplace.errors.required')
     return
   }
   try {
@@ -46,7 +50,7 @@ async function createAccount() {
     accountForm.api_key = ''
     accountForm.api_secret = ''
   } catch (e: any) {
-    error.value = e?.response?.data?.detail ?? 'Bağlantı oluşturulamadı.'
+    error.value = e?.response?.data?.detail ?? t('marketplace.errors.create')
   }
 }
 
@@ -59,7 +63,7 @@ async function syncOrders(accountId: number) {
   try {
     syncResults[accountId] = await ecommerce.syncOrders(accountId)
   } catch (e: any) {
-    error.value = e?.response?.data?.detail ?? 'Senkronizasyon başarısız.'
+    error.value = e?.response?.data?.detail ?? t('marketplace.errors.sync')
   } finally {
     syncing[accountId] = false
   }
@@ -71,7 +75,7 @@ async function pushStock(accountId: number) {
   try {
     syncResults[accountId] = await ecommerce.pushStock(accountId)
   } catch (e: any) {
-    error.value = e?.response?.data?.detail ?? 'Stok gönderimi başarısız.'
+    error.value = e?.response?.data?.detail ?? t('marketplace.errors.push')
   } finally {
     syncing[accountId] = false
   }
@@ -88,35 +92,35 @@ async function createListing() {
 
 const platformLabels: Record<Platform, string> = { shopify: 'Shopify', trendyol: 'Trendyol', hepsiburada: 'Hepsiburada' }
 
-const accountColumns: ColumnDef[] = [
-  { key: 'name', label: 'İsim' },
-  { key: 'platform', label: 'Platform' },
-  { key: 'entity_code', label: 'Şirket' },
-  { key: 'warehouse_code', label: 'Depo' },
-  { key: 'is_active', label: 'Aktif', type: 'boolean' },
-  { key: 'last_synced_at', label: 'Son Senkron' },
+const accountColumns = computed<ColumnDef[]>(() => [
+  { key: 'name', label: t('common.name') },
+  { key: 'platform', label: t('common.platform') },
+  { key: 'entity_code', label: t('common.company') },
+  { key: 'warehouse_code', label: t('common.warehouse') },
+  { key: 'is_active', label: t('common.active'), type: 'boolean' },
+  { key: 'last_synced_at', label: t('marketplace.lastSync') },
   { key: 'actions', label: '', sortable: false, filterable: false },
-]
+])
 
-const listingColumns: ColumnDef[] = [
-  { key: 'item_sku', label: 'Ürün' },
-  { key: 'external_sku', label: 'Pazaryeri SKU' },
-  { key: 'is_active', label: 'Aktif', type: 'boolean' },
-]
+const listingColumns = computed<ColumnDef[]>(() => [
+  { key: 'item_sku', label: t('common.item') },
+  { key: 'external_sku', label: t('marketplace.externalSku') },
+  { key: 'is_active', label: t('common.active'), type: 'boolean' },
+])
 </script>
 
 <template>
   <section class="p-8">
-    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Pazaryeri Entegrasyonları</h1>
+    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">{{ t('marketplace.title') }}</h1>
     <p class="mt-1 text-sm text-neutral-500">
-      REQ-ECOM-001/003. Sipariş senkronizasyonu manuel/periyodik olarak tetiklenir (webhook değil) --
-      her senkronizasyon son senkron zamanından bu yana yeni siparişleri çeker.
+      {{ t('marketplace.subtitle') }}
     </p>
+    <PageInsights screen-key="marketplace-accounts" :widgets="['marketplace_orders_by_account','marketplace_orders_trend']" :follow="ecommerce.accounts" />
 
-    <h2 class="mt-6 text-sm font-semibold text-neutral-700 dark:text-neutral-300">Bağlantılar</h2>
+    <h2 class="mt-6 text-sm font-semibold text-neutral-700 dark:text-neutral-300">{{ t('marketplace.connections') }}</h2>
     <form class="mt-2 flex max-w-4xl flex-wrap items-end gap-2 rounded border border-neutral-200 p-4 dark:border-neutral-800" @submit.prevent="createAccount">
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">Platform</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('common.platform') }}</label>
         <select v-model="accountForm.platform" class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800">
           <option value="shopify">Shopify</option>
           <option value="trendyol">Trendyol</option>
@@ -124,36 +128,36 @@ const listingColumns: ColumnDef[] = [
         </select>
       </div>
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">İsim</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('common.name') }}</label>
         <input v-model="accountForm.name" class="w-40 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       </div>
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">Şirket</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('common.company') }}</label>
         <select v-model.number="accountForm.entity" class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800">
-          <option :value="null" disabled>Seçin</option>
+          <option :value="null" disabled>{{ t('common.select') }}</option>
           <option v-for="e in entity.entities" :key="e.id" :value="e.id">{{ e.code }} — {{ e.name }}</option>
         </select>
       </div>
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">Depo</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('common.warehouse') }}</label>
         <select v-model.number="accountForm.warehouse" class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800">
-          <option :value="null" disabled>Seçin</option>
+          <option :value="null" disabled>{{ t('common.select') }}</option>
           <option v-for="w in inventory.warehouses" :key="w.id" :value="w.id">{{ w.code }} — {{ w.name }}</option>
         </select>
       </div>
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">Mağaza Alan Adı</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('marketplace.shopDomain') }}</label>
         <input v-model="accountForm.shop_domain" placeholder="my-shop.myshopify.com" class="w-48 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       </div>
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">API Anahtarı</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('marketplace.apiKey') }}</label>
         <input v-model="accountForm.api_key" class="w-32 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       </div>
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">API Secret</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('marketplace.apiSecret') }}</label>
         <input v-model="accountForm.api_secret" type="password" class="w-32 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       </div>
-      <button type="submit" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">Bağla</button>
+      <button type="submit" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">{{ t('marketplace.connect') }}</button>
     </form>
 
     <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
@@ -164,50 +168,50 @@ const listingColumns: ColumnDef[] = [
         <template #actions="{ row }">
           <div class="flex items-center gap-1">
             <button :disabled="syncing[row.id]" class="rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50" @click="syncOrders(row.id)">
-              Siparişleri Getir
+              {{ t('marketplace.fetchOrders') }}
             </button>
             <button :disabled="syncing[row.id]" class="rounded bg-neutral-800 px-2 py-1 text-xs font-medium text-white hover:bg-neutral-900 disabled:opacity-50" @click="pushStock(row.id)">
-              Stok Gönder
+              {{ t('marketplace.pushStock') }}
             </button>
           </div>
           <p v-if="syncResults[row.id]" class="mt-1 text-xs text-neutral-500">
-            <span v-if="syncResults[row.id].created !== undefined">{{ syncResults[row.id].created }} yeni, {{ syncResults[row.id].skipped }} atlandı, </span>
-            <span v-if="syncResults[row.id].pushed !== undefined">{{ syncResults[row.id].pushed }} gönderildi, </span>
-            {{ syncResults[row.id].failed }} başarısız.
+            <span v-if="syncResults[row.id].created !== undefined">{{ t('marketplace.result.fetched', { created: syncResults[row.id].created, skipped: syncResults[row.id].skipped }) }} </span>
+            <span v-if="syncResults[row.id].pushed !== undefined">{{ t('marketplace.result.pushed', { n: syncResults[row.id].pushed }) }} </span>
+            {{ t('marketplace.result.failed', { n: syncResults[row.id].failed }) }}
           </p>
         </template>
       </DataTable>
     </div>
 
-    <h2 class="mt-8 text-sm font-semibold text-neutral-700 dark:text-neutral-300">Ürün Eşleştirmeleri (Listings)</h2>
+    <h2 class="mt-8 text-sm font-semibold text-neutral-700 dark:text-neutral-300">{{ t('marketplace.listings') }}</h2>
     <form class="mt-2 flex max-w-3xl flex-wrap items-end gap-2 rounded border border-neutral-200 p-4 dark:border-neutral-800" @submit.prevent="createListing">
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">Bağlantı</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('marketplace.connection') }}</label>
         <select v-model.number="listingForm.account" class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800">
-          <option :value="null" disabled>Seçin</option>
+          <option :value="null" disabled>{{ t('common.select') }}</option>
           <option v-for="a in ecommerce.accounts" :key="a.id" :value="a.id">{{ a.name }}</option>
         </select>
       </div>
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">Ürün</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('common.item') }}</label>
         <select v-model.number="listingForm.item" class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800">
-          <option :value="null" disabled>Seçin</option>
+          <option :value="null" disabled>{{ t('common.select') }}</option>
           <option v-for="i in catalog.items" :key="i.id" :value="i.id">{{ i.sku }} — {{ i.name }}</option>
         </select>
       </div>
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">Pazaryeri SKU</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('marketplace.externalSku') }}</label>
         <input v-model="listingForm.external_sku" class="w-32 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       </div>
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">Variant/Inventory Item ID</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('marketplace.variantId') }}</label>
         <input v-model="listingForm.external_variant_id" class="w-32 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       </div>
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">Location ID</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('marketplace.locationId') }}</label>
         <input v-model="listingForm.external_location_id" class="w-28 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       </div>
-      <button type="submit" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">Eşle</button>
+      <button type="submit" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">{{ t('marketplace.map') }}</button>
     </form>
     <div class="mt-3">
       <DataTable screen-key="ecommerce-listings" :columns="listingColumns" :rows="ecommerce.listings" />

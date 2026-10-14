@@ -1,9 +1,13 @@
 """Manufacturing's home-panel widgets. Registered from ManufacturingConfig.ready()."""
 
-from django.db.models import Count
+from decimal import Decimal
+
+from django.db.models import Count, Sum
+from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
 from apps.plugins import registry as r
+from apps.plugins.periods import month_key, month_starts
 
 from .models import WorkOrder
 
@@ -44,3 +48,30 @@ def upcoming_work_orders(ctx: r.WidgetContext) -> dict:
 def _manufacturing_attention(ctx: r.WidgetContext) -> list:
     late = WorkOrder.objects.filter(status__in=ACTIVE_STATUSES, scheduled_date__lt=timezone.localdate()).count()
     return [r.attention_item("late_work_orders", late, r.WARNING, "/work-orders")]
+
+
+# Page charts (see apps/core/dashboard_widgets.py).
+@r.register_widget("production_output", plugin="manufacturing", kind=r.CHART, order=1400, default_enabled=False)
+def production_output(ctx: r.WidgetContext) -> dict:
+    """Units planned and completed per month (by scheduled date), last six
+    months; cancelled orders left out."""
+    starts = month_starts(6)
+    rows = (
+        WorkOrder.objects.filter(scheduled_date__gte=starts[0])
+        .exclude(status=WorkOrder.CANCELLED)
+        .annotate(month=TruncMonth("scheduled_date"))
+        .values("month")
+        .annotate(planned=Sum("quantity_planned"), completed=Sum("quantity_completed"))
+    )
+    by_month = {month_key(row["month"]): row for row in rows}
+    zero = Decimal("0")
+    return r.chart(
+        "bar",
+        [
+            r.series("planned_units", [(month_key(s), (by_month.get(month_key(s)) or {}).get("planned") or zero) for s in starts]),
+            r.series("completed_units", [(month_key(s), (by_month.get(month_key(s)) or {}).get("completed") or zero) for s in starts]),
+        ],
+        fmt="number",
+        label_kind="month",
+        route="/work-orders",
+    )

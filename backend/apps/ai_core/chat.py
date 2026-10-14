@@ -78,6 +78,10 @@ over rows yourself and never type out a chart's data.
 reply. So do not repeat their rows in text: give the answer in a sentence or two, call out what matters \
 (the total, the outlier, what's overdue), and let the table carry the detail. Refer to it as "the table \
 below" or "the chart below".
+- Only `query_records`, `get_record`, `summarize_records`, `propose_action` and the series tools show \
+anything. Metric tools (single figures such as balances and totals) show nothing: state their figures in \
+your reply, and never mention a table or chart that no tool in this turn produced. If the user should see \
+the rows, also call `query_records`.
 - When asked for a chart or graph, use `summarize_records` or a series tool. When asked to "show" or "list", \
 use `query_records`.
 
@@ -168,9 +172,38 @@ def answer(
     conversation: Optional[Conversation] = None,
     entity_id: Optional[int] = None,
 ) -> dict:
+    """One turn, start to finish -- answer_steps() without the progress."""
+    steps = answer_steps(user, tenant, locale, message, conversation, entity_id)
+    while True:
+        try:
+            next(steps)
+        except StopIteration as done:
+            return done.value
+
+
+def _progress(call_name: str, call_input: dict, kind: str) -> dict:
+    """What the assistant is doing right now, for the person waiting: which
+    tool, and on what -- never the full input (it can hold a long `where`)."""
+    event = {"step": "tool", "tool": call_name, "kind": kind}
+    for key in ("resource", "operation", "metric", "series"):
+        if isinstance(call_input.get(key), str):
+            event[key] = call_input[key]
+    return event
+
+
+def answer_steps(
+    user,
+    tenant,
+    locale: str,
+    message: str,
+    conversation: Optional[Conversation] = None,
+    entity_id: Optional[int] = None,
+):
     """
-    One turn. Returns {"configured", "reply", "blocks", "citations",
-    "tool_calls"}:
+    One turn, as a generator: it yields a progress event before each model
+    call ({"step": "thinking"}) and each tool call ({"step": "tool", ...}),
+    and *returns* the result -- {"configured", "reply", "blocks",
+    "citations", "tool_calls"}:
 
     - `blocks` are the structured results to render with the reply, in the
       order the tools produced them (see tools.py for the shapes).
@@ -204,6 +237,7 @@ def answer(
     configured = True
 
     for _ in range(MAX_TOOL_ITERATIONS):
+        yield {"step": "thinking"}
         try:
             response = llm_gateway.create_message(system=system, messages=messages, tools=specs, context=context_note)
         except llm_gateway.LLMNotConfiguredError:
@@ -228,6 +262,7 @@ def answer(
         tool_results = []
         for call in response.tool_use_blocks:
             call_input = call["input"] or {}
+            yield _progress(call["name"], call_input, "catalog" if tools.is_tool(call["name"]) else named.get(call["name"], ("unknown",))[0])
             if tools.is_tool(call["name"]):
                 payload, new_blocks = tools.run(ctx, call["name"], call_input)
                 blocks.extend(new_blocks)

@@ -14,7 +14,7 @@ from django.utils import timezone
 from apps.plugins import registry as r
 from apps.plugins.periods import last_days
 
-from .models import POSReturnLine, POSSale, POSSaleLine, POSShift
+from .models import POSPayment, POSReturnLine, POSSale, POSSaleLine, POSShift
 
 ZERO = Decimal("0")
 STALE_SHIFT_HOURS = 24
@@ -109,3 +109,31 @@ def _pos_attention(ctx: r.WidgetContext) -> list:
     cutoff = timezone.now() - datetime.timedelta(hours=STALE_SHIFT_HOURS)
     stale = POSShift.objects.filter(status=POSShift.OPEN, opened_at__lt=cutoff).count()
     return [r.attention_item("stale_open_shifts", stale, r.WARNING, "/pos/shifts")]
+
+
+# Page charts (see apps/core/dashboard_widgets.py).
+@r.register_widget("pos_sales_by_till", plugin="pos", kind=r.CHART, order=1600, default_enabled=False)
+def pos_sales_by_till(ctx: r.WidgetContext) -> dict:
+    """Takings per till over the last 30 days (payments received, before returns)."""
+    since = timezone.localdate() - datetime.timedelta(days=29)
+    rows = (
+        POSPayment.objects.filter(sale__created_at__date__gte=since)
+        .values("sale__shift__till__store__code", "sale__shift__till__name")
+        .annotate(total=Sum("amount"))
+        .order_by("-total")[:8]
+    )
+    points = [(f"{row['sale__shift__till__store__code']} · {row['sale__shift__till__name']}", row["total"]) for row in rows]
+    return r.chart("hbar", [r.series("amount", points)], route="/pos/shifts")
+
+
+@r.register_widget("pos_payment_mix", plugin="pos", kind=r.CHART, order=1610, default_enabled=False)
+def pos_payment_mix(ctx: r.WidgetContext) -> dict:
+    """Cash against card over the last 30 days."""
+    since = timezone.localdate() - datetime.timedelta(days=29)
+    totals = dict(POSPayment.objects.filter(sale__created_at__date__gte=since).values_list("method").annotate(total=Sum("amount")))
+    return r.chart(
+        "hbar",
+        [r.series("amount", [(method, totals.get(method, ZERO)) for method in (POSPayment.CASH, POSPayment.CARD)])],
+        label_kind="key",
+        route="/pos/shifts",
+    )

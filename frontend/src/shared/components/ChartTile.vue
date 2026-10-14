@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // A single-series chart tile (REQ-BI-001/002) -- bar for a "category"
 // series (identity/ranking), line for a "time" series (magnitude over
@@ -49,7 +52,7 @@ function formatValue(value: number): string {
   <div class="viz-root rounded border border-neutral-200 p-4 dark:border-neutral-800">
     <h3 class="text-sm font-medium text-[var(--text-primary)]">{{ title }}</h3>
 
-    <div v-if="points.length === 0" class="mt-6 text-sm text-[var(--text-secondary)]">Veri yok.</div>
+    <div v-if="points.length === 0" class="mt-6 text-sm text-[var(--text-secondary)]">{{ t('common.noData') }}</div>
 
     <svg v-else :viewBox="`0 0 ${chartWidth} ${chartHeight}`" class="mt-3 w-full" :style="{ height: '180px' }">
       <line x1="0" :x2="chartWidth" :y1="chartHeight - 12" :y2="chartHeight - 12" stroke="var(--baseline)" stroke-width="1" />
@@ -97,7 +100,7 @@ function formatValue(value: number): string {
 
     <table class="sr-only">
       <caption>{{ title }}</caption>
-      <thead><tr><th>Etiket</th><th>Değer</th></tr></thead>
+      <thead><tr><th>{{ t('common.label') }}</th><th>{{ t('common.value') }}</th></tr></thead>
       <tbody>
         <tr v-for="p in points" :key="p.label"><td>{{ p.label }}</td><td>{{ p.value }}</td></tr>
       </tbody>

@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 
+import PageInsights from '@/core/dashboard/PageInsights.vue'
 import { useCatalogStore } from '@/core/stores/catalog'
 import { useARAPStore } from '@/core/stores/arap'
 import { useInventoryStore } from '@/modules/inventory/stores/inventory'
 import { useSalesCrmStore, type SOLineInput } from '@/modules/sales_crm/stores/salesCrm'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // REQ-CRM-002/003: create, confirm, and fulfill sales orders.
 const salesCrm = useSalesCrmStore()
@@ -35,7 +39,7 @@ function addLine() {
 async function submit() {
   error.value = ''
   if (form.party === null || form.warehouse === null) {
-    error.value = 'Müşteri ve depo seçin.'
+    error.value = t('salesOrders.errors.required')
     return
   }
   try {
@@ -45,7 +49,7 @@ async function submit() {
     await salesCrm.createOrder(form.party, form.warehouse, form.order_date, lines)
     form.lines = [{ item: null, quantity_ordered: '1', unit_price: '0' }]
   } catch (e: any) {
-    error.value = e?.response?.data?.lines?.[0] ?? e?.response?.data?.detail ?? 'Sipariş oluşturulamadı.'
+    error.value = e?.response?.data?.lines?.[0] ?? e?.response?.data?.detail ?? t('salesOrders.errors.create')
   }
 }
 
@@ -53,7 +57,7 @@ async function confirm(id: number) {
   try {
     await salesCrm.confirmOrder(id)
   } catch (e: any) {
-    error.value = e?.response?.data?.detail ?? 'Onaylanamadı.'
+    error.value = e?.response?.data?.detail ?? t('salesOrders.errors.confirm')
   }
 }
 
@@ -67,31 +71,32 @@ async function fulfill(orderId: number, lineIds: number[]) {
     lineIds.forEach((id) => (fulfillDrafts[id] = ''))
     error.value = ''
   } catch (e: any) {
-    error.value = e?.response?.data?.detail ?? 'Sevkiyat başarısız.'
+    error.value = e?.response?.data?.detail ?? t('salesOrders.errors.ship')
   }
 }
 
-const statusLabels: Record<string, string> = {
-  draft: 'Taslak',
-  confirmed: 'Onaylandı',
-  partially_fulfilled: 'Kısmi Sevk',
-  fulfilled: 'Sevk Edildi',
-  cancelled: 'İptal',
-}
+const statusLabels = computed<Record<string, string>>(() => ({
+  draft: t('widgets.status.draft'),
+  confirmed: t('widgets.status.confirmed'),
+  partially_fulfilled: t('widgets.status.partially_fulfilled'),
+  fulfilled: t('widgets.status.fulfilled'),
+  cancelled: t('widgets.status.cancelled'),
+}))
 </script>
 
 <template>
   <section class="p-8">
-    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Satış Siparişleri</h1>
+    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">{{ t('salesOrders.title') }}</h1>
+    <PageInsights screen-key="sales-orders" :widgets="['sales_order_trend','sales_orders_by_status','top_customers']" :follow="salesCrm.orders" />
 
     <form class="mt-4 max-w-2xl space-y-3 rounded border border-neutral-200 p-4 dark:border-neutral-800" @submit.prevent="submit">
-      <div class="flex gap-3">
+      <div class="flex flex-wrap gap-3">
         <select v-model.number="form.party" class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800">
-          <option :value="null" disabled>Müşteri seçin</option>
+          <option :value="null" disabled>{{ t('common.selectCustomer') }}</option>
           <option v-for="p in arap.parties" :key="p.id" :value="p.id">{{ p.name }}</option>
         </select>
         <select v-model.number="form.warehouse" class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800">
-          <option :value="null" disabled>Depo seçin</option>
+          <option :value="null" disabled>{{ t('common.selectWarehouse') }}</option>
           <option v-for="w in inventory.warehouses" :key="w.id" :value="w.id">{{ w.code }} — {{ w.name }}</option>
         </select>
         <input v-model="form.order_date" type="date" class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
@@ -99,18 +104,18 @@ const statusLabels: Record<string, string> = {
 
       <div v-for="(line, i) in form.lines" :key="i" class="flex items-center gap-2">
         <select v-model.number="line.item" class="flex-1 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800">
-          <option :value="null" disabled>Ürün seçin</option>
+          <option :value="null" disabled>{{ t('common.selectItem') }}</option>
           <option v-for="it in catalog.items" :key="it.id" :value="it.id">{{ it.sku }} — {{ it.name }}</option>
         </select>
-        <input v-model="line.quantity_ordered" type="number" step="0.01" placeholder="Miktar" class="w-24 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
-        <input v-model="line.unit_price" type="number" step="0.01" placeholder="Birim Fiyat" class="w-28 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
+        <input v-model="line.quantity_ordered" type="number" step="0.01" :placeholder="t('common.quantity')" class="w-24 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
+        <input v-model="line.unit_price" type="number" step="0.01" :placeholder="t('common.unitPrice')" class="w-28 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       </div>
-      <button type="button" class="text-sm text-blue-600" @click="addLine">+ Kalem ekle</button>
+      <button type="button" class="block text-sm text-blue-600 hover:underline" @click="addLine">{{ t('common.addLine') }}</button>
 
       <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
 
       <button type="submit" class="rounded bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
-        Taslak Oluştur
+        {{ t('common.createDraft') }}
       </button>
     </form>
 
@@ -119,7 +124,7 @@ const statusLabels: Record<string, string> = {
         <div class="flex items-center justify-between">
           <div>
             <span class="font-medium text-neutral-900 dark:text-neutral-100">SO-{{ order.id }} — {{ order.party_name }}</span>
-            <span class="ml-2 text-sm text-neutral-500">{{ order.warehouse_code }} · Toplam {{ order.total }}</span>
+            <span class="ml-2 text-sm text-neutral-500">{{ order.warehouse_code }} · {{ t('common.total') }} {{ order.total }}</span>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-sm">{{ statusLabels[order.status] }}</span>
@@ -128,7 +133,7 @@ const statusLabels: Record<string, string> = {
               class="rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700"
               @click="confirm(order.id)"
             >
-              Onayla
+              {{ t('common.confirm') }}
             </button>
           </div>
         </div>
@@ -136,11 +141,11 @@ const statusLabels: Record<string, string> = {
         <table v-if="order.status !== 'draft' && order.status !== 'cancelled'" class="mt-3 w-full text-left text-xs">
           <thead>
             <tr class="text-neutral-500">
-              <th class="py-1 pr-3">Ürün</th>
-              <th class="py-1 pr-3 text-right">Sipariş</th>
-              <th class="py-1 pr-3 text-right">Sevk Edilen</th>
-              <th class="py-1 pr-3 text-right">Kalan</th>
-              <th class="py-1 pr-3" v-if="order.status !== 'fulfilled'">Şimdi Sevk Et</th>
+              <th class="py-1 pr-3">{{ t('common.item') }}</th>
+              <th class="py-1 pr-3 text-right">{{ t('common.ordered') }}</th>
+              <th class="py-1 pr-3 text-right">{{ t('salesOrders.shipped') }}</th>
+              <th class="py-1 pr-3 text-right">{{ t('common.remaining') }}</th>
+              <th class="py-1 pr-3" v-if="order.status !== 'fulfilled'">{{ t('salesOrders.shipNow') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -165,7 +170,7 @@ const statusLabels: Record<string, string> = {
           class="mt-2 text-xs text-blue-600 hover:underline"
           @click="fulfill(order.id, order.lines.map((l) => l.id))"
         >
-          Sevk Et
+          {{ t('salesOrders.ship') }}
         </button>
       </div>
     </div>

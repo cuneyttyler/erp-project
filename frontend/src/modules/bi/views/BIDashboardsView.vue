@@ -3,6 +3,9 @@ import { onMounted, reactive, ref } from 'vue'
 
 import ChartTile from '@/shared/components/ChartTile.vue'
 import { useBIStore, type Dashboard, type SeriesPoint } from '@/modules/bi/stores/bi'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // REQ-BI-001's "dashboard builder": pick a dashboard, add/remove saved
 // reports as tiles, drag tiles to reorder (native HTML5 DnD -- the actual
@@ -40,7 +43,7 @@ async function addTile() {
     await bi.addTile(currentDashboardId.value, addReportId.value)
     addReportId.value = null
   } catch (e: any) {
-    error.value = e?.response?.data?.detail ?? 'Eklenemedi.'
+    error.value = e?.response?.data?.detail ?? t('biDashboards.errors.add')
   }
 }
 
@@ -77,24 +80,24 @@ async function onDrop(targetTileId: number) {
 
 <template>
   <section class="p-8">
-    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Panolar (Dashboards)</h1>
+    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">{{ t('biDashboards.title') }}</h1>
 
     <div class="mt-4 flex items-center gap-2">
       <select :value="currentDashboardId" class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" @change="selectDashboard(Number(($event.target as HTMLSelectElement).value))">
-        <option :value="null" disabled>Pano seçin</option>
+        <option :value="null" disabled>{{ t('biDashboards.select') }}</option>
         <option v-for="d in bi.dashboards" :key="d.id" :value="d.id">{{ d.name }}</option>
       </select>
-      <input v-model="newDashboardName" placeholder="Yeni pano adı" class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
-      <button class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700" @click="createDashboard">Pano Oluştur</button>
+      <input v-model="newDashboardName" :placeholder="t('biDashboards.newName')" class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
+      <button class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700" @click="createDashboard">{{ t('biDashboards.create') }}</button>
     </div>
 
     <template v-if="currentDashboard()">
       <div class="mt-4 flex items-center gap-2">
         <select v-model.number="addReportId" class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800">
-          <option :value="null" disabled>Rapor seçin</option>
+          <option :value="null" disabled>{{ t('biDashboards.selectReport') }}</option>
           <option v-for="r in bi.reports" :key="r.id" :value="r.id">{{ r.name }}</option>
         </select>
-        <button class="rounded bg-neutral-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-900" @click="addTile">Panoya Ekle</button>
+        <button class="rounded bg-neutral-800 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-900" @click="addTile">{{ t('biDashboards.addToDashboard') }}</button>
       </div>
       <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
 

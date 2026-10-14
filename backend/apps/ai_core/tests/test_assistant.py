@@ -10,6 +10,7 @@ correctly.
 """
 
 import copy
+import json
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -411,6 +412,64 @@ class ConversationLoopTests(AssistantTestBase):
 
 
 @override_settings(AI_LLM_API_KEY="test-key-not-real")
+class InternalRequestHostTests(AssistantTestBase):
+    @override_settings(ALLOWED_HOSTS=["tenant.fast-test.com"])
+    def test_a_paginated_list_works_when_only_real_hosts_are_allowed(self):
+        # More rows than a page: the list view builds an absolute "next"
+        # link, which used to fail on the request factory's "testserver".
+        Item.objects.bulk_create(Item(sku=f"P-{i}", name=f"Part {i}", unit_of_measure="adet") for i in range(60))
+        payload, blocks = tools.run(self.ctx, "query_records", {"resource": "item", "limit": 100})
+        self.assertNotIn("error", payload)
+        # Every page was walked (at most MAX_ROWS_RETURNED are shown).
+        self.assertEqual(payload["total_matching"], 63)
+
+
+class SeriesDateRangeTests(AssistantTestBase):
+    def test_revenue_by_customer_honours_the_date_range(self):
+        from apps.core.ai_tools import revenue_by_customer
+
+        self.invoices()
+        Invoice.objects.filter(party__name="Globex").update(issue_date=timezone.localdate() - timezone.timedelta(days=60))
+        today = timezone.localdate().isoformat()
+        this_month = revenue_by_customer(date_from=timezone.localdate().replace(day=1).isoformat(), date_to=today)["result"]["series"]
+        self.assertEqual([point["label"] for point in this_month], ["Acme"])
+        all_time = revenue_by_customer()["result"]["series"]
+        self.assertEqual([point["label"] for point in all_time], ["Globex", "Acme"])
+
+
+class StreamingEndpointTests(AssistantTestBase):
+    def setUp(self):
+        super().setUp()
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.admin)
+
+    def events(self, response):
+        body = b"".join(response.streaming_content).decode()
+        parsed = []
+        for chunk in body.split("\n\n"):
+            lines = dict(line.split(": ", 1) for line in chunk.split("\n") if line and not line.startswith(":"))
+            if lines:
+                parsed.append((lines["event"], json.loads(lines["data"])))
+        return parsed
+
+    def test_progress_then_the_same_body_as_the_plain_endpoint(self):
+        responses = [tool_response(("query_records", {"resource": "item"})), text_response("Three items.")]
+        with patch("apps.ai_core.chat.llm_gateway.create_message", side_effect=responses):
+            response = self.client.post("/api/v1/ai/chat/stream/", {"message": "List items", "locale": "en"}, format="json", **HOST)
+            events = self.events(response)
+        self.assertEqual(response["Content-Type"], "text/event-stream")
+        self.assertEqual(
+            [(name, data.get("step"), data.get("tool"), data.get("resource")) for name, data in events[:-1]],
+            [("progress", "thinking", None, None), ("progress", "tool", "query_records", "item"), ("progress", "thinking", None, None)],
+        )
+        name, body = events[-1]
+        self.assertEqual((name, body["reply"], body["blocks"][0]["type"]), ("done", "Three items.", "table"))
+        self.assertEqual(body["conversation"]["title"], "List items")
+        # Audited like any other turn.
+        (entry,) = AuditLogEntry.objects.filter(action="ai_chat")
+        self.assertEqual(entry.after["tool_calls"][0]["tool"], "query_records")
+
+
 class EndpointTests(AssistantTestBase):
     def setUp(self):
         super().setUp()

@@ -1,10 +1,13 @@
 """Purchasing's home-panel widgets. Registered from PurchasingConfig.ready()."""
 
+from collections import defaultdict
 from decimal import Decimal
 
+from django.db.models import Count
 from django.utils import timezone
 
 from apps.plugins import registry as r
+from apps.plugins.periods import month_key, month_starts
 
 from .models import PurchaseOrder
 
@@ -64,3 +67,27 @@ def _purchasing_attention(ctx: r.WidgetContext) -> list:
         r.attention_item("purchase_orders_awaiting_approval", len(_awaiting_approval()), r.WARNING, "/purchase-orders"),
         r.attention_item("late_purchase_orders", late, r.WARNING, "/purchase-orders"),
     ]
+
+
+# Page charts (see apps/core/dashboard_widgets.py).
+@r.register_widget("purchase_trend", plugin="purchasing", kind=r.CHART, order=1200, default_enabled=False)
+def purchase_trend(ctx: r.WidgetContext) -> dict:
+    """Value of purchase orders placed per month (drafts and cancellations
+    excluded), last six months."""
+    starts = month_starts(6)
+    orders = (
+        PurchaseOrder.objects.filter(order_date__gte=starts[0])
+        .exclude(status__in=[PurchaseOrder.DRAFT, PurchaseOrder.CANCELLED])
+        .prefetch_related("lines")
+    )
+    totals: dict[str, Decimal] = defaultdict(lambda: ZERO)
+    for po in orders:
+        totals[month_key(po.order_date)] += po.total
+    return r.chart("line", [r.series("order_value", [(month_key(s), totals[month_key(s)]) for s in starts])], label_kind="month", route="/purchase-orders")
+
+
+@r.register_widget("purchase_orders_by_status", plugin="purchasing", kind=r.CHART, order=1210, default_enabled=False)
+def purchase_orders_by_status(ctx: r.WidgetContext) -> dict:
+    counts = dict(PurchaseOrder.objects.values_list("status").annotate(n=Count("id")))
+    statuses = [PurchaseOrder.DRAFT, PurchaseOrder.SENT, PurchaseOrder.PARTIALLY_RECEIVED, PurchaseOrder.RECEIVED]
+    return r.chart("bar", [r.series("orders", [(s, counts.get(s, 0)) for s in statuses])], fmt="number", label_kind="key", route="/purchase-orders")

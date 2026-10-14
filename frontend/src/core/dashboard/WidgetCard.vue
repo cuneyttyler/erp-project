@@ -17,11 +17,16 @@ import type { WidgetData } from './types'
 // The frame around one panel widget: title, a link through to the page
 // behind the figure, and the loading/error states. Each card loads its own
 // data, so one slow or failing widget never holds up the rest of the panel.
-const props = defineProps<{
-  widget: WidgetState
-  // Bumped by the panel's refresh button.
-  refreshToken: number
-}>()
+const props = withDefaults(
+  defineProps<{
+    widget: WidgetState
+    // Bumped by the panel's refresh button.
+    refreshToken: number
+    // Off on a page's own charts: the link would lead to the page you're on.
+    linkable?: boolean
+  }>(),
+  { linkable: true },
+)
 
 const { t } = useI18n()
 const entity = useEntityStore()
@@ -56,7 +61,7 @@ async function load() {
 watch([() => entity.currentEntityId, () => props.refreshToken], load, { immediate: true })
 
 const title = computed(() => t(`widgets.catalog.${props.widget.key}.title`))
-const route = computed(() => (data.value && 'route' in data.value ? data.value.route : null))
+const route = computed(() => (props.linkable && data.value && 'route' in data.value ? data.value.route : null))
 </script>
 
 <template>

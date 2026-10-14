@@ -176,10 +176,12 @@
       "showing": "Showing {shown} of {total}",
       "allClear": "All clear. Nothing needs your attention.",
       "noPlugins": "No plugins are installed.",
-      "unassigned": "Unassigned"
+      "unassigned": "Unassigned",
+      "insights": "Charts"
     },
     "compare": {
       "vs_last_month": "vs. last month",
+      "vs_last_month_to_date": "vs. same days last month",
       "vs_yesterday": "vs. yesterday"
     },
     "series": {
@@ -195,7 +197,26 @@
       "work_orders": "Work orders",
       "employer_cost": "Employer cost",
       "employees": "Employees",
-      "net_sales": "Net sales"
+      "net_sales": "Net sales",
+      "posted_entries": "Posted",
+      "draft_entries": "Drafts",
+      "invoiced": "Invoiced",
+      "collected": "Collected",
+      "billed": "Billed",
+      "paid_out": "Paid",
+      "manual_actions": "By hand",
+      "ai_actions": "Through AI",
+      "actions": "Actions",
+      "received_units": "Received",
+      "shipped_units": "Shipped",
+      "orders": "Orders",
+      "planned_units": "Planned",
+      "completed_units": "Completed",
+      "gross_salary": "Gross salary",
+      "annual_leave": "Annual leave",
+      "sick_leave": "Sick leave",
+      "synced_orders": "Synced",
+      "failed_orders": "Failed"
     },
     "labels": {
       "current": "Not yet due",
@@ -211,7 +232,27 @@
       "draft": "Draft",
       "released": "Released",
       "in_progress": "In progress",
-      "completed": "Completed"
+      "completed": "Completed",
+      "asset": "Assets",
+      "liability": "Liabilities",
+      "equity": "Equity",
+      "revenue": "Revenue",
+      "expense": "Expenses",
+      "sent": "Sent",
+      "partially_received": "Partly received",
+      "received": "Received",
+      "confirmed": "Confirmed",
+      "partially_fulfilled": "Partly shipped",
+      "fulfilled": "Shipped",
+      "cash": "Cash",
+      "card": "Card",
+      "net_salary": "Net pay",
+      "income_tax": "Income tax",
+      "sgk_employee": "Social security (employee)",
+      "employer_sgk": "Social security (employer)",
+      "unemployment": "Unemployment (employee)",
+      "employer_unemployment": "Unemployment (employer)",
+      "stamp_duty": "Stamp duty"
     },
     "secondary": {
       "change_this_month": "Change this month",
@@ -324,7 +365,17 @@
       "trendyol": "Trendyol",
       "hepsiburada": "Hepsiburada",
       "active": "Active",
-      "inactive": "Inactive"
+      "inactive": "Inactive",
+      "rejected": "Rejected",
+      "pending": "Pending",
+      "approved": "Approved",
+      "finalized": "Finalized",
+      "closed": "Closed",
+      "open": "Open",
+      "lost": "Lost",
+      "won": "Won",
+      "qualified": "Qualified",
+      "new": "New"
     },
     "attentionItems": {
       "draft_journal_entries": "{count} draft journal entry to post | {count} draft journal entries to post",
@@ -533,6 +584,94 @@
       "recent_activity": {
         "title": "Recent activity",
         "description": "The latest entries in the audit trail."
+      },
+      "entity_comparison": {
+        "title": "Revenue and expenses by company",
+        "description": "Each company's revenue and expenses this year, side by side."
+      },
+      "balances_by_type": {
+        "title": "Balances by account type",
+        "description": "Posted balance of assets, liabilities, equity, revenue and expenses."
+      },
+      "journal_activity": {
+        "title": "Journal entries per month",
+        "description": "Entries posted each month, and drafts still waiting."
+      },
+      "invoicing_trend": {
+        "title": "Invoiced vs. collected",
+        "description": "What you invoiced each month against what customers paid."
+      },
+      "billing_trend": {
+        "title": "Billed vs. paid",
+        "description": "What vendors billed each month against what you paid them."
+      },
+      "audit_activity": {
+        "title": "Recorded actions per day",
+        "description": "Actions in the audit log over the last two weeks, by hand or through the AI assistant."
+      },
+      "audit_top_users": {
+        "title": "Most active users",
+        "description": "Who recorded the most actions in the last 30 days."
+      },
+      "stock_flow": {
+        "title": "Stock in and out per week",
+        "description": "Units received and shipped each week, last eight weeks."
+      },
+      "top_stock_items": {
+        "title": "Most stocked items",
+        "description": "Items with the most units on hand across all warehouses."
+      },
+      "top_moving_items": {
+        "title": "Fastest-moving items",
+        "description": "Items shipped most in the last 90 days."
+      },
+      "purchase_trend": {
+        "title": "Purchase orders per month",
+        "description": "Value of purchase orders placed each month."
+      },
+      "purchase_orders_by_status": {
+        "title": "Purchase orders by status",
+        "description": "How many orders are drafts, sent, partly received and received."
+      },
+      "sales_orders_by_status": {
+        "title": "Sales orders by status",
+        "description": "How many orders are drafts, confirmed, partly shipped and shipped."
+      },
+      "leads_by_source": {
+        "title": "Leads by source",
+        "description": "Where your leads come from."
+      },
+      "production_output": {
+        "title": "Production per month",
+        "description": "Units planned and completed each month."
+      },
+      "salary_by_department": {
+        "title": "Salaries by department",
+        "description": "Monthly gross salaries of active employees per department."
+      },
+      "leave_days_trend": {
+        "title": "Leave days per month",
+        "description": "Approved annual and sick leave days each month."
+      },
+      "payroll_breakdown": {
+        "title": "Latest payroll breakdown",
+        "description": "Net pay, taxes and premiums in the latest finalized payroll."
+      },
+      "pos_sales_by_till": {
+        "title": "Takings by till",
+        "description": "Payments taken at each till over the last 30 days."
+      },
+      "pos_payment_mix": {
+        "title": "Cash vs. card",
+        "description": "How shop customers paid over the last 30 days."
+      },
+      "marketplace_orders_trend": {
+        "title": "Marketplace orders per day",
+        "description": "Orders pulled each day, turned into sales orders or failed."
+      },
+      "marketplace_orders_by_account": {
+        "title": "Orders by marketplace",
+        "description": "Orders per marketplace connection over the last 30 days."
       }
     }
   },
@@ -842,6 +981,16 @@
       "newInvoice": "Create an invoice for a customer",
       "lowStock": "Which items are running low on stock?",
       "leave": "Show the leave requests waiting for a decision"
+    },
+    "progress": {
+      "describe": "Checking how {resource} are structured",
+      "query": "Looking up {resource}",
+      "record": "Opening a record in {resource}",
+      "summarize": "Summarising {resource}",
+      "propose": "Preparing a proposal: {action}",
+      "metric": "Calculating {name}",
+      "series": "Building a chart: {name}",
+      "reading": "Reading the results"
     }
   },
   "landing": {
@@ -1121,5 +1270,389 @@
       "tagline": "One system for the whole company, with an assistant built in.",
       "rights": "All rights reserved."
     }
+  },
+  "header": {
+    "newEntity": "Add a company",
+    "entityCode": "Code (e.g. B)",
+    "entityName": "Company name"
+  },
+  "common": {
+    "create": "Create",
+    "close": "Close",
+    "noData": "No data.",
+    "label": "Label",
+    "value": "Value",
+    "noRecords": "No records.",
+    "save": "Save",
+    "no": "No",
+    "yes": "Yes",
+    "delete": "Delete",
+    "balance": "Balance",
+    "dueDate": "Due date",
+    "lineDescription": "Line description",
+    "selectVendor": "Select a vendor",
+    "createDraft": "Create draft",
+    "addLine": "+ Add line",
+    "unitPrice": "Unit price",
+    "vendor": "Vendor",
+    "description": "Description",
+    "send": "Send",
+    "quantity": "Quantity",
+    "total": "Total",
+    "status": "Status",
+    "selectCustomer": "Select a customer",
+    "customer": "Customer",
+    "accountName": "Account name",
+    "code": "Code",
+    "type": "Type",
+    "currency": "Currency",
+    "active": "Active",
+    "add": "Add",
+    "unit": "Unit",
+    "sku": "SKU",
+    "name": "Name",
+    "selectAccount": "Select an account",
+    "credit": "Credit",
+    "date": "Date",
+    "debit": "Debit",
+    "email": "Email",
+    "loading": "Loading...",
+    "select": "Select",
+    "platform": "Platform",
+    "company": "Company",
+    "warehouse": "Warehouse",
+    "item": "Item",
+    "createdAt": "Created",
+    "error": "Error",
+    "selectEmployee": "Select an employee",
+    "start": "Start",
+    "employee": "Employee",
+    "approve": "Approve",
+    "reject": "Reject",
+    "end": "End",
+    "days": "Days",
+    "selectWarehouse": "Select a warehouse",
+    "selectItem": "Select an item",
+    "store": "Store",
+    "till": "Till",
+    "selectTill": "Select a till",
+    "ordered": "Ordered",
+    "remaining": "Remaining",
+    "confirm": "Confirm"
+  },
+  "login": {
+    "invalid": "Incorrect username or password.",
+    "username": "Username",
+    "submit": "Sign in",
+    "password": "Password"
+  },
+  "table": {
+    "noViews": "No saved views yet.",
+    "updateView": "Update current view",
+    "shared": "Public (shared)",
+    "newView": "+ Save as new view",
+    "viewName": "View name",
+    "filter": "Filter...",
+    "columns": "Columns",
+    "views": "Views",
+    "sharedTag": "(shared)",
+    "personalTag": "(personal)"
+  },
+  "aging": {
+    "title": "Aging Report",
+    "current": "Not yet due",
+    "receivables": "Receivables (AR)",
+    "payables": "Payables (AP)",
+    "d31_60": "31-60 days",
+    "d61_90": "61-90 days",
+    "d1_30": "1-30 days",
+    "d90": "90+ days",
+    "daysOverdue": "Days overdue",
+    "party": "Party",
+    "bucket": "Bucket"
+  },
+  "bills": {
+    "errors": {
+      "create": "The bill couldn't be created.",
+      "vendor": "Select a vendor."
+    },
+    "title": "Purchase Bills",
+    "checkIt": "⚠ Check this",
+    "recordPayment": "Record payment"
+  },
+  "invoices": {
+    "errors": {
+      "create": "The invoice couldn't be created.",
+      "customer": "Select a customer."
+    },
+    "title": "Sales Invoices",
+    "recordPayment": "Record payment"
+  },
+  "accounts": {
+    "title": "Chart of Accounts"
+  },
+  "entities": {
+    "title": "Companies",
+    "name": "Company name",
+    "subtitle": "Run several legal entities under one subscription, each with its own chart of accounts and books. The company picker in the header decides which one is current."
+  },
+  "items": {
+    "title": "Item Catalog",
+    "weightedAverage": "Weighted average",
+    "costMethod": "Cost method",
+    "fifo": "FIFO"
+  },
+  "journal": {
+    "errors": {
+      "unbalanced": "Debits and credits must be equal (and above zero).",
+      "create": "The entry couldn't be created."
+    },
+    "title": "Journal Entries",
+    "post": "Post",
+    "addRow": "+ Add row",
+    "balanced": "✓ balanced",
+    "totalDebit": "Total debit",
+    "totalCredit": "Total credit"
+  },
+  "parties": {
+    "title": "Customers & Vendors",
+    "both": "Both",
+    "taxId": "Tax ID"
+  },
+  "trialBalance": {
+    "subtitle": "Only posted journal entries are included.",
+    "consolidated": "Consolidated (all companies)",
+    "title": "Trial Balance",
+    "current": "Current company"
+  },
+  "biDashboards": {
+    "title": "Dashboards",
+    "newName": "New dashboard name",
+    "create": "Create dashboard",
+    "selectReport": "Select a report",
+    "addToDashboard": "Add to dashboard",
+    "errors": {
+      "add": "Couldn't add it."
+    },
+    "select": "Select a dashboard"
+  },
+  "biReports": {
+    "errors": {
+      "required": "Enter a name and pick a data series.",
+      "save": "The report couldn't be saved.",
+      "preview": "The preview failed."
+    },
+    "saved": "Saved reports",
+    "share": "Share with the team",
+    "series": "Data series",
+    "name": "Report name",
+    "title": "Reports",
+    "preview": "Preview",
+    "subtitle": "Pick a data series, preview it, then name and save it. Only saved reports can be added to dashboards."
+  },
+  "marketplace": {
+    "listings": "Product listings",
+    "errors": {
+      "required": "Company, warehouse and name are required.",
+      "sync": "The sync failed.",
+      "push": "The stock push failed.",
+      "create": "The connection couldn't be created."
+    },
+    "title": "Marketplace Integrations",
+    "variantId": "Variant / inventory item ID",
+    "fetchOrders": "Fetch orders",
+    "shopDomain": "Shop domain",
+    "externalSku": "Marketplace SKU",
+    "apiKey": "API key",
+    "connections": "Connections",
+    "pushStock": "Push stock",
+    "locationId": "Location ID",
+    "lastSync": "Last sync",
+    "apiSecret": "API secret",
+    "connection": "Connection",
+    "connect": "Connect",
+    "map": "Map",
+    "subtitle": "Orders are pulled manually or on a schedule (not by webhook); each sync fetches what arrived since the last one.",
+    "result": {
+      "fetched": "{created} new, {skipped} skipped,",
+      "pushed": "{n} pushed,",
+      "failed": "{n} failed."
+    }
+  },
+  "marketplaceOrders": {
+    "title": "Marketplace Orders",
+    "salesOrder": "Sales order",
+    "status": {
+      "synced": "Synced",
+      "failed": "Failed",
+      "new": "New"
+    },
+    "orderNo": "Order no."
+  },
+  "employees": {
+    "errors": {
+      "required": "Enter first name, last name and gross salary.",
+      "create": "The employee couldn't be created."
+    },
+    "title": "Employees",
+    "department": "Department",
+    "grossSalary": "Gross salary",
+    "position": "Position",
+    "lastName": "Last name",
+    "firstName": "First name"
+  },
+  "leave": {
+    "errors": {
+      "create": "The leave request couldn't be created.",
+      "employee": "Select an employee.",
+      "reject": "Couldn't reject it.",
+      "approve": "Couldn't approve it."
+    },
+    "title": "Leave Requests",
+    "create": "Create request"
+  },
+  "payroll": {
+    "errors": {
+      "create": "The payroll run couldn't be created.",
+      "finalize": "Couldn't finalize it.",
+      "calculate": "Couldn't calculate it."
+    },
+    "employerCost": "Total employer cost",
+    "title": "Payroll Runs",
+    "create": "Create run",
+    "incomeTax": "Income tax",
+    "stampTax": "Stamp tax",
+    "finalize": "Finalize",
+    "unemployment": "Unemployment",
+    "calculate": "Calculate",
+    "gross": "Gross",
+    "sgk": "Social security",
+    "net": "Net",
+    "year": "Year",
+    "month": "Month",
+    "hide": "Hide",
+    "showPayslips": "Show {n} payslips"
+  },
+  "stock": {
+    "title": "Stock Levels"
+  },
+  "warehouses": {
+    "title": "Warehouses"
+  },
+  "boms": {
+    "errors": {
+      "required": "Enter the finished item and a name.",
+      "create": "The BOM couldn't be created."
+    },
+    "title": "Bills of Materials",
+    "perUnit": "Quantity per unit",
+    "selectProduct": "Select the finished item",
+    "addComponent": "+ Add component",
+    "create": "Create BOM",
+    "selectComponent": "Select a component",
+    "name": "BOM name"
+  },
+  "workOrders": {
+    "errors": {
+      "create": "The work order couldn't be created.",
+      "required": "Select a BOM and a warehouse.",
+      "release": "Couldn't release it.",
+      "complete": "Couldn't complete it."
+    },
+    "plannedQuantity": "Planned quantity",
+    "release": "Release",
+    "selectBom": "Select a BOM",
+    "title": "Work Orders",
+    "completedQty": "Completed",
+    "planned": "Planned",
+    "complete": "Complete"
+  },
+  "pos": {
+    "queued": "No connection: the sale is queued offline and will be sent automatically when the connection returns.",
+    "errors": {
+      "noShift": "Open a shift first (Shifts page).",
+      "checkout": "The sale couldn't be completed.",
+      "emptyCart": "The cart is empty.",
+      "unknown": "Unknown error"
+    },
+    "paymentMethod": "Payment method",
+    "addToCart": "Add to cart",
+    "title": "Point of Sale",
+    "charge": "Charge",
+    "discount": "Discount",
+    "amount": "Amount",
+    "cash": "Cash",
+    "qty": "Qty",
+    "card": "Card",
+    "pendingSync": "{n} sale(s) waiting to sync",
+    "noShift": {
+      "before": "No open shift.",
+      "link": "Shifts",
+      "after": ": open one there first."
+    },
+    "completed": "Sale #{id} completed ({total} ₺).",
+    "online": "● Online",
+    "offline": "● Offline"
+  },
+  "posSetup": {
+    "title": "Stores & Tills",
+    "storeName": "Store name",
+    "stores": "Stores",
+    "tillName": "Till name",
+    "tills": "Tills"
+  },
+  "shifts": {
+    "errors": {
+      "close": "The shift couldn't be closed.",
+      "open": "The shift couldn't be opened.",
+      "till": "Select a till."
+    },
+    "expectedCash": "Expected cash",
+    "countedCash": "Counted cash",
+    "openingCash": "Opening cash",
+    "transactions": "Transactions",
+    "cashDifference": "Cash difference",
+    "title": "Shifts",
+    "open": "Open shift",
+    "grossSales": "Gross sales",
+    "netSales": "Net sales",
+    "zReport": "Z report",
+    "returns": "Returns",
+    "openedAt": "Opened",
+    "openedBy": "Opened by",
+    "zReportFor": "Z report: shift #{id}"
+  },
+  "purchaseOrders": {
+    "errors": {
+      "required": "Select a vendor and a warehouse.",
+      "create": "The order couldn't be created.",
+      "receive": "The receipt failed.",
+      "send": "Couldn't send it.",
+      "approve": "Couldn't approve it."
+    },
+    "title": "Purchase Orders",
+    "receiveNow": "Receive now",
+    "received": "Received",
+    "receive": "Receive",
+    "approveOver": "Approve (threshold: {n})"
+  },
+  "leads": {
+    "title": "Leads",
+    "name": "Name / company",
+    "selectParty": "Select a customer",
+    "source": "Source",
+    "qualify": "Qualify"
+  },
+  "salesOrders": {
+    "errors": {
+      "create": "The order couldn't be created.",
+      "required": "Select a customer and a warehouse.",
+      "ship": "The shipment failed.",
+      "confirm": "Couldn't confirm it."
+    },
+    "title": "Sales Orders",
+    "shipNow": "Ship now",
+    "shipped": "Shipped",
+    "ship": "Ship"
   }
 }

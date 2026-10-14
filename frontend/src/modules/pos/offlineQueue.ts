@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 
 import type { CheckoutLineInput, CheckoutPaymentInput, usePOSStore } from '@/modules/pos/stores/pos'
+import { i18n } from '@/shared/i18n'
 
 /**
  * REQ-POS-008 / technical.md §10.6: the POS interface must remain operable
@@ -111,7 +112,7 @@ export async function flushOfflineQueue(pos: ReturnType<typeof usePOSStore>): Pr
           break // network failure -- stop, leave the rest queued for next time
         }
         await removeQueued(entry.clientReference)
-        failedOfflineSales.value.push({ entry, error: e.response?.data?.detail ?? 'Bilinmeyen hata' })
+        failedOfflineSales.value.push({ entry, error: e.response?.data?.detail ?? i18n.global.t('pos.errors.unknown') })
       }
     }
   } finally {

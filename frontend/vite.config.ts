@@ -28,6 +28,15 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8000',
         changeOrigin: true,
+        // ...except for <tenant>.localhost: keep that host, so the backend
+        // routes to that organization (http://demirmarket.localhost:5173
+        // opens the demo company; plain localhost stays the default one).
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq, req) => {
+            const host = req.headers.host?.split(':')[0]
+            if (host?.endsWith('.localhost')) proxyReq.setHeader('Host', host)
+          })
+        },
       },
     },
   },

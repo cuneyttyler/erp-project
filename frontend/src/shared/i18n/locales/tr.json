@@ -176,10 +176,12 @@
       "showing": "{total} kayıttan {shown} tanesi gösteriliyor",
       "allClear": "Her şey yolunda. İlgilenmeniz gereken bir şey yok.",
       "noPlugins": "Yüklü eklenti yok.",
-      "unassigned": "Atanmamış"
+      "unassigned": "Atanmamış",
+      "insights": "Grafikler"
     },
     "compare": {
       "vs_last_month": "geçen aya göre",
+      "vs_last_month_to_date": "geçen ayın aynı dönemine göre",
       "vs_yesterday": "düne göre"
     },
     "series": {
@@ -195,7 +197,26 @@
       "work_orders": "İş emri",
       "employer_cost": "İşveren maliyeti",
       "employees": "Çalışan",
-      "net_sales": "Net satış"
+      "net_sales": "Net satış",
+      "posted_entries": "Kaydedilen",
+      "draft_entries": "Taslak",
+      "invoiced": "Faturalanan",
+      "collected": "Tahsil edilen",
+      "billed": "Gelen fatura",
+      "paid_out": "Ödenen",
+      "manual_actions": "Elle",
+      "ai_actions": "AI ile",
+      "actions": "İşlem",
+      "received_units": "Giren",
+      "shipped_units": "Çıkan",
+      "orders": "Sipariş",
+      "planned_units": "Planlanan",
+      "completed_units": "Tamamlanan",
+      "gross_salary": "Brüt maaş",
+      "annual_leave": "Yıllık izin",
+      "sick_leave": "Hastalık izni",
+      "synced_orders": "Aktarılan",
+      "failed_orders": "Başarısız"
     },
     "labels": {
       "current": "Vadesi gelmemiş",
@@ -211,7 +232,27 @@
       "draft": "Taslak",
       "released": "Serbest",
       "in_progress": "Devam ediyor",
-      "completed": "Tamamlandı"
+      "completed": "Tamamlandı",
+      "asset": "Varlıklar",
+      "liability": "Borçlar",
+      "equity": "Özkaynak",
+      "revenue": "Gelir",
+      "expense": "Gider",
+      "sent": "Gönderildi",
+      "partially_received": "Kısmen alındı",
+      "received": "Alındı",
+      "confirmed": "Onaylandı",
+      "partially_fulfilled": "Kısmen sevk edildi",
+      "fulfilled": "Sevk edildi",
+      "cash": "Nakit",
+      "card": "Kart",
+      "net_salary": "Net ödeme",
+      "income_tax": "Gelir vergisi",
+      "sgk_employee": "SGK (çalışan)",
+      "employer_sgk": "SGK (işveren)",
+      "unemployment": "İşsizlik (çalışan)",
+      "employer_unemployment": "İşsizlik (işveren)",
+      "stamp_duty": "Damga vergisi"
     },
     "secondary": {
       "change_this_month": "Bu ayki değişim",
@@ -324,7 +365,17 @@
       "trendyol": "Trendyol",
       "hepsiburada": "Hepsiburada",
       "active": "Aktif",
-      "inactive": "Pasif"
+      "inactive": "Pasif",
+      "rejected": "Reddedildi",
+      "pending": "Beklemede",
+      "approved": "Onaylandı",
+      "finalized": "Kesinleşti",
+      "closed": "Kapalı",
+      "open": "Açık",
+      "lost": "Kaybedildi",
+      "won": "Kazanıldı",
+      "qualified": "Nitelikli",
+      "new": "Yeni"
     },
     "attentionItems": {
       "draft_journal_entries": "{count} taslak yevmiye kaydı kesinleştirilmeyi bekliyor",
@@ -533,6 +584,94 @@
       "recent_activity": {
         "title": "Son işlemler",
         "description": "Denetim kaydındaki son girişler."
+      },
+      "entity_comparison": {
+        "title": "Şirketlere göre gelir ve gider",
+        "description": "Her şirketin bu yılki gelir ve giderleri yan yana."
+      },
+      "balances_by_type": {
+        "title": "Hesap türüne göre bakiyeler",
+        "description": "Varlık, borç, özkaynak, gelir ve giderlerin kayıtlı bakiyesi."
+      },
+      "journal_activity": {
+        "title": "Aylık yevmiye kayıtları",
+        "description": "Her ay kaydedilen fişler ve bekleyen taslaklar."
+      },
+      "invoicing_trend": {
+        "title": "Faturalanan ve tahsil edilen",
+        "description": "Her ay kesilen faturalar ve müşterilerden gelen ödemeler."
+      },
+      "billing_trend": {
+        "title": "Gelen fatura ve ödenen",
+        "description": "Her ay tedarikçilerden gelen faturalar ve yapılan ödemeler."
+      },
+      "audit_activity": {
+        "title": "Günlük kayıtlı işlemler",
+        "description": "Son iki haftada denetim kaydına düşen işlemler; elle ya da AI asistanıyla."
+      },
+      "audit_top_users": {
+        "title": "En aktif kullanıcılar",
+        "description": "Son 30 günde en çok işlem yapan kullanıcılar."
+      },
+      "stock_flow": {
+        "title": "Haftalık stok giriş ve çıkışı",
+        "description": "Son sekiz haftada her hafta giren ve çıkan birimler."
+      },
+      "top_stock_items": {
+        "title": "En çok stoklanan ürünler",
+        "description": "Tüm depolarda en çok elde bulunan ürünler."
+      },
+      "top_moving_items": {
+        "title": "En hızlı dönen ürünler",
+        "description": "Son 90 günde en çok sevk edilen ürünler."
+      },
+      "purchase_trend": {
+        "title": "Aylık satın alma siparişleri",
+        "description": "Her ay verilen satın alma siparişlerinin tutarı."
+      },
+      "purchase_orders_by_status": {
+        "title": "Duruma göre satın alma siparişleri",
+        "description": "Taslak, gönderilmiş, kısmen ve tamamen teslim alınmış sipariş sayıları."
+      },
+      "sales_orders_by_status": {
+        "title": "Duruma göre satış siparişleri",
+        "description": "Taslak, onaylı, kısmen ve tamamen sevk edilmiş sipariş sayıları."
+      },
+      "leads_by_source": {
+        "title": "Kaynağa göre potansiyel müşteriler",
+        "description": "Potansiyel müşterilerin nereden geldiği."
+      },
+      "production_output": {
+        "title": "Aylık üretim",
+        "description": "Her ay planlanan ve tamamlanan birimler."
+      },
+      "salary_by_department": {
+        "title": "Departmanlara göre maaşlar",
+        "description": "Aktif çalışanların departman bazında aylık brüt maaşları."
+      },
+      "leave_days_trend": {
+        "title": "Aylık izin günleri",
+        "description": "Her ay onaylanan yıllık ve hastalık izni günleri."
+      },
+      "payroll_breakdown": {
+        "title": "Son bordronun dağılımı",
+        "description": "Kesinleşmiş son bordroda net ödeme, vergiler ve primler."
+      },
+      "pos_sales_by_till": {
+        "title": "Kasalara göre tahsilat",
+        "description": "Son 30 günde her kasada alınan ödemeler."
+      },
+      "pos_payment_mix": {
+        "title": "Nakit ve kart",
+        "description": "Son 30 günde mağaza müşterilerinin ödeme şekli."
+      },
+      "marketplace_orders_trend": {
+        "title": "Günlük pazaryeri siparişleri",
+        "description": "Her gün çekilen siparişler; satış siparişine dönüşen ya da başarısız olan."
+      },
+      "marketplace_orders_by_account": {
+        "title": "Pazaryerine göre siparişler",
+        "description": "Son 30 günde her pazaryeri bağlantısından gelen siparişler."
       }
     }
   },
@@ -842,6 +981,16 @@
       "newInvoice": "Bir müşteriye fatura oluştur",
       "lowStock": "Hangi ürünlerin stoğu azalıyor?",
       "leave": "Karar bekleyen izin taleplerini göster"
+    },
+    "progress": {
+      "describe": "{resource} yapısı inceleniyor",
+      "query": "{resource} kayıtlarına bakılıyor",
+      "record": "{resource} kaydı açılıyor",
+      "summarize": "{resource} özetleniyor",
+      "propose": "Öneri hazırlanıyor: {action}",
+      "metric": "Hesaplanıyor: {name}",
+      "series": "Grafik hazırlanıyor: {name}",
+      "reading": "Sonuçlar değerlendiriliyor"
     }
   },
   "landing": {
@@ -1121,5 +1270,389 @@
       "tagline": "Tüm şirket için tek sistem, içinde bir asistanla.",
       "rights": "Tüm hakları saklıdır."
     }
+  },
+  "header": {
+    "newEntity": "Yeni şirket ekle",
+    "entityCode": "Kod (ör. B)",
+    "entityName": "Şirket adı"
+  },
+  "common": {
+    "create": "Oluştur",
+    "close": "Kapat",
+    "noData": "Veri yok.",
+    "label": "Etiket",
+    "value": "Değer",
+    "noRecords": "Kayıt yok.",
+    "save": "Kaydet",
+    "no": "Hayır",
+    "yes": "Evet",
+    "delete": "Sil",
+    "balance": "Bakiye",
+    "dueDate": "Vade",
+    "lineDescription": "Kalem açıklaması",
+    "selectVendor": "Tedarikçi seçin",
+    "createDraft": "Taslak Oluştur",
+    "addLine": "+ Kalem ekle",
+    "unitPrice": "Birim Fiyat",
+    "vendor": "Tedarikçi",
+    "description": "Açıklama",
+    "send": "Gönder",
+    "quantity": "Miktar",
+    "total": "Toplam",
+    "status": "Durum",
+    "selectCustomer": "Müşteri seçin",
+    "customer": "Müşteri",
+    "accountName": "Hesap Adı",
+    "code": "Kod",
+    "type": "Tür",
+    "currency": "Para Birimi",
+    "active": "Aktif",
+    "add": "Ekle",
+    "unit": "Birim",
+    "sku": "SKU",
+    "name": "Ad",
+    "selectAccount": "Hesap seçin",
+    "credit": "Alacak",
+    "date": "Tarih",
+    "debit": "Borç",
+    "email": "E-posta",
+    "loading": "Yükleniyor...",
+    "select": "Seçin",
+    "platform": "Platform",
+    "company": "Şirket",
+    "warehouse": "Depo",
+    "item": "Ürün",
+    "createdAt": "Oluşturulma",
+    "error": "Hata",
+    "selectEmployee": "Çalışan seçin",
+    "start": "Başlangıç",
+    "employee": "Çalışan",
+    "approve": "Onayla",
+    "reject": "Reddet",
+    "end": "Bitiş",
+    "days": "Gün",
+    "selectWarehouse": "Depo seçin",
+    "selectItem": "Ürün seçin",
+    "store": "Mağaza",
+    "till": "Kasa",
+    "selectTill": "Kasa seçin",
+    "ordered": "Sipariş",
+    "remaining": "Kalan",
+    "confirm": "Onayla"
+  },
+  "login": {
+    "invalid": "Kullanıcı adı veya parola hatalı.",
+    "username": "Kullanıcı Adı",
+    "submit": "Giriş Yap",
+    "password": "Parola"
+  },
+  "table": {
+    "noViews": "Henüz kayıtlı görünüm yok.",
+    "updateView": "Geçerli görünümü güncelle",
+    "shared": "Herkese açık (paylaşılan)",
+    "newView": "+ Yeni görünüm kaydet",
+    "viewName": "Görünüm adı",
+    "filter": "Filtrele...",
+    "columns": "Sütunlar",
+    "views": "Görünümler",
+    "sharedTag": "(paylaşılan)",
+    "personalTag": "(kişisel)"
+  },
+  "aging": {
+    "title": "Yaşlandırma Raporu",
+    "current": "Vadesi Gelmemiş",
+    "receivables": "Alacaklar (AR)",
+    "payables": "Borçlar (AP)",
+    "d31_60": "31-60 gün",
+    "d61_90": "61-90 gün",
+    "d1_30": "1-30 gün",
+    "d90": "90+ gün",
+    "daysOverdue": "Gecikme",
+    "party": "Cari",
+    "bucket": "Kova"
+  },
+  "bills": {
+    "errors": {
+      "create": "Fatura oluşturulamadı.",
+      "vendor": "Bir tedarikçi seçin."
+    },
+    "title": "Alış Faturaları",
+    "checkIt": "⚠ Kontrol edin",
+    "recordPayment": "Ödeme Kaydet"
+  },
+  "invoices": {
+    "errors": {
+      "create": "Fatura oluşturulamadı.",
+      "customer": "Bir müşteri seçin."
+    },
+    "title": "Satış Faturaları",
+    "recordPayment": "Tahsilat Kaydet"
+  },
+  "accounts": {
+    "title": "Hesap Planı"
+  },
+  "entities": {
+    "title": "Şirketler (Entities)",
+    "name": "Şirket Adı",
+    "subtitle": "Bir abonelik altında birden fazla tüzel kişiliği yönetin; her birinin kendi hesap planı ve defteri vardır. Üst menüdeki şirket seçici hangisinin geçerli olduğunu belirler."
+  },
+  "items": {
+    "title": "Ürün/Malzeme Kataloğu",
+    "weightedAverage": "Ağırlıklı Ortalama",
+    "costMethod": "Maliyet Yöntemi",
+    "fifo": "FIFO"
+  },
+  "journal": {
+    "errors": {
+      "unbalanced": "Borç ve alacak toplamları eşit olmalı (ve sıfırdan büyük).",
+      "create": "Kayıt oluşturulamadı."
+    },
+    "title": "Yevmiye Kayıtları",
+    "post": "Kaydet (Post)",
+    "addRow": "+ Satır ekle",
+    "balanced": "✓ dengeli",
+    "totalDebit": "Toplam Borç",
+    "totalCredit": "Toplam Alacak"
+  },
+  "parties": {
+    "title": "Cari Hesaplar",
+    "both": "Her ikisi",
+    "taxId": "VKN/TCKN"
+  },
+  "trialBalance": {
+    "subtitle": "Yalnızca kaydedilmiş (posted) yevmiye kayıtlarını içerir.",
+    "consolidated": "Konsolide (Tüm Şirketler)",
+    "title": "Mizan (Trial Balance)",
+    "current": "Geçerli Şirket"
+  },
+  "biDashboards": {
+    "title": "Panolar (Dashboards)",
+    "newName": "Yeni pano adı",
+    "create": "Pano Oluştur",
+    "selectReport": "Rapor seçin",
+    "addToDashboard": "Panoya Ekle",
+    "errors": {
+      "add": "Eklenemedi."
+    },
+    "select": "Pano seçin"
+  },
+  "biReports": {
+    "errors": {
+      "required": "İsim ve veri serisi seçin.",
+      "save": "Rapor kaydedilemedi.",
+      "preview": "Önizleme başarısız."
+    },
+    "saved": "Kayıtlı Raporlar",
+    "share": "Ekiple paylaş",
+    "series": "Veri Serisi",
+    "name": "Rapor Adı",
+    "title": "Raporlar",
+    "preview": "Önizleme",
+    "subtitle": "Bir veri serisi seçin, önizleyin, ad verip kaydedin. Panolara yalnızca kaydedilmiş raporlar eklenebilir."
+  },
+  "marketplace": {
+    "listings": "Ürün Eşleştirmeleri (Listings)",
+    "errors": {
+      "required": "Şirket, depo ve isim gerekli.",
+      "sync": "Senkronizasyon başarısız.",
+      "push": "Stok gönderimi başarısız.",
+      "create": "Bağlantı oluşturulamadı."
+    },
+    "title": "Pazaryeri Entegrasyonları",
+    "variantId": "Variant/Inventory Item ID",
+    "fetchOrders": "Siparişleri Getir",
+    "shopDomain": "Mağaza Alan Adı",
+    "externalSku": "Pazaryeri SKU",
+    "apiKey": "API Anahtarı",
+    "connections": "Bağlantılar",
+    "pushStock": "Stok Gönder",
+    "locationId": "Location ID",
+    "lastSync": "Son Senkron",
+    "apiSecret": "API Secret",
+    "connection": "Bağlantı",
+    "connect": "Bağla",
+    "map": "Eşle",
+    "subtitle": "Siparişler elle ya da periyodik olarak çekilir (webhook değil); her senkronizasyon son senkrondan bu yana gelen yeni siparişleri getirir.",
+    "result": {
+      "fetched": "{created} yeni, {skipped} atlandı,",
+      "pushed": "{n} gönderildi,",
+      "failed": "{n} başarısız."
+    }
+  },
+  "marketplaceOrders": {
+    "title": "Pazaryeri Siparişleri",
+    "salesOrder": "Satış Siparişi",
+    "status": {
+      "synced": "Senkronize",
+      "failed": "Başarısız",
+      "new": "Yeni"
+    },
+    "orderNo": "Sipariş No"
+  },
+  "employees": {
+    "errors": {
+      "required": "Ad, soyad ve brüt maaş girin.",
+      "create": "Çalışan oluşturulamadı."
+    },
+    "title": "Çalışanlar",
+    "department": "Departman",
+    "grossSalary": "Brüt Maaş",
+    "position": "Pozisyon",
+    "lastName": "Soyad",
+    "firstName": "Ad"
+  },
+  "leave": {
+    "errors": {
+      "create": "İzin talebi oluşturulamadı.",
+      "employee": "Çalışan seçin.",
+      "reject": "Reddedilemedi.",
+      "approve": "Onaylanamadı."
+    },
+    "title": "İzin Talepleri",
+    "create": "Talep Oluştur"
+  },
+  "payroll": {
+    "errors": {
+      "create": "Bordro dönemi oluşturulamadı.",
+      "finalize": "Kesinleştirilemedi.",
+      "calculate": "Hesaplanamadı."
+    },
+    "employerCost": "İşveren Toplam Maliyet",
+    "title": "Bordro Dönemleri",
+    "create": "Dönem Oluştur",
+    "incomeTax": "Gelir Vergisi",
+    "stampTax": "Damga Vergisi",
+    "finalize": "Kesinleştir",
+    "unemployment": "İşsizlik",
+    "calculate": "Hesapla",
+    "gross": "Brüt",
+    "sgk": "SGK",
+    "net": "Net",
+    "year": "Yıl",
+    "month": "Ay",
+    "hide": "Gizle",
+    "showPayslips": "{n} bordro göster"
+  },
+  "stock": {
+    "title": "Stok Durumu"
+  },
+  "warehouses": {
+    "title": "Depolar"
+  },
+  "boms": {
+    "errors": {
+      "required": "Mamul ürün ve ad girin.",
+      "create": "Reçete oluşturulamadı."
+    },
+    "title": "Ürün Reçeteleri (BOM)",
+    "perUnit": "Birim başına miktar",
+    "selectProduct": "Mamul ürün seçin",
+    "addComponent": "+ Bileşen ekle",
+    "create": "Reçete Oluştur",
+    "selectComponent": "Bileşen seçin",
+    "name": "Reçete adı"
+  },
+  "workOrders": {
+    "errors": {
+      "create": "İş emri oluşturulamadı.",
+      "required": "Reçete ve depo seçin.",
+      "release": "Serbest bırakılamadı.",
+      "complete": "Tamamlanamadı."
+    },
+    "plannedQuantity": "Planlanan Miktar",
+    "release": "Serbest Bırak",
+    "selectBom": "Reçete seçin",
+    "title": "İş Emirleri",
+    "completedQty": "Tamamlanan",
+    "planned": "Planlanan",
+    "complete": "Tamamla"
+  },
+  "pos": {
+    "queued": "Bağlantı yok -- satış çevrimdışı kuyruğa alındı, bağlantı gelince otomatik gönderilecek.",
+    "errors": {
+      "noShift": "Önce bir vardiya açmalısınız (Vardiyalar sayfası).",
+      "checkout": "Satış tamamlanamadı.",
+      "emptyCart": "Sepet boş.",
+      "unknown": "Bilinmeyen hata"
+    },
+    "paymentMethod": "Ödeme Yöntemi",
+    "addToCart": "Sepete Ekle",
+    "title": "Kasa (POS)",
+    "charge": "Tahsil Et",
+    "discount": "İndirim",
+    "amount": "Tutar",
+    "cash": "Nakit",
+    "qty": "Adet",
+    "card": "Kart",
+    "pendingSync": "{n} satış senkronizasyon bekliyor",
+    "noShift": {
+      "before": "Açık vardiya yok.",
+      "link": "Vardiyalar",
+      "after": " sayfasından bir vardiya açın."
+    },
+    "completed": "Satış #{id} tamamlandı ({total} ₺).",
+    "online": "● Çevrimiçi",
+    "offline": "● Çevrimdışı"
+  },
+  "posSetup": {
+    "title": "Mağaza ve Kasa Ayarları",
+    "storeName": "Mağaza Adı",
+    "stores": "Mağazalar",
+    "tillName": "Kasa Adı",
+    "tills": "Kasalar"
+  },
+  "shifts": {
+    "errors": {
+      "close": "Vardiya kapatılamadı.",
+      "open": "Vardiya açılamadı.",
+      "till": "Kasa seçin."
+    },
+    "expectedCash": "Beklenen Nakit",
+    "countedCash": "Sayılan nakit",
+    "openingCash": "Açılış Nakit",
+    "transactions": "İşlem Sayısı",
+    "cashDifference": "Nakit Farkı",
+    "title": "Vardiyalar",
+    "open": "Vardiya Aç",
+    "grossSales": "Brüt Satış",
+    "netSales": "Net Satış",
+    "zReport": "Z Raporu",
+    "returns": "İadeler",
+    "openedAt": "Açılış",
+    "openedBy": "Açan",
+    "zReportFor": "Z Raporu — Vardiya #{id}"
+  },
+  "purchaseOrders": {
+    "errors": {
+      "required": "Tedarikçi ve depo seçin.",
+      "create": "Sipariş oluşturulamadı.",
+      "receive": "Teslim alma başarısız.",
+      "send": "Gönderilemedi.",
+      "approve": "Onaylanamadı."
+    },
+    "title": "Satın Alma Siparişleri",
+    "receiveNow": "Şimdi Teslim Al",
+    "received": "Teslim Alınan",
+    "receive": "Teslim Al",
+    "approveOver": "Onayla (eşik: {n})"
+  },
+  "leads": {
+    "title": "Potansiyel Müşteriler",
+    "name": "Ad / Firma",
+    "selectParty": "Cari seçin",
+    "source": "Kaynak",
+    "qualify": "Nitele"
+  },
+  "salesOrders": {
+    "errors": {
+      "create": "Sipariş oluşturulamadı.",
+      "required": "Müşteri ve depo seçin.",
+      "ship": "Sevkiyat başarısız.",
+      "confirm": "Onaylanamadı."
+    },
+    "title": "Satış Siparişleri",
+    "shipNow": "Şimdi Sevk Et",
+    "shipped": "Sevk Edilen",
+    "ship": "Sevk Et"
   }
 }

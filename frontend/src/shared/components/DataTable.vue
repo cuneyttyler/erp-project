@@ -2,6 +2,9 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 
 import { apiClient } from '@/shared/api/client'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // REQ-CORE-UX-001/002/003/004: a generic, reusable data-table component
 // covering every "Excel-like" behavior requested in docs/feedback.md
@@ -60,7 +63,7 @@ function cellText(row: Record<string, any>, col: ColumnDef): string {
   if (col.formatter) return col.formatter(row)
   const value = row[col.key]
   if (value === null || value === undefined) return ''
-  if (typeof value === 'boolean') return value ? 'Evet' : 'Hayır'
+  if (typeof value === 'boolean') return value ? t('common.yes') : t('common.no')
   return String(value)
 }
 
@@ -283,7 +286,7 @@ onMounted(async () => {
           class="rounded border border-neutral-300 px-2 py-1 text-xs text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
           @click="columnsMenuOpen = !columnsMenuOpen"
         >
-          Sütunlar
+          {{ t('table.columns') }}
         </button>
         <div
           v-if="columnsMenuOpen"
@@ -309,13 +312,13 @@ onMounted(async () => {
           class="rounded border border-neutral-300 px-2 py-1 text-xs text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
           @click="viewsMenuOpen = !viewsMenuOpen"
         >
-          Görünümler{{ activeViewId ? ': ' + (savedViews.find((v) => v.id === activeViewId)?.name ?? '') : '' }}
+          {{ t('table.views') }}{{ activeViewId ? ': ' + (savedViews.find((v) => v.id === activeViewId)?.name ?? '') : '' }}
         </button>
         <div
           v-if="viewsMenuOpen"
           class="absolute left-0 z-20 mt-1 w-64 rounded border border-neutral-200 bg-white p-2 shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
         >
-          <p v-if="savedViews.length === 0" class="px-1 py-1 text-xs text-neutral-500">Henüz kayıtlı görünüm yok.</p>
+          <p v-if="savedViews.length === 0" class="px-1 py-1 text-xs text-neutral-500">{{ t('table.noViews') }}</p>
           <div
             v-for="view in savedViews"
             :key="view.id"
@@ -323,9 +326,9 @@ onMounted(async () => {
           >
             <button class="flex-1 text-left" @click="applySavedView(view)">
               {{ view.name }}
-              <span class="text-neutral-400">{{ view.is_shared ? '(paylaşılan)' : '(kişisel)' }}</span>
+              <span class="text-neutral-400">{{ view.is_shared ? t('table.sharedTag') : t('table.personalTag') }}</span>
             </button>
-            <button class="text-neutral-400 hover:text-red-600" title="Sil" @click="deleteView(view)">✕</button>
+            <button class="text-neutral-400 hover:text-red-600" :title="t('common.delete')" @click="deleteView(view)">✕</button>
           </div>
 
           <div class="mt-2 border-t border-neutral-200 pt-2 dark:border-neutral-700">
@@ -334,27 +337,27 @@ onMounted(async () => {
               class="mb-1 w-full rounded bg-neutral-100 px-2 py-1 text-left text-xs hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700"
               @click="updateActiveView"
             >
-              Geçerli görünümü güncelle
+              {{ t('table.updateView') }}
             </button>
             <button
               v-if="!showSaveForm"
               class="w-full rounded bg-neutral-100 px-2 py-1 text-left text-xs hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700"
               @click="showSaveForm = true"
             >
-              + Yeni görünüm kaydet
+              {{ t('table.newView') }}
             </button>
             <div v-else class="space-y-1">
               <input
                 v-model="saveDraftName"
-                placeholder="Görünüm adı"
+                :placeholder="t('table.viewName')"
                 class="w-full rounded border border-neutral-300 px-2 py-1 text-xs dark:border-neutral-700 dark:bg-neutral-800"
               />
               <label class="flex items-center gap-2 text-xs text-neutral-600 dark:text-neutral-400">
                 <input v-model="saveDraftShared" type="checkbox" />
-                Herkese açık (paylaşılan)
+                {{ t('table.shared') }}
               </label>
               <button class="w-full rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700" @click="saveAsNewView">
-                Kaydet
+                {{ t('common.save') }}
               </button>
             </div>
           </div>
@@ -391,7 +394,7 @@ onMounted(async () => {
                 <input
                   v-model="filters[col.key]"
                   type="text"
-                  placeholder="Filtrele..."
+                  :placeholder="t('table.filter')"
                   class="w-full rounded border border-neutral-200 bg-white px-1 py-0.5 text-xs font-normal text-neutral-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
                   @click.stop
                 />
@@ -433,7 +436,7 @@ onMounted(async () => {
                   @keydown.escape="cancelEdit"
                 >
                   <option
-                    v-for="opt in col.type === 'boolean' ? [{ value: true, label: 'Evet' }, { value: false, label: 'Hayır' }] : col.options"
+                    v-for="opt in col.type === 'boolean' ? [{ value: true, label: t('common.yes') }, { value: false, label: t('common.no') }] : col.options"
                     :key="String(opt.value)"
                     :value="opt.value"
                   >
@@ -457,7 +460,7 @@ onMounted(async () => {
             </td>
           </tr>
           <tr v-if="displayedRows.length === 0">
-            <td :colspan="visibleColumns.length" class="px-3 py-6 text-center text-neutral-400">Kayıt yok.</td>
+            <td :colspan="visibleColumns.length" class="px-3 py-6 text-center text-neutral-400">{{ t('common.noRecords') }}</td>
           </tr>
         </tbody>
       </table>

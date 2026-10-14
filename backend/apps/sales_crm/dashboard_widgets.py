@@ -85,3 +85,18 @@ def _sales_attention(ctx: r.WidgetContext) -> list:
         r.attention_item("late_sales_orders", late, r.WARNING, "/sales-orders"),
         r.attention_item("new_leads", Lead.objects.filter(status=Lead.NEW).count(), r.INFO, "/leads"),
     ]
+
+
+# Page charts (see apps/core/dashboard_widgets.py).
+@r.register_widget("sales_orders_by_status", plugin="sales_crm", kind=r.CHART, order=1300, default_enabled=False)
+def sales_orders_by_status(ctx: r.WidgetContext) -> dict:
+    counts = dict(SalesOrder.objects.values_list("status").annotate(n=Count("id")))
+    statuses = [SalesOrder.DRAFT, SalesOrder.CONFIRMED, SalesOrder.PARTIALLY_FULFILLED, SalesOrder.FULFILLED]
+    return r.chart("bar", [r.series("orders", [(s, counts.get(s, 0)) for s in statuses])], fmt="number", label_kind="key", route="/sales-orders")
+
+
+@r.register_widget("leads_by_source", plugin="sales_crm", kind=r.CHART, order=1310, default_enabled=False)
+def leads_by_source(ctx: r.WidgetContext) -> dict:
+    """Where leads come from. A lead with no source is shown as unassigned."""
+    rows = Lead.objects.values("source").annotate(n=Count("id")).order_by("-n")[:8]
+    return r.chart("hbar", [r.series("leads", [(row["source"], row["n"]) for row in rows])], fmt="number", route="/leads")

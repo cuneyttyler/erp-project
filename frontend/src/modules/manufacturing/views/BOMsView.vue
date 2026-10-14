@@ -3,6 +3,9 @@ import { onMounted, reactive, ref } from 'vue'
 
 import { useCatalogStore } from '@/core/stores/catalog'
 import { useManufacturingStore, type BOMLineInput } from '@/modules/manufacturing/stores/manufacturing'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // REQ-MFG-001: Bill of Materials definition.
 const manufacturing = useManufacturingStore()
@@ -27,7 +30,7 @@ function addLine() {
 async function submit() {
   error.value = ''
   if (form.item === null || !form.name.trim()) {
-    error.value = 'Mamul ürün ve ad girin.'
+    error.value = t('boms.errors.required')
     return
   }
   try {
@@ -38,37 +41,37 @@ async function submit() {
     form.name = ''
     form.lines = [{ component_item: null, quantity_per: '1' }]
   } catch (e: any) {
-    error.value = e?.response?.data?.lines?.[0] ?? e?.response?.data?.detail ?? 'Reçete oluşturulamadı.'
+    error.value = e?.response?.data?.lines?.[0] ?? e?.response?.data?.detail ?? t('boms.errors.create')
   }
 }
 </script>
 
 <template>
   <section class="p-8">
-    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Ürün Reçeteleri (BOM)</h1>
+    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">{{ t('boms.title') }}</h1>
 
     <form class="mt-4 max-w-2xl space-y-3 rounded border border-neutral-200 p-4 dark:border-neutral-800" @submit.prevent="submit">
       <div class="flex gap-3">
         <select v-model.number="form.item" class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800">
-          <option :value="null" disabled>Mamul ürün seçin</option>
+          <option :value="null" disabled>{{ t('boms.selectProduct') }}</option>
           <option v-for="it in catalog.items" :key="it.id" :value="it.id">{{ it.sku }} — {{ it.name }}</option>
         </select>
-        <input v-model="form.name" placeholder="Reçete adı" class="flex-1 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
+        <input v-model="form.name" :placeholder="t('boms.name')" class="flex-1 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       </div>
 
       <div v-for="(line, i) in form.lines" :key="i" class="flex items-center gap-2">
         <select v-model.number="line.component_item" class="flex-1 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800">
-          <option :value="null" disabled>Bileşen seçin</option>
+          <option :value="null" disabled>{{ t('boms.selectComponent') }}</option>
           <option v-for="it in catalog.items" :key="it.id" :value="it.id">{{ it.sku }} — {{ it.name }}</option>
         </select>
-        <input v-model="line.quantity_per" type="number" step="0.0001" placeholder="Birim başına miktar" class="w-40 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
+        <input v-model="line.quantity_per" type="number" step="0.0001" :placeholder="t('boms.perUnit')" class="w-40 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       </div>
-      <button type="button" class="text-sm text-blue-600" @click="addLine">+ Bileşen ekle</button>
+      <button type="button" class="block text-sm text-blue-600 hover:underline" @click="addLine">{{ t('boms.addComponent') }}</button>
 
       <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
 
       <button type="submit" class="rounded bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
-        Reçete Oluştur
+        {{ t('boms.create') }}
       </button>
     </form>
 

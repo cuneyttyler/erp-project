@@ -4,6 +4,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useActionLabels } from '@/core/access/labels'
+import PageInsights from '@/core/dashboard/PageInsights.vue'
 import { apiErrorMessage, useAccessStore } from '@/core/stores/access'
 import { apiClient } from '@/shared/api/client'
 import AppModal from '@/shared/components/AppModal.vue'
@@ -183,6 +184,7 @@ const secondaryButton =
   <section class="p-6 lg:p-8">
     <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">{{ t('audit.title') }}</h1>
     <p class="mt-1 max-w-3xl text-sm text-neutral-500">{{ auth.isOrgAdmin ? t('audit.subtitleAdmin') : t('audit.subtitleMember') }}</p>
+    <PageInsights screen-key="audit-log" :widgets="['audit_activity','audit_top_users']" />
 
     <div class="mt-5 flex flex-wrap items-end gap-3">
       <label class="block">

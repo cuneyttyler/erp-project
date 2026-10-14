@@ -2,7 +2,10 @@
 # Caddy obtains and renews a Let's Encrypt certificate on its own and
 # redirects HTTP to HTTPS.
 {$SITE_ADDRESS} {
-	encode zstd gzip
+	# Not the assistant's event stream: compression buffers, and the point
+	# of that stream is that each progress line arrives as it happens.
+	@compressible not path /api/v1/ai/chat/stream/*
+	encode @compressible zstd gzip
 
 	# The API and the Django admin. No response timeout: an assistant turn
 	# can legitimately take a while.

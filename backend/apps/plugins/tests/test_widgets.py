@@ -124,6 +124,25 @@ class LedgerWidgetTests(WidgetTestBase):
         self.assertEqual(revenue["points"][-1], {"label": month_key(self.today), "value": "1500.00"})
         self.assertEqual(Decimal(expenses["points"][-1]["value"]), Decimal("0"))
 
+    def test_balances_by_type_reads_each_type_on_its_normal_side(self):
+        self.post(self.today, "100", "600", Decimal("1500"))
+        self.post(self.today, "770", "100", Decimal("400"))
+        (series,) = self.data("balances_by_type")["series"]
+        balances = {p["label"]: Decimal(p["value"]) for p in series["points"]}
+        # Assets and expenses are debit-normal, revenue credit-normal: all positive.
+        self.assertEqual((balances["asset"], balances["revenue"], balances["expense"]), (Decimal("1100"), Decimal("1500"), Decimal("400")))
+
+    def test_invoiced_against_collected(self):
+        party = Party.objects.create(entity=self.entity, name="Acme")
+        invoice = Invoice.objects.create(party=party, issue_date=self.today, due_date=self.today, status=Invoice.SENT)
+        InvoiceLine.objects.create(invoice=invoice, description="x", quantity=2, unit_price=Decimal("250"))
+        Payment.objects.create(invoice=invoice, amount=Decimal("300"), date=self.today)
+        invoiced, collected = self.data("invoicing_trend")["series"]
+        self.assertEqual((Decimal(invoiced["points"][-1]["value"]), Decimal(collected["points"][-1]["value"])), (Decimal("500"), Decimal("300")))
+        # Scoped to the company picked in the header.
+        other_invoiced, _ = self.data("invoicing_trend", entity=self.other_entity.id)["series"]
+        self.assertEqual(Decimal(other_invoiced["points"][-1]["value"]), Decimal("0"))
+
     def test_entity_scoping(self):
         self.post(self.today, "100", "600", Decimal("1500"))
         self.assertEqual(Decimal(self.data("cash_position", entity=self.entity.id)["value"]), Decimal("1500"))

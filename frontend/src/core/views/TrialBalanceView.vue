@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 
+import PageInsights from '@/core/dashboard/PageInsights.vue'
 import { useLedgerStore } from '@/core/stores/ledger'
 import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
 import { useEntityStore } from '@/shared/stores/entity'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // REQ-CORE-GL-006/REQ-CORE-ENT-001/002. Deliberately a dumb table over the
 // backend's deterministic aggregation query (views.TrialBalanceView) -- no
@@ -28,32 +32,33 @@ function showConsolidated() {
   ledger.fetchTrialBalance('consolidated')
 }
 
-const columns: ColumnDef[] = [
-  { key: 'code', label: 'Kod' },
-  { key: 'name', label: 'Hesap Adı' },
-  { key: 'total_debit', label: 'Borç' },
-  { key: 'total_credit', label: 'Alacak' },
-]
+const columns = computed<ColumnDef[]>(() => [
+  { key: 'code', label: t('common.code') },
+  { key: 'name', label: t('common.accountName') },
+  { key: 'total_debit', label: t('common.debit') },
+  { key: 'total_credit', label: t('common.credit') },
+])
 </script>
 
 <template>
   <section class="p-8">
-    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Mizan (Trial Balance)</h1>
-    <p class="mt-1 text-sm text-neutral-500">Yalnızca kaydedilmiş (posted) yevmiye kayıtlarını içerir.</p>
+    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">{{ t('trialBalance.title') }}</h1>
+    <p class="mt-1 text-sm text-neutral-500">{{ t('trialBalance.subtitle') }}</p>
+    <PageInsights screen-key="trial-balance" :widgets="['balances_by_type','revenue_expense_trend','expense_breakdown']" :follow="ledger.trialBalance" />
 
     <div class="mt-3 flex gap-2">
       <button
         class="rounded border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
         @click="refresh"
       >
-        Geçerli Şirket
+        {{ t('trialBalance.current') }}
       </button>
       <button
         v-if="entity.entities.length > 1"
         class="rounded border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
         @click="showConsolidated"
       >
-        Konsolide (Tüm Şirketler)
+        {{ t('trialBalance.consolidated') }}
       </button>
     </div>
 

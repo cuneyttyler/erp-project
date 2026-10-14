@@ -31,7 +31,9 @@ export const useEntityStore = defineStore('entity', () => {
     entities.value = data.results ?? data
     const stillValid = entities.value.some((e) => e.id === currentEntityId.value)
     if (!stillValid && entities.value.length > 0) {
-      setCurrentEntity(entities.value[0].id)
+      // The company set up first -- the organization's main one -- rather
+      // than whichever happens to sort first by name.
+      setCurrentEntity(Math.min(...entities.value.map((e) => e.id)))
     }
   }
 

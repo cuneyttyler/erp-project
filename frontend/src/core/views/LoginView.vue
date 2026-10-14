@@ -4,6 +4,9 @@ import { useRouter } from 'vue-router'
 
 import AppLogo from '@/shared/components/AppLogo.vue'
 import { useAuthStore } from '@/shared/stores/auth'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -20,7 +23,7 @@ async function submit() {
     await auth.login(username.value, password.value)
     router.push({ name: 'dashboard' })
   } catch {
-    error.value = 'Kullanıcı adı veya parola hatalı.'
+    error.value = t('login.invalid')
   } finally {
     submitting.value = false
   }
@@ -36,7 +39,7 @@ async function submit() {
       <RouterLink :to="{ name: 'home' }" class="inline-block" aria-label="ERPIntel"><AppLogo size="md" /></RouterLink>
 
       <div>
-        <label class="mb-1 block text-sm text-neutral-600 dark:text-neutral-400">Kullanıcı Adı</label>
+        <label class="mb-1 block text-sm text-neutral-600 dark:text-neutral-400">{{ t('login.username') }}</label>
         <input
           v-model="username"
           type="text"
@@ -46,7 +49,7 @@ async function submit() {
       </div>
 
       <div>
-        <label class="mb-1 block text-sm text-neutral-600 dark:text-neutral-400">Parola</label>
+        <label class="mb-1 block text-sm text-neutral-600 dark:text-neutral-400">{{ t('login.password') }}</label>
         <input
           v-model="password"
           type="password"
@@ -62,7 +65,7 @@ async function submit() {
         :disabled="submitting"
         class="w-full rounded bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
       >
-        Giriş Yap
+        {{ t('login.submit') }}
       </button>
     </form>
   </div>

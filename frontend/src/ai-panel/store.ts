@@ -66,6 +66,15 @@ export interface ProposalBlock {
 
 export type Block = TableBlock | ChartBlock | RecordBlock | ProposalBlock
 
+// What the assistant is doing mid-turn (the stream's `progress` events).
+export interface ProgressStep {
+  step: 'thinking' | 'tool'
+  tool?: string
+  kind?: string
+  resource?: string
+  operation?: string
+}
+
 export interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
@@ -96,6 +105,7 @@ export const useAIStore = defineStore('ai', () => {
   const currentId = ref<number | null>(null)
   const messages = ref<ChatMessage[]>([])
   const isThinking = ref(false)
+  const progress = ref<ProgressStep[]>([])
   const isLoadingConversation = ref(false)
   const configured = ref(true)
 
@@ -127,14 +137,53 @@ export const useAIStore = defineStore('ai', () => {
     if (currentId.value === id) startNew()
   }
 
+  // One turn over the streaming endpoint: progress events land in
+  // `progress` as the assistant works, the final `done` event is the
+  // response. (axios can't read a response body as it arrives; fetch can.)
+  async function streamTurn(body: Record<string, unknown>): Promise<ChatResponse> {
+    const csrf = document.cookie.split('; ').find((c) => c.startsWith('csrftoken='))?.slice('csrftoken='.length) ?? ''
+    const response = await fetch(`${apiClient.defaults.baseURL}ai/chat/stream/`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': decodeURIComponent(csrf), 'Accept-Language': i18n.global.locale.value },
+      body: JSON.stringify(body),
+    })
+    if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`)
+    const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
+    let buffer = ''
+    for (;;) {
+      const { value, done } = await reader.read()
+      if (done) break
+      buffer += value
+      let end: number
+      while ((end = buffer.indexOf('\n\n')) !== -1) {
+        const chunk = buffer.slice(0, end)
+        buffer = buffer.slice(end + 2)
+        let event = 'message'
+        let data = ''
+        for (const line of chunk.split('\n')) {
+          if (line.startsWith('event: ')) event = line.slice(7)
+          else if (line.startsWith('data: ')) data += line.slice(6)
+        }
+        if (!data) continue // a comment line (": stream open")
+        const payload = JSON.parse(data)
+        if (event === 'progress') progress.value.push(payload)
+        else if (event === 'done') return payload as ChatResponse
+        else if (event === 'error') throw new Error(payload.detail)
+      }
+    }
+    throw new Error('The stream ended without an answer.')
+  }
+
   async function send(text: string) {
     messages.value.push({ id: crypto.randomUUID(), role: 'user', text, blocks: [], citations: [] })
     isThinking.value = true
+    progress.value = []
     // The turn belongs to the conversation it was sent in, even if the
     // user opens another one before the answer arrives.
     const sentIn = currentId.value
     try {
-      const { data } = await apiClient.post<ChatResponse>('ai/chat/', {
+      const data = await streamTurn({
         message: text,
         locale: i18n.global.locale.value,
         conversation_id: sentIn,
@@ -155,6 +204,7 @@ export const useAIStore = defineStore('ai', () => {
       }
     } finally {
       isThinking.value = false
+      progress.value = []
     }
   }
 
@@ -175,5 +225,5 @@ export const useAIStore = defineStore('ai', () => {
     startNew()
   }
 
-  return { conversations, currentId, messages, isThinking, isLoadingConversation, configured, fetchConversations, startNew, open, remove, send, resolve, reset }
+  return { conversations, currentId, messages, isThinking, progress, isLoadingConversation, configured, fetchConversations, startNew, open, remove, send, resolve, reset }
 })

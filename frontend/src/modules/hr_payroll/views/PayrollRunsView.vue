@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 
+import PageInsights from '@/core/dashboard/PageInsights.vue'
 import { useHrPayrollStore } from '@/modules/hr_payroll/stores/hrPayroll'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // REQ-HR-003: payroll run gross-to-net calculation.
 const hrPayroll = useHrPayrollStore()
@@ -23,7 +27,7 @@ async function submit() {
   try {
     await hrPayroll.createPayrollRun(form.period_year, form.period_month)
   } catch (e: any) {
-    error.value = e?.response?.data?.detail ?? 'Bordro dönemi oluşturulamadı.'
+    error.value = e?.response?.data?.detail ?? t('payroll.errors.create')
   }
 }
 
@@ -32,7 +36,7 @@ async function calculate(id: number) {
     await hrPayroll.calculatePayrollRun(id)
     expanded[id] = true
   } catch (e: any) {
-    error.value = e?.response?.data?.detail ?? 'Hesaplanamadı.'
+    error.value = e?.response?.data?.detail ?? t('payroll.errors.calculate')
   }
 }
 
@@ -40,24 +44,25 @@ async function finalize(id: number) {
   try {
     await hrPayroll.finalizePayrollRun(id)
   } catch (e: any) {
-    error.value = e?.response?.data?.detail ?? 'Kesinleştirilemedi.'
+    error.value = e?.response?.data?.detail ?? t('payroll.errors.finalize')
   }
 }
 
-const statusLabels: Record<string, string> = {
-  draft: 'Taslak',
-  finalized: 'Kesinleşti',
-}
+const statusLabels = computed<Record<string, string>>(() => ({
+  draft: t('widgets.status.draft'),
+  finalized: t('widgets.status.finalized'),
+}))
 </script>
 
 <template>
   <section class="p-8">
-    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Bordro Dönemleri</h1>
+    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">{{ t('payroll.title') }}</h1>
+    <PageInsights screen-key="payroll-runs" :widgets="['payroll_cost_trend','payroll_breakdown']" :follow="hrPayroll.payrollRuns" />
 
     <form class="mt-4 flex max-w-md items-end gap-2 rounded border border-neutral-200 p-4 dark:border-neutral-800" @submit.prevent="submit">
-      <input v-model.number="form.period_year" type="number" placeholder="Yıl" class="w-24 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
-      <input v-model.number="form.period_month" type="number" min="1" max="12" placeholder="Ay" class="w-20 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
-      <button type="submit" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">Dönem Oluştur</button>
+      <input v-model.number="form.period_year" type="number" :placeholder="t('payroll.year')" class="w-24 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
+      <input v-model.number="form.period_month" type="number" min="1" max="12" :placeholder="t('payroll.month')" class="w-20 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
+      <button type="submit" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">{{ t('payroll.create') }}</button>
     </form>
 
     <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
@@ -73,21 +78,21 @@ const statusLabels: Record<string, string> = {
               class="rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700"
               @click="calculate(run.id)"
             >
-              Hesapla
+              {{ t('payroll.calculate') }}
             </button>
             <button
               v-if="run.status === 'draft' && run.payslips.length > 0"
               class="rounded bg-neutral-200 px-2 py-1 text-xs font-medium text-neutral-800 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-100"
               @click="finalize(run.id)"
             >
-              Kesinleştir
+              {{ t('payroll.finalize') }}
             </button>
             <button
               v-if="run.payslips.length > 0"
               class="text-xs text-blue-600 hover:underline"
               @click="expanded[run.id] = !expanded[run.id]"
             >
-              {{ expanded[run.id] ? 'Gizle' : `${run.payslips.length} bordro göster` }}
+              {{ expanded[run.id] ? t('payroll.hide') : t('payroll.showPayslips', { n: run.payslips.length }) }}
             </button>
           </div>
         </div>
@@ -95,14 +100,14 @@ const statusLabels: Record<string, string> = {
         <table v-if="expanded[run.id]" class="mt-3 w-full text-left text-xs">
           <thead class="text-neutral-500">
             <tr>
-              <th class="py-1 pr-2">Çalışan</th>
-              <th class="py-1 pr-2">Brüt</th>
-              <th class="py-1 pr-2">SGK</th>
-              <th class="py-1 pr-2">İşsizlik</th>
-              <th class="py-1 pr-2">Gelir Vergisi</th>
-              <th class="py-1 pr-2">Damga Vergisi</th>
-              <th class="py-1 pr-2">Net</th>
-              <th class="py-1 pr-2">İşveren Toplam Maliyet</th>
+              <th class="py-1 pr-2">{{ t('common.employee') }}</th>
+              <th class="py-1 pr-2">{{ t('payroll.gross') }}</th>
+              <th class="py-1 pr-2">{{ t('payroll.sgk') }}</th>
+              <th class="py-1 pr-2">{{ t('payroll.unemployment') }}</th>
+              <th class="py-1 pr-2">{{ t('payroll.incomeTax') }}</th>
+              <th class="py-1 pr-2">{{ t('payroll.stampTax') }}</th>
+              <th class="py-1 pr-2">{{ t('payroll.net') }}</th>
+              <th class="py-1 pr-2">{{ t('payroll.employerCost') }}</th>
             </tr>
           </thead>
           <tbody>

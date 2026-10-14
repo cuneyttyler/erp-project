@@ -72,7 +72,7 @@ async function logout() {
           </select>
           <button
             class="rounded px-1.5 py-1 text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-            title="Yeni şirket ekle"
+            :title="t('header.newEntity')"
             @click="showNewEntityForm = !showNewEntityForm"
           >
             +
@@ -83,19 +83,19 @@ async function logout() {
           >
             <input
               v-model="newEntityName"
-              placeholder="Şirket adı"
+              :placeholder="t('header.entityName')"
               class="w-full rounded border border-neutral-300 px-2 py-1 text-xs dark:border-neutral-700 dark:bg-neutral-800"
             />
             <input
               v-model="newEntityCode"
-              placeholder="Kod (ör. B)"
+              :placeholder="t('header.entityCode')"
               class="w-full rounded border border-neutral-300 px-2 py-1 text-xs dark:border-neutral-700 dark:bg-neutral-800"
             />
             <button
               class="w-full rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700"
               @click="createEntity"
             >
-              Oluştur
+              {{ t('common.create') }}
             </button>
           </div>
         </div>

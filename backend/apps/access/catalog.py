@@ -192,16 +192,27 @@ def resource(
     return decorator
 
 
+def _loaded() -> dict[str, Resource]:
+    """Resources register as their views are imported, which a web process
+    does when it first resolves a URL. A management command, shell or worker
+    never does -- so import the URLconf here before answering, or half the
+    catalog would be missing."""
+    from django.urls import get_resolver
+
+    get_resolver().url_patterns
+    return _RESOURCES
+
+
 def all_resources() -> list[Resource]:
-    return list(_RESOURCES.values())
+    return list(_loaded().values())
 
 
 def get_resource(key: str) -> Optional[Resource]:
-    return _RESOURCES.get(key)
+    return _loaded().get(key)
 
 
 def grantable_resources() -> list[Resource]:
-    return [r for r in _RESOURCES.values() if not r.admin_only]
+    return [r for r in _loaded().values() if not r.admin_only]
 
 
 def grantable_codes() -> set[str]:

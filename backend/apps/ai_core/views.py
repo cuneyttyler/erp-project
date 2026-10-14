@@ -1,5 +1,10 @@
+import json
+import logging
+
 from django.core.exceptions import ValidationError
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Q
+from django.http import StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, permissions, status, viewsets
@@ -20,6 +25,8 @@ from .serializers import (
     hydrate_blocks,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class ChatView(APIView):
     """
@@ -35,6 +42,16 @@ class ChatView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
+        steps, conversation, message = self.start(request)
+        while True:
+            try:
+                next(steps)
+            except StopIteration as done:
+                return Response(self.finish(request, conversation, message, done.value), status=status.HTTP_200_OK)
+
+    def start(self, request):
+        """Validates the request and returns (the turn's step generator,
+        the conversation, the message)."""
         req = ChatRequestSerializer(data=request.data)
         req.is_valid(raise_exception=True)
         message = req.validated_data["message"]
@@ -48,7 +65,7 @@ class ChatView(APIView):
             else:
                 conversation = Conversation.objects.create(user=request.user, title=" ".join(message.split())[:120])
 
-        result = chat.answer(
+        steps = chat.answer_steps(
             user=request.user,
             tenant=getattr(request, "tenant", None),
             locale=req.validated_data.get("locale", "en"),
@@ -56,7 +73,10 @@ class ChatView(APIView):
             conversation=conversation,
             entity_id=req.validated_data.get("entity"),
         )
+        return steps, conversation, message
 
+    def finish(self, request, conversation, message, result) -> dict:
+        """Audits the finished turn and returns the response body."""
         # REQ-CORE-AI-008: what was asked, what was answered and which tools
         # ran. Any change the user later approves is logged separately, as
         # that action, by the resource's own view.
@@ -73,16 +93,51 @@ class ChatView(APIView):
             after={"reply": result["reply"], "tool_calls": result["tool_calls"], "configured": result["configured"]},
         )
 
-        return Response(
-            {
-                "conversation": ConversationSerializer(conversation).data if conversation else None,
-                "reply": result["reply"],
-                "blocks": hydrate_blocks(result["blocks"], request),
-                "citations": result["citations"],
-                "configured": result["configured"],
-            },
-            status=status.HTTP_200_OK,
-        )
+        return {
+            "conversation": ConversationSerializer(conversation).data if conversation else None,
+            "reply": result["reply"],
+            "blocks": hydrate_blocks(result["blocks"], request),
+            "citations": result["citations"],
+            "configured": result["configured"],
+        }
+
+
+class ChatStreamView(ChatView):
+    """The same turn as ChatView, as Server-Sent Events: a `progress` event
+    each time the assistant consults the model or a tool ("Looking up
+    invoices..."), so a long turn shows what it's doing instead of a bare
+    spinner, then one `done` event whose data is exactly ChatView's response
+    body. The turn runs in this request's own thread, as the generator is
+    read -- same user, same tenant connection, nothing in the background."""
+
+    def post(self, request):
+        steps, conversation, message = self.start(request)
+
+        def events():
+            # A comment line first, so every proxy on the way starts passing
+            # the stream through before the first (slow) model call returns.
+            yield ": stream open\n\n"
+            try:
+                while True:
+                    try:
+                        progress = next(steps)
+                    except StopIteration as done:
+                        body = self.finish(request, conversation, message, done.value)
+                        yield _sse("done", body)
+                        return
+                    yield _sse("progress", progress)
+            except Exception:
+                logger.exception("Assistant turn failed mid-stream")
+                yield _sse("error", {"detail": "The assistant couldn't finish this turn."})
+
+        response = StreamingHttpResponse(events(), content_type="text/event-stream")
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+        return response
+
+
+def _sse(event: str, data) -> str:
+    return f"event: {event}\ndata: {json.dumps(data, cls=DjangoJSONEncoder)}\n\n"
 
 
 class ConversationViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):

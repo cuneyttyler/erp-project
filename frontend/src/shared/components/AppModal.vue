@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { XMarkIcon } from '@heroicons/vue/24/outline'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // A centered dialog over a dimmed page. Closes on Escape, on the close
 // button and on a click on the backdrop -- never on a click inside, so a
@@ -36,7 +39,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
         <h2 class="text-base font-semibold text-neutral-900 dark:text-neutral-100">{{ title }}</h2>
         <button
           class="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
-          aria-label="Close"
+          :aria-label="t('common.close')"
           @click="emit('close')"
         >
           <XMarkIcon class="h-5 w-5" />

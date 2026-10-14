@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { onMounted, reactive } from 'vue'
+import { computed, onMounted, reactive } from 'vue'
 
+import PageInsights from '@/core/dashboard/PageInsights.vue'
 import { useCatalogStore } from '@/core/stores/catalog'
 import DataTable, { type ColumnDef } from '@/shared/components/DataTable.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // REQ-INV-001: shared product/service catalog (Core, not package-specific --
 // referenced by Purchasing/Inventory/eventually Sales regardless of which
@@ -23,22 +27,22 @@ async function submit() {
   form.name = ''
 }
 
-const columns: ColumnDef[] = [
-  { key: 'sku', label: 'SKU', editable: true },
-  { key: 'name', label: 'Ad', editable: true },
-  { key: 'unit_of_measure', label: 'Birim', editable: true },
+const columns = computed<ColumnDef[]>(() => [
+  { key: 'sku', label: t('common.sku'), editable: true },
+  { key: 'name', label: t('common.name'), editable: true },
+  { key: 'unit_of_measure', label: t('common.unit'), editable: true },
   {
     key: 'cost_method',
-    label: 'Maliyet Yöntemi',
+    label: t('items.costMethod'),
     editable: true,
     type: 'select',
     options: [
-      { value: 'fifo', label: 'FIFO' },
-      { value: 'weighted_average', label: 'Ağırlıklı Ortalama' },
+      { value: 'fifo', label: t('items.fifo') },
+      { value: 'weighted_average', label: t('items.weightedAverage') },
     ],
   },
-  { key: 'is_active', label: 'Aktif', editable: true, type: 'boolean' },
-]
+  { key: 'is_active', label: t('common.active'), editable: true, type: 'boolean' },
+])
 
 async function onCellEdit({ row, column, value }: { row: any; column: string; value: any }) {
   await catalog.updateItem(row.id, { [column]: value })
@@ -47,22 +51,23 @@ async function onCellEdit({ row, column, value }: { row: any; column: string; va
 
 <template>
   <section class="p-8">
-    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Ürün/Malzeme Kataloğu</h1>
+    <h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">{{ t('items.title') }}</h1>
+    <PageInsights screen-key="items" :widgets="['top_moving_items','top_stock_items']" :follow="catalog.items" />
 
     <form class="mt-4 flex max-w-xl items-end gap-2 rounded border border-neutral-200 p-4 dark:border-neutral-800" @submit.prevent="submit">
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">SKU</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('common.sku') }}</label>
         <input v-model="form.sku" required class="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       </div>
       <div class="flex-1">
-        <label class="mb-1 block text-xs text-neutral-500">Ad</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('common.name') }}</label>
         <input v-model="form.name" required class="w-full rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       </div>
       <div>
-        <label class="mb-1 block text-xs text-neutral-500">Birim</label>
+        <label class="mb-1 block text-xs text-neutral-500">{{ t('common.unit') }}</label>
         <input v-model="form.unit_of_measure" class="w-20 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800" />
       </div>
-      <button type="submit" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">Ekle</button>
+      <button type="submit" class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">{{ t('common.add') }}</button>
     </form>
 
     <div class="mt-6">

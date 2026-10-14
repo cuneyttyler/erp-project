@@ -104,6 +104,15 @@ def flagged_vendor_bills(**_kwargs) -> dict:
     }
 
 
+def _in_range(documents, date_from, date_to):
+    """Invoices/bills issued within [date_from, date_to]; either end optional."""
+    if date_from:
+        documents = documents.filter(issue_date__gte=date_from)
+    if date_to:
+        documents = documents.filter(issue_date__lte=date_to)
+    return documents
+
+
 def _month_bucket(date) -> str:
     return f"{date.year:04d}-{date.month:02d}"
 
@@ -153,15 +162,16 @@ def monthly_revenue(months=12, **_kwargs) -> dict:
 @register_series(
     name="revenue_by_customer",
     requires="invoice.view",
-    description="Total invoiced amount per customer (sent/partially paid/paid invoices), highest first, top N customers.",
-    input_schema={"type": "object", "properties": {"top_n": {"type": "integer", "default": 10}}},
+    description="Total invoiced amount per customer (sent/partially paid/paid invoices), highest first, top N customers. ALL TIME unless date_from/date_to are given -- pass them for \"this month\", \"this year\" and the like.",
+    input_schema={"type": "object", "properties": {"top_n": {"type": "integer", "default": 10}, "date_from": {"type": "string", "format": "date", "description": "First issue date to include (YYYY-MM-DD). Omit for all time."}, "date_to": {"type": "string", "format": "date", "description": "Last issue date to include (YYYY-MM-DD). Omit for up to today."}}},
     chart_kind="category",
 )
-def revenue_by_customer(top_n=10, **_kwargs) -> dict:
+def revenue_by_customer(top_n=10, date_from=None, date_to=None, **_kwargs) -> dict:
     top_n = int(top_n)
     invoices = Invoice.objects.filter(
         status__in=[Invoice.SENT, Invoice.PARTIALLY_PAID, Invoice.PAID]
     ).select_related("party").prefetch_related("lines")
+    invoices = _in_range(invoices, date_from, date_to)
     totals: dict[str, Decimal] = defaultdict(Decimal)
     for invoice in invoices:
         totals[invoice.party.name] += invoice.total
@@ -176,15 +186,16 @@ def revenue_by_customer(top_n=10, **_kwargs) -> dict:
 @register_series(
     name="spend_by_vendor",
     requires="bill.view",
-    description="Total billed amount per vendor (sent/partially paid/paid bills), highest first, top N vendors.",
-    input_schema={"type": "object", "properties": {"top_n": {"type": "integer", "default": 10}}},
+    description="Total billed amount per vendor (sent/partially paid/paid bills), highest first, top N vendors. ALL TIME unless date_from/date_to are given -- pass them for \"this month\", \"this year\" and the like.",
+    input_schema={"type": "object", "properties": {"top_n": {"type": "integer", "default": 10}, "date_from": {"type": "string", "format": "date", "description": "First issue date to include (YYYY-MM-DD). Omit for all time."}, "date_to": {"type": "string", "format": "date", "description": "Last issue date to include (YYYY-MM-DD). Omit for up to today."}}},
     chart_kind="category",
 )
-def spend_by_vendor(top_n=10, **_kwargs) -> dict:
+def spend_by_vendor(top_n=10, date_from=None, date_to=None, **_kwargs) -> dict:
     top_n = int(top_n)
     bills = Bill.objects.filter(
         status__in=[Bill.SENT, Bill.PARTIALLY_PAID, Bill.PAID]
     ).select_related("party").prefetch_related("lines")
+    bills = _in_range(bills, date_from, date_to)
     totals: dict[str, Decimal] = defaultdict(Decimal)
     for bill in bills:
         totals[bill.party.name] += bill.total

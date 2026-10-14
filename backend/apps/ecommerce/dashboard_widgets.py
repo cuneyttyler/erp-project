@@ -83,3 +83,40 @@ def _ecommerce_attention(ctx: r.WidgetContext) -> list:
         r.attention_item("failed_marketplace_orders", MarketplaceOrder.objects.filter(status=MarketplaceOrder.FAILED).count(), r.CRITICAL, "/ecommerce/orders"),
         r.attention_item("stale_marketplace_syncs", stale, r.WARNING, "/ecommerce/accounts"),
     ]
+
+
+# Page charts (see apps/core/dashboard_widgets.py).
+@r.register_widget("marketplace_orders_trend", plugin="ecommerce", kind=r.CHART, order=1700, default_enabled=False)
+def marketplace_orders_trend(ctx: r.WidgetContext) -> dict:
+    """Marketplace orders pulled per day, last two weeks: turned into sales
+    orders, or failed and waiting for someone to look."""
+    days = last_days(14)
+    counts = {
+        (row["created_at__date"], row["status"]): row["n"]
+        for row in MarketplaceOrder.objects.filter(created_at__date__gte=days[0])
+        .values("created_at__date", "status")
+        .annotate(n=Count("id"))
+    }
+    return r.chart(
+        "bar",
+        [
+            r.series("synced_orders", [(day, counts.get((day, MarketplaceOrder.SYNCED), 0)) for day in days]),
+            r.series("failed_orders", [(day, counts.get((day, MarketplaceOrder.FAILED), 0)) for day in days]),
+        ],
+        fmt="number",
+        label_kind="date",
+        route="/ecommerce/orders",
+    )
+
+
+@r.register_widget("marketplace_orders_by_account", plugin="ecommerce", kind=r.CHART, order=1710, default_enabled=False)
+def marketplace_orders_by_account(ctx: r.WidgetContext) -> dict:
+    """Orders per marketplace connection over the last 30 days."""
+    since = timezone.localdate() - datetime.timedelta(days=29)
+    rows = (
+        MarketplaceOrder.objects.filter(created_at__date__gte=since)
+        .values("account__name")
+        .annotate(n=Count("id"))
+        .order_by("-n")[:8]
+    )
+    return r.chart("hbar", [r.series("orders", [(row["account__name"], row["n"]) for row in rows])], fmt="number", route="/ecommerce/orders")

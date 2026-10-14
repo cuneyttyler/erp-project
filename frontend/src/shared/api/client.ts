@@ -1,5 +1,7 @@
 import axios from 'axios'
 
+import { i18n } from '@/shared/i18n'
+
 // Shared typed API client (technical.md §10.3). Every package module's store
 // calls through this instance rather than instantiating its own axios client,
 // so auth headers / base URL / error handling stay in one place. Once the DRF
@@ -17,6 +19,13 @@ export const apiClient = axios.create({
   // header automatically on every request once the cookie exists.
   xsrfCookieName: 'csrftoken',
   xsrfHeaderName: 'X-CSRFToken',
+})
+
+// The API answers in the UI's language (Django's LocaleMiddleware reads
+// this), so its validation messages match the screen they appear on.
+apiClient.interceptors.request.use((config) => {
+  config.headers.set('Accept-Language', i18n.global.locale.value)
+  return config
 })
 
 apiClient.interceptors.response.use(

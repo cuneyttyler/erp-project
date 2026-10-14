@@ -69,7 +69,23 @@ def _build_request(user, tenant, resource, operation, pk, data, params, handler)
     # browser request, and the caller has already authenticated the user.
     force_authenticate(request, user=user)
     request.tenant = tenant
+    # The factory's default host ("testserver") isn't an allowed host, and a
+    # view that builds an absolute URL -- every paginated list does, for its
+    # "next" link -- would fail on it. Use one this tenant is really served at.
+    host = _tenant_host(tenant)
+    if host:
+        request.META["HTTP_HOST"] = host
     return request, method, handler
+
+
+def _tenant_host(tenant) -> Optional[str]:
+    from django.conf import settings
+
+    domain = tenant.get_primary_domain() if tenant is not None and hasattr(tenant, "get_primary_domain") else None
+    if domain is not None:
+        return domain.domain
+    allowed = [h for h in settings.ALLOWED_HOSTS if h and h != "*"]
+    return allowed[0].lstrip(".") if allowed else None
 
 
 def perform(

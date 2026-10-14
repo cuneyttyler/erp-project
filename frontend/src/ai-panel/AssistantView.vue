@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PaperAirplaneIcon, PencilSquareIcon, SparklesIcon, TrashIcon } from '@heroicons/vue/24/outline'
+import { CheckIcon, PaperAirplaneIcon, PencilSquareIcon, SparklesIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -11,7 +11,7 @@ import ProposalCard from './blocks/ProposalCard.vue'
 import ResultChart from './blocks/ResultChart.vue'
 import ResultTable from './blocks/ResultTable.vue'
 import RichText from './blocks/RichText.vue'
-import { useAIStore } from './store'
+import { type ProgressStep, useAIStore } from './store'
 
 // The AI assistant (REQ-CORE-AI-001), as a full page rather than a side
 // panel: its answers are tables, charts and approval cards, which need the
@@ -25,6 +25,39 @@ const { t, locale } = useI18n()
 const ai = useAIStore()
 const auth = useAuthStore()
 const labels = useActionLabels()
+
+// While a turn runs: one line per tool the assistant has used (done) and
+// what it's doing now (active) -- "Looking up Invoices", "Summarising
+// Bills", "Reading the results" -- instead of a bare spinner.
+function stepLabel(step: ProgressStep): string {
+  const resource = step.resource ? labels.resource(step.resource) : ''
+  switch (step.tool) {
+    case 'describe_resource':
+      return t('assistant.progress.describe', { resource })
+    case 'query_records':
+      return t('assistant.progress.query', { resource })
+    case 'get_record':
+      return t('assistant.progress.record', { resource })
+    case 'summarize_records':
+      return t('assistant.progress.summarize', { resource })
+    case 'propose_action':
+      return t('assistant.progress.propose', { action: step.operation ? labels.action(`${step.resource}.${step.operation}`) : resource })
+    default:
+      return t(step.kind === 'series' ? 'assistant.progress.series' : 'assistant.progress.metric', { name: (step.tool ?? '').replace(/_/g, ' ') })
+  }
+}
+
+const progressLines = computed(() => {
+  const lines: string[] = []
+  for (const step of ai.progress) {
+    if (step.step !== 'tool') continue
+    const label = stepLabel(step)
+    if (lines[lines.length - 1] !== label) lines.push(label)
+  }
+  const last = ai.progress[ai.progress.length - 1]
+  if (!last || last.step === 'thinking') lines.push(lines.length ? t('assistant.progress.reading') : t('assistant.thinking'))
+  return lines.map((label, i) => ({ label, active: i === lines.length - 1 }))
+})
 
 const draft = ref('')
 const thread = ref<HTMLElement | null>(null)
@@ -194,11 +227,17 @@ async function remove(id: number) {
               </div>
             </template>
 
-            <div v-if="ai.isThinking" class="flex items-center gap-3" aria-live="polite">
+            <div v-if="ai.isThinking" class="flex items-start gap-3" aria-live="polite">
               <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
                 <SparklesIcon class="h-4 w-4 animate-pulse" />
               </span>
-              <span class="text-sm text-neutral-500">{{ t('assistant.thinking') }}</span>
+              <ul class="space-y-1 pt-1 text-sm">
+                <li v-for="(line, i) in progressLines" :key="i" class="flex items-center gap-2" :class="line.active ? 'text-neutral-700 dark:text-neutral-300' : 'text-neutral-400 dark:text-neutral-500'">
+                  <CheckIcon v-if="!line.active" class="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                  <span v-else class="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-600 dark:bg-blue-400" aria-hidden="true" />
+                  {{ line.label }}
+                </li>
+              </ul>
             </div>
           </div>
         </div>

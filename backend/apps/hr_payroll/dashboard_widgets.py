@@ -1,11 +1,13 @@
 """HR & Payroll's home-panel widgets. Registered from HrPayrollConfig.ready()."""
 
+from collections import defaultdict
 from decimal import Decimal
 
 from django.db.models import Count, Sum
 from django.utils import timezone
 
 from apps.plugins import registry as r
+from apps.plugins.periods import month_key, month_starts
 
 from .models import Employee, LeaveRequest, PayrollRun
 
@@ -80,3 +82,54 @@ def _hr_attention(ctx: r.WidgetContext) -> list:
         r.attention_item("pending_leave_requests", LeaveRequest.objects.filter(status=LeaveRequest.PENDING).count(), r.WARNING, "/leave-requests"),
         r.attention_item("draft_payroll_runs", PayrollRun.objects.filter(status=PayrollRun.DRAFT).count(), r.INFO, "/payroll-runs"),
     ]
+
+
+# Page charts (see apps/core/dashboard_widgets.py).
+@r.register_widget("salary_by_department", plugin="hr_payroll", kind=r.CHART, order=1500, default_enabled=False)
+def salary_by_department(ctx: r.WidgetContext) -> dict:
+    """Monthly gross salaries of active employees, per department."""
+    rows = (
+        Employee.objects.filter(is_active=True)
+        .values("department")
+        .annotate(total=Sum("monthly_gross_salary"))
+        .order_by("-total")[:8]
+    )
+    return r.chart("hbar", [r.series("gross_salary", [(row["department"], row["total"]) for row in rows])], route="/employees")
+
+
+@r.register_widget("leave_days_trend", plugin="hr_payroll", kind=r.CHART, order=1510, default_enabled=False)
+def leave_days_trend(ctx: r.WidgetContext) -> dict:
+    """Approved leave days per month (by start date), annual and sick, last
+    six months."""
+    starts = month_starts(6)
+    days = defaultdict(int)
+    for leave in LeaveRequest.objects.filter(status=LeaveRequest.APPROVED, start_date__gte=starts[0]):
+        days[(month_key(leave.start_date), leave.leave_type)] += leave.days
+    return r.chart(
+        "bar",
+        [
+            r.series("annual_leave", [(month_key(s), days[(month_key(s), LeaveRequest.ANNUAL)]) for s in starts]),
+            r.series("sick_leave", [(month_key(s), days[(month_key(s), LeaveRequest.SICK)]) for s in starts]),
+        ],
+        fmt="number",
+        label_kind="month",
+        route="/leave-requests",
+    )
+
+
+@r.register_widget("payroll_breakdown", plugin="hr_payroll", kind=r.CHART, order=1520, default_enabled=False)
+def payroll_breakdown(ctx: r.WidgetContext) -> dict:
+    """Where the latest finalized payroll's money goes: what employees take
+    home, the deductions from their gross, and the employer's own premiums."""
+    run = PayrollRun.objects.filter(status=PayrollRun.FINALIZED).order_by("-period_year", "-period_month").first()
+    fields = [
+        ("net_salary", "net_salary"),
+        ("income_tax", "income_tax"),
+        ("sgk_employee", "sgk_employee_premium"),
+        ("employer_sgk", "employer_sgk_cost"),
+        ("unemployment", "unemployment_employee_premium"),
+        ("employer_unemployment", "employer_unemployment_cost"),
+        ("stamp_duty", "stamp_duty"),
+    ]
+    sums = run.payslips.aggregate(**{key: Sum(field) for key, field in fields}) if run else {}
+    return r.chart("hbar", [r.series("amount", [(key, sums.get(key) or ZERO) for key, _ in fields])], label_kind="key", route="/payroll-runs")
